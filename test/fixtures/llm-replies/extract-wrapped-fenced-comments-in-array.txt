@@ -1,0 +1,6 @@
+Here is the result:
+```json
+[1, // one
+ 2]
+```
+Let me know if anything is missing.

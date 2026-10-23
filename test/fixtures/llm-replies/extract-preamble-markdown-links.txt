@@ -1,0 +1,4 @@
+See [the docs](https://example.com) and [1].
+```json
+{"a": 1}
+```

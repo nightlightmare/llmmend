@@ -1,0 +1,7 @@
+{
+  "value": {
+    "a": 1,
+    "b": 2
+  },
+  "issues": ["stripped_wrapper", "trailing_comma"]
+}

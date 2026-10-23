@@ -1,0 +1,15 @@
+{
+  "value": {
+    "a": [
+      1,
+      2.5,
+      "x",
+      true,
+      null,
+      {
+        "b": "é"
+      }
+    ]
+  },
+  "issues": ["stripped_wrapper"]
+}

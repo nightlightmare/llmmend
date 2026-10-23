@@ -1,0 +1,19 @@
+{
+  "value": {
+    "name": "Ada",
+    "skills": ["math", "code"],
+    "active": true
+  },
+  "issues": [
+    "stripped_wrapper",
+    "unquoted_key",
+    "single_quotes",
+    "unquoted_key",
+    "single_quotes",
+    "single_quotes",
+    "trailing_comma",
+    "unquoted_key",
+    "python_literal",
+    "truncated_closed"
+  ]
+}

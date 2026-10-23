@@ -1,0 +1,7 @@
+{
+  "value": ["x", "y"],
+  "issues": ["stripped_wrapper"],
+  "options": {
+    "expect": "array"
+  }
+}

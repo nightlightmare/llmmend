@@ -1,0 +1,14 @@
+{
+  "value": [
+    {
+      "id": 1
+    },
+    {
+      "id": 2
+    },
+    {
+      "id": 3
+    }
+  ],
+  "issues": ["stripped_wrapper"]
+}

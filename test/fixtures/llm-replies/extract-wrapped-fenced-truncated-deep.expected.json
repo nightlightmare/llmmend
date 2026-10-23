@@ -1,0 +1,15 @@
+{
+  "value": {
+    "a": {
+      "b": {
+        "c": [
+          1,
+          {
+            "d": "x"
+          }
+        ]
+      }
+    }
+  },
+  "issues": ["stripped_wrapper", "truncated_closed"]
+}

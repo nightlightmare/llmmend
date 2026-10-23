@@ -1,0 +1,2 @@
+Output:
+{"active": True, "admin": False, "manager": None}

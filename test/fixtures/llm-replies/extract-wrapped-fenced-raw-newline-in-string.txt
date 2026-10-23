@@ -1,0 +1,6 @@
+Here is the result:
+```json
+{"text": "line1
+line2"}
+```
+Let me know if anything is missing.

@@ -1,0 +1,7 @@
+{
+  "value": {
+    "1": "one",
+    "2": "two"
+  },
+  "issues": ["stripped_wrapper", "unquoted_key", "unquoted_key"]
+}

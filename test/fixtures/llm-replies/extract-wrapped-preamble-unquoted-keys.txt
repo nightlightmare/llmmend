@@ -1,0 +1,2 @@
+Output:
+{name: "Ada", age: 36}

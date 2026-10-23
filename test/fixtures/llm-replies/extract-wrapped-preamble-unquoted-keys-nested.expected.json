@@ -1,0 +1,8 @@
+{
+  "value": {
+    "nested": {
+      "deep": true
+    }
+  },
+  "issues": ["stripped_wrapper", "unquoted_key", "unquoted_key"]
+}

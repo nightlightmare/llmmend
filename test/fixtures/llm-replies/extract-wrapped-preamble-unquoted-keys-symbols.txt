@@ -1,0 +1,2 @@
+Output:
+{user_id: 1, $ref: "x", first-name: "A"}

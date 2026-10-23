@@ -1,0 +1,8 @@
+Here is the result:
+```json
+{
+  // the name
+  "name": "Ada" /* inline */
+}
+```
+Let me know if anything is missing.

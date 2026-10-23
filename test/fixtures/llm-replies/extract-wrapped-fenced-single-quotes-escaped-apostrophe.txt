@@ -1,0 +1,5 @@
+Here is the result:
+```json
+['it\'s', "ok"]
+```
+Let me know if anything is missing.

@@ -1,0 +1,6 @@
+{
+  "value": {
+    "name": "Ada"
+  },
+  "issues": ["stripped_wrapper", "single_quotes", "single_quotes"]
+}

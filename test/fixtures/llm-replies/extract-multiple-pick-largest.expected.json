@@ -1,0 +1,10 @@
+{
+  "value": {
+    "v": 2,
+    "extra": [1, 2, 3]
+  },
+  "issues": ["stripped_wrapper"],
+  "options": {
+    "pick": "largest"
+  }
+}

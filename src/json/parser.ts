@@ -18,7 +18,14 @@ export type ParseError = 'unparseable' | 'truncated' | 'max_depth'
 
 export type ParseResult =
   | { ok: true; value: unknown; end: number; issues: Issue[] }
-  | { ok: false; error: ParseError; at: number; issues: Issue[] }
+  | {
+      ok: false
+      error: ParseError
+      at: number
+      issues: Issue[]
+      /** Starts of the objects and arrays still open where parsing failed, outermost first. */
+      open: number[]
+    }
 
 export interface ParseOptions {
   /** Default `'none'`. */
@@ -62,6 +69,8 @@ interface State extends Cursor {
   /** Characters appended so far to close a Truncation, innermost first. */
   closed: string
   truncated: boolean
+  /** Starts of the containers being parsed, outermost first. */
+  readonly open: number[]
 }
 
 const WORDS = ['true', 'false', 'null']
@@ -115,7 +124,11 @@ function parseValue(s: State, depth: number): unknown {
   const ch = code(s)
   if (ch === OPEN_BRACE || ch === OPEN_BRACKET) {
     if (depth >= s.maxDepth) throw new Failure('max_depth', s.pos)
-    return ch === OPEN_BRACE ? parseObject(s, depth + 1) : parseArray(s, depth + 1)
+    // Not popped when parsing throws, so a failure knows which containers it is inside.
+    s.open.push(s.pos)
+    const value = ch === OPEN_BRACE ? parseObject(s, depth + 1) : parseArray(s, depth + 1)
+    s.open.pop()
+    return value
   }
   if (ch === QUOTE || (s.lenient && ch === APOS)) return parseString(s)
   // T(rue) F(alse) N(one, NaN) I(nfinity) -(Infinity): checked only when the first char can match.
@@ -175,7 +188,7 @@ function parseString(s: State): string {
   return scanned.value
 }
 
-const isKeyChar = (ch: number): boolean =>
+export const isKeyChar = (ch: number): boolean =>
   (ch >= 0x61 && ch <= 0x7a) || // a-z
   (ch >= 0x41 && ch <= 0x5a) || // A-Z
   (ch >= 0x30 && ch <= 0x39) || // 0-9
@@ -304,20 +317,24 @@ function run(text: string, start: number, options: ParseOptions, whole: boolean)
     issues: [],
     closed: '',
     truncated: false,
+    open: [],
   }
   try {
     const value = parseValue(s, 0)
-    if (value === MISSING) return { ok: false, error: 'truncated', at: s.pos, issues: s.issues }
+    if (value === MISSING) {
+      return { ok: false, error: 'truncated', at: s.pos, issues: s.issues, open: [] }
+    }
     if (s.truncated) s.issues.push({ code: 'truncated_closed', closed: s.closed })
     const end = s.pos
     if (whole) {
       skip(s)
-      if (!atEnd(s)) return { ok: false, error: 'unparseable', at: s.pos, issues: s.issues }
+      if (!atEnd(s))
+        return { ok: false, error: 'unparseable', at: s.pos, issues: s.issues, open: [] }
     }
     return { ok: true, value, end, issues: s.issues }
   } catch (error) {
     if (error instanceof Failure) {
-      return { ok: false, error: error.error, at: error.at, issues: s.issues }
+      return { ok: false, error: error.error, at: error.at, issues: s.issues, open: s.open }
     }
     throw error
   }

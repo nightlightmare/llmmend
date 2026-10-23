@@ -1,0 +1,21 @@
+{
+  "value": {
+    "name": "Ada",
+    "is_admin": false,
+    "manager": null,
+    "roles": ["dev", "ops"]
+  },
+  "issues": [
+    "stripped_wrapper",
+    "single_quotes",
+    "single_quotes",
+    "single_quotes",
+    "python_literal",
+    "single_quotes",
+    "python_literal",
+    "single_quotes",
+    "single_quotes",
+    "single_quotes",
+    "trailing_comma"
+  ]
+}

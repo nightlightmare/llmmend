@@ -1,0 +1,5 @@
+Here is the result:
+```json
+{'привет': '🌊 中文'}
+```
+Let me know if anything is missing.

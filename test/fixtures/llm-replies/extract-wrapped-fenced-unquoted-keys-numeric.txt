@@ -1,0 +1,5 @@
+Here is the result:
+```json
+{1: "one", 2: "two"}
+```
+Let me know if anything is missing.

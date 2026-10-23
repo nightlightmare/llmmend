@@ -1,0 +1,16 @@
+{
+  "value": {
+    "name": "Ada",
+    "admin": true,
+    "manager": null
+  },
+  "issues": [
+    "stripped_wrapper",
+    "single_quotes",
+    "single_quotes",
+    "single_quotes",
+    "python_literal",
+    "single_quotes",
+    "python_literal"
+  ]
+}

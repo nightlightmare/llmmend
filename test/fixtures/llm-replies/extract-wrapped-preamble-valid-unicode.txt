@@ -1,0 +1,2 @@
+Output:
+{"text": "Привет 🌊", "cjk": "中文", "escaped": "\ud83c\udf0a"}

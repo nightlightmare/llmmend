@@ -1,0 +1,4 @@
+{
+  "value": ["it's", "ok"],
+  "issues": ["stripped_wrapper", "single_quotes"]
+}

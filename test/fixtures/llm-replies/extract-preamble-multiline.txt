@@ -1,0 +1,4 @@
+I analysed the text.
+There are three entities.
+Output:
+[{"id": 1}, {"id": 2}, {"id": 3}]

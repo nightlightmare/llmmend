@@ -1,0 +1,6 @@
+{
+  "value": {
+    "text": "line1\nline2"
+  },
+  "issues": ["stripped_wrapper", "unescaped_control_char"]
+}

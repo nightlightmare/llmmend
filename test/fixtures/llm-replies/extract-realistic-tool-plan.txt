@@ -1,0 +1,8 @@
+I will call the search tool.
+
+```json
+{
+  "tool": "search",
+  "args": {query: "weather Paris", limit: 5,},
+}
+```

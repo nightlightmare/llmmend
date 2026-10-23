@@ -1,0 +1,9 @@
+{
+  "value": {
+    "v": 1
+  },
+  "issues": ["stripped_wrapper"],
+  "options": {
+    "pick": "first"
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "value": {
+    "name": "Ada",
+    "skills": ["math"]
+  },
+  "issues": ["stripped_wrapper", "truncated_closed"]
+}

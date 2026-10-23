@@ -1,0 +1,9 @@
+{
+  "value": {
+    "a": true
+  },
+  "issues": ["stripped_wrapper", "single_quotes", "python_literal", "trailing_comma"],
+  "options": {
+    "repair": "syntax"
+  }
+}
