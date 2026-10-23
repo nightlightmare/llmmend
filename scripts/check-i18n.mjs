@@ -1,15 +1,24 @@
 // Checks that the translations of each user-facing doc stay in step with the English source
 // (ADR 0003): the same headings in the same order, and the same code blocks once comments,
 // which are translated, are stripped. Also checks that the READMEs use only absolute links,
-// because npm does not resolve relative ones.
+// because npm does not resolve relative ones, and that the root has no README besides README.md:
+// npm would take any root `README.*` as the package README.
 //
 //   node scripts/check-i18n.mjs              the docs of this repo
 //   node scripts/check-i18n.mjs a.md ...     English files given by hand (each with .zh-CN, .ru)
-import { readFileSync } from 'node:fs'
+import { readdirSync, readFileSync } from 'node:fs'
 import { pathToFileURL } from 'node:url'
 import { parseMarkdown } from './markdown.mjs'
 
 const LANGUAGES = ['zh-CN', 'ru']
+
+/** Where a doc's translation lives: README translations go to docs/, others sit beside it. */
+function translationOf(doc, lang) {
+  const name = doc.pathname.split('/').pop()
+  const dir = name === 'README.md' && !doc.pathname.includes('/docs/') ? 'docs/' : ''
+  return new URL(`${dir}${name.replace(/\.md$/, `.${lang}.md`)}`, doc)
+}
+
 const root = new URL('../', import.meta.url)
 
 /** Code without comments and blank lines, so translated comments compare equal. */
@@ -76,6 +85,14 @@ const docs = given.length
   : [new URL('README.md', root), new URL('docs/api.md', root)]
 
 const problems = []
+if (!given.length) {
+  for (const file of readdirSync(root)) {
+    if (/^readme\./i.test(file) && file !== 'README.md')
+      problems.push(
+        `${file}: move it to docs/; npm may pick any root README.* as the package README`,
+      )
+  }
+}
 for (const doc of docs) {
   const name = doc.pathname.split('/').pop()
   const source = readFileSync(doc, 'utf8')
@@ -83,7 +100,7 @@ for (const doc of docs) {
   const isReadme = name.startsWith('README')
   if (isReadme) problems.push(...relativeLinks(source, name))
   for (const lang of LANGUAGES) {
-    const file = new URL(doc.href.replace(/\.md$/, `.${lang}.md`))
+    const file = translationOf(doc, lang)
     const translationName = file.pathname.split('/').pop()
     let translation
     try {
