@@ -1,5 +1,11 @@
 # llmmend
 
+## 0.1.1
+
+### Patch Changes
+
+- Show the English README on npmjs.com: 0.1.0 shipped with the Chinese translation as the package README. The translations moved to `docs/`.
+
 ## 0.1.0
 
 ### Minor Changes

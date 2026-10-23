@@ -1,4 +1,4 @@
-**English** | [简体中文](https://github.com/nightlightmare/llmmend/blob/main/README.zh-CN.md) | [Русский](https://github.com/nightlightmare/llmmend/blob/main/README.ru.md)
+**English** | [简体中文](https://github.com/nightlightmare/llmmend/blob/main/docs/README.zh-CN.md) | [Русский](https://github.com/nightlightmare/llmmend/blob/main/docs/README.ru.md)
 
 # 🩹 llmmend
 

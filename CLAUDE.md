@@ -10,7 +10,7 @@ Default five-role vocabulary (`needs-triage`, `needs-info`, `ready-for-agent`, `
 
 ### Languages
 
-Only the README and `docs/api.md` exist in three languages (`*.md`, `*.zh-CN.md`, `*.ru.md`); English is the source of truth and translations change in the same PR. Write everything else in English only: code, comments, JSDoc, error messages, issues, PRs, commits, changesets, `GLOSSARY.md`, ADRs. See `docs/adr/0003-docs-languages.md`.
+Only the README and `docs/api.md` exist in three languages (`*.md`, `*.zh-CN.md`, `*.ru.md`; the README translations live in `docs/`, never in the root, where npm could pick one as the package README); English is the source of truth and translations change in the same PR. Write everything else in English only: code, comments, JSDoc, error messages, issues, PRs, commits, changesets, `GLOSSARY.md`, ADRs. See `docs/adr/0003-docs-languages.md`.
 
 ### Domain docs
 
