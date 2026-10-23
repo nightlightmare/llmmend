@@ -45,6 +45,12 @@ const checks = {
       stopReason: 'end',
       usage: { outputTokens: 1 },
     })
+    const chunks = [{ choices: [{ delta: { content: 'Hi' }, finish_reason: 'stop' }] }, '[DONE]']
+    const chat = chunks.map((c) => `data: ${typeof c === 'string' ? c : JSON.stringify(c)}\n\n`)
+    assert.deepEqual(await m.collectText(new Response(chat.join('')), { provider: 'openai' }), {
+      text: 'Hi',
+      stopReason: 'end',
+    })
   },
 }
 

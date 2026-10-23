@@ -117,7 +117,7 @@
     {
       "name": "llmmend/sse",
       "path": "dist/sse/index.js",
-      "limit": "2 kB"
+      "limit": "3 kB"
     }
   ],
   "engines": {

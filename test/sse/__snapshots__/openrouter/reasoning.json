@@ -1,0 +1,34 @@
+[
+  {
+    "type": "reasoning",
+    "index": 0,
+    "text": "The user asks"
+  },
+  {
+    "type": "reasoning",
+    "index": 0,
+    "text": " for 12 squared."
+  },
+  {
+    "type": "text",
+    "index": 1,
+    "text": "12 squared"
+  },
+  {
+    "type": "text",
+    "index": 1,
+    "text": " is 144."
+  },
+  {
+    "type": "usage",
+    "inputTokens": 14,
+    "outputTokens": 38,
+    "cacheReadTokens": 0,
+    "reasoningTokens": 31
+  },
+  {
+    "type": "done",
+    "stopReason": "end",
+    "rawStopReason": "stop"
+  }
+]

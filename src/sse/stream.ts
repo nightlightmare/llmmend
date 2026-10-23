@@ -2,6 +2,7 @@ import { LlmmendError, LlmmendHttpError } from '../shared/errors'
 import type { LlmEvent, LlmUsage, Provider, ProviderAdapter, StopReason } from './events'
 import { parseSSE } from './parse'
 import { anthropic } from './providers/anthropic'
+import { openai } from './providers/openai'
 
 /** A `fetch` response, or its body. */
 export type StreamSource = Response | ReadableStream<Uint8Array>
@@ -21,7 +22,10 @@ export interface CollectedText {
   usage?: LlmUsage
 }
 
-const PROVIDERS = new Map<string, ProviderAdapter>([['anthropic', anthropic]])
+const PROVIDERS = new Map<string, ProviderAdapter>([
+  ['anthropic', anthropic],
+  ['openai', openai],
+])
 
 /**
  * Turns a Provider's server-sent event stream into LLM events. A non-2xx `Response` throws

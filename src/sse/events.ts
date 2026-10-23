@@ -49,5 +49,8 @@ export interface ProviderAdapter {
   create(): (event: SSEEvent) => LlmEvent[]
 }
 
-/** A built-in Provider name, or a custom adapter. */
-export type Provider = 'anthropic' | ProviderAdapter
+/**
+ * A built-in Provider name, or a custom adapter. `'openai'` is Chat Completions, the format shared
+ * by OpenAI-compatible APIs (OpenRouter, Groq, Ollama, vLLM, LM Studio).
+ */
+export type Provider = 'anthropic' | 'openai' | ProviderAdapter

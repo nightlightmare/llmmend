@@ -1,0 +1,29 @@
+[
+  {
+    "type": "reasoning",
+    "index": 0,
+    "text": "2^31 - 1 is a Mersenne"
+  },
+  {
+    "type": "reasoning",
+    "index": 0,
+    "text": " prime, proven by Euler."
+  },
+  {
+    "type": "text",
+    "index": 1,
+    "text": "Yes: 2147483647 is prime."
+  },
+  {
+    "type": "usage",
+    "inputTokens": 21,
+    "outputTokens": 27,
+    "cacheReadTokens": 0,
+    "reasoningTokens": 14
+  },
+  {
+    "type": "done",
+    "stopReason": "end",
+    "rawStopReason": "stop"
+  }
+]

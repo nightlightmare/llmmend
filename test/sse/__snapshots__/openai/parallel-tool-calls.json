@@ -1,0 +1,51 @@
+[
+  {
+    "type": "tool_call_start",
+    "index": 0,
+    "id": "call_Paris01",
+    "name": "get_weather"
+  },
+  {
+    "type": "tool_call_delta",
+    "index": 0,
+    "argsDelta": "{\"ci"
+  },
+  {
+    "type": "tool_call_delta",
+    "index": 0,
+    "argsDelta": "ty\": \"Par"
+  },
+  {
+    "type": "tool_call_delta",
+    "index": 0,
+    "argsDelta": "is\"}"
+  },
+  {
+    "type": "tool_call_start",
+    "index": 1,
+    "id": "call_Tokyo02",
+    "name": "get_weather"
+  },
+  {
+    "type": "tool_call_delta",
+    "index": 1,
+    "argsDelta": "{\"city\""
+  },
+  {
+    "type": "tool_call_delta",
+    "index": 1,
+    "argsDelta": ": \"Tokyo\"}"
+  },
+  {
+    "type": "usage",
+    "inputTokens": 82,
+    "outputTokens": 151,
+    "cacheReadTokens": 0,
+    "reasoningTokens": 128
+  },
+  {
+    "type": "done",
+    "stopReason": "tool_use",
+    "rawStopReason": "tool_calls"
+  }
+]

@@ -1,0 +1,8 @@
+{
+  "provider": "openai",
+  "case": "parallel-tool-calls",
+  "description": "Two tool calls with arguments streamed in pieces, usage in a final chunk with empty choices.",
+  "model": "gpt-5-mini",
+  "synthetic": true,
+  "source": "https://platform.openai.com/docs/guides/function-calling#streaming"
+}

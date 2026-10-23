@@ -1,0 +1,16 @@
+: OPENROUTER PROCESSING
+
+data: {"id":"gen-synthetic","provider":"DeepInfra","model":"deepseek/deepseek-r1","object":"chat.completion.chunk","created":1761206400,"choices":[{"index":0,"delta":{"role":"assistant","content":"","reasoning":"The user asks","reasoning_details":[{"type":"reasoning.text","text":"The user asks","format":"unknown","index":0}]},"finish_reason":null,"native_finish_reason":null,"logprobs":null}]}
+
+data: {"id":"gen-synthetic","provider":"DeepInfra","model":"deepseek/deepseek-r1","object":"chat.completion.chunk","created":1761206400,"choices":[{"index":0,"delta":{"role":"assistant","content":"","reasoning":" for 12 squared.","reasoning_details":[{"type":"reasoning.text","text":" for 12 squared.","format":"unknown","index":0}]},"finish_reason":null,"native_finish_reason":null,"logprobs":null}]}
+
+data: {"id":"gen-synthetic","provider":"DeepInfra","model":"deepseek/deepseek-r1","object":"chat.completion.chunk","created":1761206400,"choices":[{"index":0,"delta":{"role":"assistant","content":"12 squared","reasoning":null},"finish_reason":null,"native_finish_reason":null,"logprobs":null}]}
+
+data: {"id":"gen-synthetic","provider":"DeepInfra","model":"deepseek/deepseek-r1","object":"chat.completion.chunk","created":1761206400,"choices":[{"index":0,"delta":{"role":"assistant","content":" is 144.","reasoning":null},"finish_reason":null,"native_finish_reason":null,"logprobs":null}]}
+
+data: {"id":"gen-synthetic","provider":"DeepInfra","model":"deepseek/deepseek-r1","object":"chat.completion.chunk","created":1761206400,"choices":[{"index":0,"delta":{"role":"assistant","content":"","reasoning":null},"finish_reason":"stop","native_finish_reason":"stop","logprobs":null}]}
+
+data: {"id":"gen-synthetic","provider":"DeepInfra","model":"deepseek/deepseek-r1","object":"chat.completion.chunk","created":1761206400,"choices":[{"index":0,"delta":{"role":"assistant","content":""},"finish_reason":null,"native_finish_reason":null,"logprobs":null}],"usage":{"prompt_tokens":14,"completion_tokens":38,"total_tokens":52,"cost":0.0000872,"prompt_tokens_details":{"cached_tokens":0},"completion_tokens_details":{"reasoning_tokens":31}}}
+
+data: [DONE]
+

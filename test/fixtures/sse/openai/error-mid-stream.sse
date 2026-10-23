@@ -1,0 +1,4 @@
+data: {"id":"chatcmpl-synthetic","object":"chat.completion.chunk","created":1761206400,"model":"gpt-5-mini","choices":[{"index":0,"delta":{"role":"assistant","content":"The sea"},"finish_reason":null}],"usage":null}
+
+data: {"error":{"message":"The server had an error while processing your request. Sorry about that!","type":"server_error","param":null,"code":null}}
+
