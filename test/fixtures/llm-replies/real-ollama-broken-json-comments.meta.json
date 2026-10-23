@@ -1,0 +1,8 @@
+{
+  "provider": "ollama",
+  "case": "broken-json-comments",
+  "description": "Reply likely to contain comments and trailing commas.",
+  "model": "qwen2.5:3b",
+  "recordedAt": "2026-10-23T12:58:46.676Z",
+  "synthetic": false
+}

@@ -1,0 +1,8 @@
+{
+  "value": [
+    { "name": "Shanghai", "population": 24.29 },
+    { "name": "Beijing", "population": 21.53 },
+    { "name": "Shenzhen", "population": 17.14 }
+  ],
+  "issues": ["stripped_wrapper", "comment_removed", "comment_removed", "comment_removed"]
+}

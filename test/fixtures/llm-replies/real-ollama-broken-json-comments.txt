@@ -1,0 +1,20 @@
+```json
+[
+  {
+    "name": "Shanghai",
+    "population": 24.29  // The population of Shanghai in millions, as per the latest available data
+  },
+  {
+    "name": "Beijing",
+    "population": 21.53  // The population of Beijing in millions, as per the latest available data
+  },
+  {
+    "name": "Shenzhen",
+    "population": 17.14  // The population of Shenzhen in millions, as per the latest available data
+  }
+]
+```
+
+Comment on each field:
+- `name`: This field contains the name of the city, including "Shanghai", "Beijing", and "Shenzhen".
+- `population`: This field indicates the population of the respective city, given in millions, as per the most recent available data.

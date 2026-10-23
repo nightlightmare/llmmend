@@ -1,0 +1,8 @@
+{
+  "provider": "ollama",
+  "case": "tool-calls",
+  "description": "Tool calls in the OpenAI-compatible format from a small local model.",
+  "model": "qwen2.5:3b",
+  "recordedAt": "2026-10-23T12:58:50.624Z",
+  "synthetic": false
+}

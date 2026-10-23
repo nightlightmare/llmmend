@@ -9,8 +9,9 @@
     "messages": [
       {
         "role": "user",
-        "content": "Is 2^31 - 1 prime? Answer yes or no with one sentence of justification."
+        "content": "What is 17 * 23? Think briefly, then answer with the number only."
       }
-    ]
+    ],
+    "max_tokens": 600
   }
 }
