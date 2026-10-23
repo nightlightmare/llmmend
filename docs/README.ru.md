@@ -3,13 +3,15 @@
 # 🩹 llmmend
 
 [![npm](https://img.shields.io/npm/v/llmmend)](https://www.npmjs.com/package/llmmend)
+[![downloads](https://img.shields.io/npm/dm/llmmend)](https://www.npmjs.com/package/llmmend)
+[![GitHub stars](https://img.shields.io/github/stars/nightlightmare/llmmend)](https://github.com/nightlightmare/llmmend/stargazers)
 [![bundle size](https://img.shields.io/bundlejs/size/llmmend)](https://bundlejs.com/?q=llmmend)
 [![CI](https://github.com/nightlightmare/llmmend/actions/workflows/ci.yml/badge.svg)](https://github.com/nightlightmare/llmmend/actions/workflows/ci.yml)
 [![provenance](https://img.shields.io/badge/npm-provenance-blue)](https://www.npmjs.com/package/llmmend#provenance)
 [![zero deps](https://img.shields.io/badge/dependencies-0-brightgreen)](https://www.npmjs.com/package/llmmend?activeTab=dependencies)
 [![license](https://img.shields.io/npm/l/llmmend)](https://github.com/nightlightmare/llmmend/blob/main/LICENSE)
 
-**Чинит то, что вернула LLM.** Достаёт и исправляет JSON, разбирает потоковые ответы любого провайдера. Без зависимостей. Работает в Node, Bun, Deno, браузерах и edge-средах.
+**Чинит то, что вернула LLM.** Достаёт и исправляет JSON, разбирает потоковые ответы любого провайдера, режет текст на куски по токенам. Без зависимостей. Работает в Node, Bun, Deno, браузерах и edge-средах.
 
 ```bash
 npm i llmmend
@@ -87,12 +89,43 @@ for await (const ev of streamLlm(res)) {
 
 > **Usage у OpenAI:** передайте в запросе `stream_options: { include_usage: true }`, иначе OpenAI вообще не пришлёт расход токенов.
 
+## Текст, который влезет в контекст
+
+```ts
+import { chunkText, truncateToTokens } from 'llmmend/chunk'
+
+const doc = '# Guide\n\nWhat it does.\n\n## Install\n\nRun the installer, then restart.\n'
+
+for (const chunk of chunkText(doc, { maxTokens: 500, overlap: 50, mode: 'markdown' })) {
+  console.log(chunk.index, chunk.start, chunk.end, chunk.tokens) // 0 0 69 19: руководство влезает в один чанк
+}
+
+truncateToTokens('A title far too long for the card it has to fit on', 8, { ellipsis: '…' }) // 'A title far too long for the …'
+```
+
+`chunkText` режет по самому крупному разделителю, при котором куски влезают: абзацы, затем строки, предложения, слова и, в крайнем случае, кластеры графем. Каждый чанк — это срез текста со своими `start` и `end`, а склейка чанков даёт исходный текст. В режиме `markdown` чанки начинаются с заголовков, а блоки кода и таблицы остаются целыми, если влезают.
+
+Токены считаются без словаря. Оценка минус настоящее число:
+
+| Текст        | `o200k_base` (OpenAI) | Gemini 3.8 Flash | Claude Opus 5.5 |
+| ------------ | --------------------- | ---------------- | --------------- |
+| Английский   | +2 %                  | −8 %             | −35 %           |
+| Русский      | +4 %                  | −4 %             | −35 %           |
+| Китайский    | −2 %                  | −1 %             | −36 %           |
+| Японский     | −11 %                 | +22 %            | −25 %           |
+| Корейский    | −5 %                  | +3 %             | −46 %           |
+| Код          | −2 %                  | −15 %            | −36 %           |
+| Чат с эмодзи | −7 %                  | −11 %            | −39 %           |
+
+Токенизатор Claude даёт примерно в 1,5 раза больше токенов: для Claude делите бюджет на 1,5 или передайте точный `countTokens`.
+
 ## API
 
-| Импорт         | Функции                                                                                                     |
-| -------------- | ----------------------------------------------------------------------------------------------------------- |
-| `llmmend/json` | `extractJson`, `extractJsonAsync`, `extractJsonOrThrow`, `extractAllJson`, `repairJson`, `parsePartialJson` |
-| `llmmend/sse`  | `parseSSE`, `streamLlm`, `streamText`, `collectText`, `streamJson`                                          |
+| Импорт          | Функции                                                                                                     |
+| --------------- | ----------------------------------------------------------------------------------------------------------- |
+| `llmmend/json`  | `extractJson`, `extractJsonAsync`, `extractJsonOrThrow`, `extractAllJson`, `repairJson`, `parsePartialJson` |
+| `llmmend/sse`   | `parseSSE`, `streamLlm`, `streamText`, `collectText`, `streamJson`                                          |
+| `llmmend/chunk` | `chunkText`, `estimateTokens`, `truncateToTokens`                                                           |
 
 Всё также реэкспортируется из корня: `import { extractJson } from 'llmmend'` по-прежнему поддерживает tree-shaking.
 
@@ -100,10 +133,11 @@ for await (const ev of streamLlm(res)) {
 
 ## Размер
 
-| Модуль         | min+brotli                        |
-| -------------- | --------------------------------- |
-| `llmmend/json` | ~3.5 kB                           |
-| `llmmend/sse`  | ~2.9 kB (один `parseSSE` ~0.9 kB) |
+| Модуль          | min+brotli                        |
+| --------------- | --------------------------------- |
+| `llmmend/json`  | ~3.5 kB                           |
+| `llmmend/sse`   | ~2.9 kB (один `parseSSE` ~0.9 kB) |
+| `llmmend/chunk` | ~1.4 kB                           |
 
 ## Участие
 

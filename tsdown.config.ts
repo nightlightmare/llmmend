@@ -5,6 +5,7 @@ export default defineConfig({
     index: 'src/index.ts',
     'json/index': 'src/json/index.ts',
     'sse/index': 'src/sse/index.ts',
+    'chunk/index': 'src/chunk/index.ts',
   },
   format: ['esm', 'cjs'],
   dts: true,

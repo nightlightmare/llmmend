@@ -1,18 +1,21 @@
 {
   "name": "llmmend",
   "version": "0.1.1",
-  "description": "Extract & repair JSON from LLM replies, parse SSE streams from any provider. Zero deps, TS-first.",
+  "description": "Extract & repair JSON from LLM replies, parse SSE streams from any provider, token-aware text chunking. Zero deps, TS-first.",
   "keywords": [
     "anthropic",
+    "chunking",
     "json",
     "json-repair",
     "llm",
     "openai",
     "partial-json",
+    "rag",
     "server-sent-events",
     "sse",
     "standard-schema",
     "streaming",
+    "text-splitter",
     "zod"
   ],
   "homepage": "https://github.com/nightlightmare/llmmend#readme",
@@ -62,6 +65,16 @@
         "default": "./dist/sse/index.cjs"
       }
     },
+    "./chunk": {
+      "import": {
+        "types": "./dist/chunk/index.d.ts",
+        "default": "./dist/chunk/index.js"
+      },
+      "require": {
+        "types": "./dist/chunk/index.d.cts",
+        "default": "./dist/chunk/index.cjs"
+      }
+    },
     "./package.json": "./package.json"
   },
   "publishConfig": {
@@ -97,6 +110,7 @@
     "arktype": "^2.2.9",
     "eventsource-parser": "4.1.2",
     "fast-check": "^4.10.2",
+    "js-tiktoken": "1.0.21",
     "jsonrepair": "3.15.0",
     "miniflare": "4.20260730.0",
     "oxfmt": "^0.74.0",
@@ -140,6 +154,11 @@
       "path": "dist/sse/index.js",
       "import": "{ streamJson }",
       "limit": "7 kB"
+    },
+    {
+      "name": "llmmend/chunk",
+      "path": "dist/chunk/index.js",
+      "limit": "1.5 kB"
     }
   ],
   "engines": {

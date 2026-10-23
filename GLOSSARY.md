@@ -55,3 +55,17 @@ _Avoid_: finish reason, end reason
 **Block**:
 One part of a single model answer (text, reasoning or a tool call), numbered by its position in that answer. An answer is one sequence of Blocks; alternative answers to the same request are out of scope.
 _Avoid_: content part, choice, segment
+
+### Text for a context window
+
+**Chunk**:
+A piece of a text cut to fit a token budget, at the coarsest separator that fits, with its position in the source text. Chunks follow each other without gaps; with overlap, a chunk repeats the end of the previous one.
+_Avoid_: split, segment, window
+
+**Overlap**:
+The end of the previous Chunk that a Chunk repeats at its start, so that a sentence cut at a boundary still appears whole in one of them.
+_Avoid_: stride, context
+
+**Separator**:
+A string or pattern a text may be cut after, tried from coarse (headings, paragraphs) to fine (sentences, words, grapheme clusters).
+_Avoid_: delimiter, boundary

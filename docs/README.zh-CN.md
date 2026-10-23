@@ -3,13 +3,15 @@
 # 🩹 llmmend
 
 [![npm](https://img.shields.io/npm/v/llmmend)](https://www.npmjs.com/package/llmmend)
+[![downloads](https://img.shields.io/npm/dm/llmmend)](https://www.npmjs.com/package/llmmend)
+[![GitHub stars](https://img.shields.io/github/stars/nightlightmare/llmmend)](https://github.com/nightlightmare/llmmend/stargazers)
 [![bundle size](https://img.shields.io/bundlejs/size/llmmend)](https://bundlejs.com/?q=llmmend)
 [![CI](https://github.com/nightlightmare/llmmend/actions/workflows/ci.yml/badge.svg)](https://github.com/nightlightmare/llmmend/actions/workflows/ci.yml)
 [![provenance](https://img.shields.io/badge/npm-provenance-blue)](https://www.npmjs.com/package/llmmend#provenance)
 [![zero deps](https://img.shields.io/badge/dependencies-0-brightgreen)](https://www.npmjs.com/package/llmmend?activeTab=dependencies)
 [![license](https://img.shields.io/npm/l/llmmend)](https://github.com/nightlightmare/llmmend/blob/main/LICENSE)
 
-**修复 LLM 返回的内容。** 提取并修复 JSON，解析任意提供商的流式响应。零依赖。可在 Node、Bun、Deno、浏览器和边缘运行时中使用。
+**修复 LLM 返回的内容。** 提取并修复 JSON，解析任意提供商的流式响应，按 token 切分文本。零依赖。可在 Node、Bun、Deno、浏览器和边缘运行时中使用。
 
 ```bash
 npm i llmmend
@@ -87,12 +89,43 @@ for await (const ev of streamLlm(res)) {
 
 > **OpenAI 用量：** 请在请求中传入 `stream_options: { include_usage: true }`，否则 OpenAI 根本不会返回 token 用量。
 
+## 放得进上下文窗口的文本
+
+```ts
+import { chunkText, truncateToTokens } from 'llmmend/chunk'
+
+const doc = '# Guide\n\nWhat it does.\n\n## Install\n\nRun the installer, then restart.\n'
+
+for (const chunk of chunkText(doc, { maxTokens: 500, overlap: 50, mode: 'markdown' })) {
+  console.log(chunk.index, chunk.start, chunk.end, chunk.tokens) // 0 0 69 19：整篇指南放得进一个块
+}
+
+truncateToTokens('A title far too long for the card it has to fit on', 8, { ellipsis: '…' }) // 'A title far too long for the …'
+```
+
+`chunkText` 在能放下的最粗粒度分隔符处切分：先是段落，然后是行、句子、单词，最后才是字素簇。每个块都是原文的一个切片，带有 `start` 和 `end`，把块拼接起来就能还原原文。在 `markdown` 模式下，块从标题开始，代码块和表格在放得下时保持完整。
+
+token 数无需词表即可估算。估算值减去真实值：
+
+| 文本         | `o200k_base`（OpenAI） | Gemini 3.8 Flash | Claude Opus 5.5 |
+| ------------ | ---------------------- | ---------------- | --------------- |
+| 英文         | +2 %                   | −8 %             | −35 %           |
+| 俄文         | +4 %                   | −4 %             | −35 %           |
+| 中文         | −2 %                   | −1 %             | −36 %           |
+| 日文         | −11 %                  | +22 %            | −25 %           |
+| 韩文         | −5 %                   | +3 %             | −46 %           |
+| 代码         | −2 %                   | −15 %            | −36 %           |
+| 带表情的聊天 | −7 %                   | −11 %            | −39 %           |
+
+Claude 的分词器产生的 token 约为 1.5 倍：用于 Claude 时请把预算除以 1.5，或传入精确的 `countTokens`。
+
 ## API
 
-| 导入           | 函数                                                                                                        |
-| -------------- | ----------------------------------------------------------------------------------------------------------- |
-| `llmmend/json` | `extractJson`, `extractJsonAsync`, `extractJsonOrThrow`, `extractAllJson`, `repairJson`, `parsePartialJson` |
-| `llmmend/sse`  | `parseSSE`, `streamLlm`, `streamText`, `collectText`, `streamJson`                                          |
+| 导入            | 函数                                                                                                        |
+| --------------- | ----------------------------------------------------------------------------------------------------------- |
+| `llmmend/json`  | `extractJson`, `extractJsonAsync`, `extractJsonOrThrow`, `extractAllJson`, `repairJson`, `parsePartialJson` |
+| `llmmend/sse`   | `parseSSE`, `streamLlm`, `streamText`, `collectText`, `streamJson`                                          |
+| `llmmend/chunk` | `chunkText`, `estimateTokens`, `truncateToTokens`                                                           |
 
 所有内容也从根模块重新导出：`import { extractJson } from 'llmmend'` 依然支持 tree-shaking。
 
@@ -100,10 +133,11 @@ for await (const ev of streamLlm(res)) {
 
 ## 体积
 
-| 模块           | min+brotli                         |
-| -------------- | ---------------------------------- |
-| `llmmend/json` | ~3.5 kB                            |
-| `llmmend/sse`  | ~2.9 kB（仅 `parseSSE` 约 0.9 kB） |
+| 模块            | min+brotli                         |
+| --------------- | ---------------------------------- |
+| `llmmend/json`  | ~3.5 kB                            |
+| `llmmend/sse`   | ~2.9 kB（仅 `parseSSE` 约 0.9 kB） |
+| `llmmend/chunk` | ~1.4 kB                            |
 
 ## 参与贡献
 

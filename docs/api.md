@@ -355,6 +355,61 @@ for await (const ev of streamLlm(res, { provider: myProvider })) console.log(ev)
 
 An adapter turns each parsed SSE event into zero or more LLM events. `create()` runs once per stream, so keep per-stream state in its closure. `streamLlm` adds the guarantees on top: it stops after `done`, follows `error` with `done`, and adds `done` if the stream ends without one.
 
+## llmmend/chunk
+
+### chunkText
+
+```ts
+import { chunkText } from 'llmmend/chunk'
+
+const text = 'One two three. Four five six.\n\nSeven eight nine. Ten eleven twelve.'
+chunkText(text, { maxTokens: 10 }).map((c) => c.text)
+// ['One two three. Four five six.\n\n', 'Seven eight nine. Ten eleven twelve.']
+```
+
+`chunkText(text, options)` splits a text into chunks of at most `maxTokens` tokens and returns `{ text, start, end, tokens, index, oversized? }[]`.
+
+| Option        | Default          | Meaning                                                                                    |
+| ------------- | ---------------- | ------------------------------------------------------------------------------------------ |
+| `maxTokens`   | (required)       | The budget per chunk.                                                                      |
+| `overlap`     | `0`              | Tokens to repeat from the end of the previous chunk.                                       |
+| `countTokens` | `estimateTokens` | Count with a real tokenizer for exact budgets.                                             |
+| `separators`  | see below        | Strings or regular expressions, coarsest first; `''` cuts between grapheme clusters.       |
+| `mode`        | `'text'`         | `'markdown'` starts chunks at headings and keeps code fences and tables whole if they fit. |
+
+Default separators: paragraphs (`\n\n`), lines, sentences (`.`, `!`, `?`, `…` followed by whitespace, or `。！？`), words, then grapheme clusters. In `markdown` mode, headings (`#` to `####`) come first. The text is cut at the coarsest separator that fits, and the pieces are merged back as long as they fit together.
+
+Guarantees:
+
+- `chunk.text === text.slice(chunk.start, chunk.end)`, and `tokens` is `countTokens(chunk.text)`.
+- `tokens <= maxTokens`, unless a chunk is `oversized`: no separator could cut it smaller (with the default separators, a single grapheme cluster).
+- Chunks are in order without gaps; without overlap each starts where the previous ended, and joining them gives the text back. With overlap, a chunk starts inside the previous one, at the separator that gives the longest overlap within both `overlap` and `maxTokens`.
+- A grapheme cluster (an emoji with modifiers, a letter with accents) is never split.
+
+### estimateTokens
+
+```ts
+import { estimateTokens } from 'llmmend/chunk'
+
+estimateTokens('Hello, world!') // 3
+```
+
+Estimates tokens without a vocabulary, from the kinds of characters in the text. See the README for its measured accuracy against OpenAI, Gemini and Claude tokenizers; Claude's produces about 1.5× as many tokens.
+
+### truncateToTokens
+
+```ts
+import { truncateToTokens } from 'llmmend/chunk'
+
+truncateToTokens('The quick brown fox jumps over the lazy dog', 5, {
+  from: 'middle',
+  ellipsis: ' … ',
+})
+// 'The quick … lazy dog'
+```
+
+`truncateToTokens(text, max, { from?, ellipsis?, countTokens? })` shortens a text to at most `max` tokens without splitting a grapheme cluster. `from` says where to cut: `'end'` (default) keeps the beginning, `'start'` keeps the end, `'middle'` keeps both. The `ellipsis` (default `''`) marks the cut and counts against `max`; if not even it fits, the result is `''`.
+
 ## Errors
 
 ```ts
