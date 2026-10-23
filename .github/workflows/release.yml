@@ -1,11 +1,14 @@
 name: Release
 
 # A release is an ordinary PR that runs `pnpm changeset version` (bumping package.json and writing
-# CHANGELOG.md), so it gets the usual required checks. Once it lands on main, this workflow
-# publishes the version if npm does not have it yet, then tags it and creates a GitHub release.
+# CHANGELOG.md), so it gets the usual required checks. Once it lands on main, this workflow stages
+# the new version on npm and creates its tag and GitHub release. The trusted publisher may only
+# stage: a maintainer approves the staged version with 2FA on npmjs.com (or `npm stage approve`),
+# and only then is it published.
 on:
   push:
     branches: [main]
+  workflow_dispatch: # re-run a release that failed before staging
 
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 
@@ -25,26 +28,29 @@ jobs:
           node-version: 24
           cache: pnpm
           registry-url: https://registry.npmjs.org
-      - name: Check whether this version is on npm
+      - name: Check whether this version was already released
         id: version
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           version=$(node -p "require('./package.json').version")
           echo "version=$version" >> "$GITHUB_OUTPUT"
-          if npm view "llmmend@$version" version >/dev/null 2>&1; then
+          # A staged version is not on npm until approved, but its GitHub release already exists.
+          if npm view "llmmend@$version" version >/dev/null 2>&1 || gh release view "v$version" >/dev/null 2>&1; then
             echo "publish=false" >> "$GITHUB_OUTPUT"
           else
             echo "publish=true" >> "$GITHUB_OUTPUT"
           fi
-      # Trusted Publishing needs npm >= 11.5.1.
+      # Trusted Publishing needs npm >= 11.5.1, staged publishing a newer one.
       - if: steps.version.outputs.publish == 'true'
         run: npm install -g npm@latest
       - if: steps.version.outputs.publish == 'true'
         run: pnpm install --frozen-lockfile
       - if: steps.version.outputs.publish == 'true'
         run: pnpm build
-      # npm, not pnpm: npm handles the OIDC token exchange; provenance comes with it.
+      # npm, not pnpm: npm handles the OIDC token exchange.
       - if: steps.version.outputs.publish == 'true'
-        run: npm publish
+        run: npm stage publish
       - name: Tag and create the GitHub release
         if: steps.version.outputs.publish == 'true'
         env:
