@@ -1,0 +1,87 @@
+[
+  {
+    "type": "usage",
+    "inputTokens": 38,
+    "outputTokens": 8,
+    "cacheReadTokens": 0,
+    "cacheWriteTokens": 0
+  },
+  {
+    "type": "reasoning_signature",
+    "index": 0,
+    "signature": "CAQS/gMKEggTEAEYAjgBQgh0aGlua2luZxIMucOlUr4E66LcIvnTGgw+7PCbcJKEpatyZMAiMPC3ETnMDJ4CAx5qGczogjW6QN6qryWO+k6Pd1lduAq1Pj3GmmjI3mWSLE+jLCQwoCqZA0hcue5m5HiMxV1m7pfdKZoAssdoqSwI9bWKwEml1OX9dq1q7ruH3iT6VFdW9Qxb37dFGFxR82bEMye7kipM+3TzSu5BWygWlPoHDP7k0b4C5YyBbkjOupDXWwy1BbdwcuZndiZeKWr/rmkBNtS5x9F16EFNuVY7WaQbjBpV6sBZhhm6XzBDzGAeLgJ9iGbDG4O7BWLxBZBEog+8tZJaa/QMkTLNvLjCg8jz6tIh4ocAYnNrtTqy63MkFc5BEX+lcyKPw+3AToWtk364n0WvMyY015U0lSPchZ9yoqiUf3R6o5WXBRdm51p6Q4yrFeSGwUmlzigUaVbgghjz1EmkpmUSyZRxvmoXOIZ5r8J2GGXtpBJQo9udtIZP1jEJBXCtxIeSd38tfi6DdgI7I81lu+LwDdvgH0z1R0ccNACSWmSHap9A7pvpytYbAmmvPgOfIJ/ZNIe2CAEUAEbjGgEycVYPRAPU5JQdu/iCItbxUSXcmotI7RmKQhIcIFp8+e+wDeGq7JhtAahu99wJ2INly4NsNa8Z3YxDsHYYAQ=="
+  },
+  {
+    "type": "text",
+    "index": 1,
+    "text": "**"
+  },
+  {
+    "type": "text",
+    "index": 1,
+    "text": "Yes."
+  },
+  {
+    "type": "text",
+    "index": 1,
+    "text": "** 2³"
+  },
+  {
+    "type": "text",
+    "index": 1,
+    "text": "¹ − 1 ="
+  },
+  {
+    "type": "text",
+    "index": 1,
+    "text": " 2,147,483,647"
+  },
+  {
+    "type": "text",
+    "index": 1,
+    "text": " is a Mersenne"
+  },
+  {
+    "type": "text",
+    "index": 1,
+    "text": " prime, which Euler pro"
+  },
+  {
+    "type": "text",
+    "index": 1,
+    "text": "ved in 1772 by show"
+  },
+  {
+    "type": "text",
+    "index": 1,
+    "text": "ing it"
+  },
+  {
+    "type": "text",
+    "index": 1,
+    "text": " has no prime factors up"
+  },
+  {
+    "type": "text",
+    "index": 1,
+    "text": " to its square"
+  },
+  {
+    "type": "text",
+    "index": 1,
+    "text": " root."
+  },
+  {
+    "type": "usage",
+    "inputTokens": 38,
+    "outputTokens": 101,
+    "cacheReadTokens": 0,
+    "cacheWriteTokens": 0,
+    "reasoningTokens": 36
+  },
+  {
+    "type": "done",
+    "stopReason": "end",
+    "rawStopReason": "end_turn"
+  }
+]

@@ -1,0 +1,27 @@
+[
+  {
+    "type": "usage",
+    "inputTokens": 6788,
+    "outputTokens": 6,
+    "cacheReadTokens": 6771,
+    "cacheWriteTokens": 0
+  },
+  {
+    "type": "text",
+    "index": 0,
+    "text": "Ready."
+  },
+  {
+    "type": "usage",
+    "inputTokens": 6788,
+    "outputTokens": 6,
+    "cacheReadTokens": 6771,
+    "cacheWriteTokens": 0,
+    "reasoningTokens": 0
+  },
+  {
+    "type": "done",
+    "stopReason": "end",
+    "rawStopReason": "end_turn"
+  }
+]

@@ -1,0 +1,72 @@
+[
+  {
+    "type": "usage",
+    "inputTokens": 24,
+    "outputTokens": 8,
+    "cacheReadTokens": 0,
+    "cacheWriteTokens": 0
+  },
+  {
+    "type": "reasoning_signature",
+    "index": 0,
+    "signature": "CAQS5gMKEggTEAEYAjgBQgh0aGlua2luZxIMYNTAGnVrVQcOTclsGgyHo0VKx/omec2fqiEiMG5ZOTlm9+61AHCRJzMTgtJQ7jzxn/UlbvMMa/zS61rJVz+7MUagngd0X2H+RfAueSqBA6x5V0q8E2n0HUbeIegLGQHQuEHpFUCGU6OAY03tDcaFH99VGDWezJKzz3bxnSPH35F7edQrrDhYFv4k9/NxPXJR1jrw6z98mi5x6/QCEe/W7XWSdt4I55RLmgTLk+wdrQ+aOD2Lgbcs1YMtOvraJ6qb8hEcACAIGWK8jRoLxwrHIikMLh//Q7dUGXN+vByBfXST1Z4MW8XduxU+aLBZar45B/3hF7WumeUsuOl/PNxHKVYfFP6L86nMXojO2cT2LXBQo9cMvPzVtKUuw+T8u2UkC/oxr/youClmth+cHKVe2f2F+iV+ZUMk23Q/YpVNL7DHRT9c0Z2GesD5MInPaTe2w3UjF9c1AJFn1h4RE++GUCnfLMH+K11wXMMf8u/GJsRYbe8nmRsPatZp8kItc8jW31XTh5jNe4lUX5MYp7RJJjWlEFohFMviUoOwEqP52i8SrYd6ZBDwwLnFvI2PvX+U+rRY5yQrBQFvIN5vAKs5gp0VElSTzBrFzraV8YTeUNYYAQ=="
+  },
+  {
+    "type": "text",
+    "index": 1,
+    "text": "# Sentinels"
+  },
+  {
+    "type": "text",
+    "index": 1,
+    "text": " of the Sh"
+  },
+  {
+    "type": "text",
+    "index": 1,
+    "text": "ore:"
+  },
+  {
+    "type": "text",
+    "index": 1,
+    "text": " The Enduring Leg"
+  },
+  {
+    "type": "text",
+    "index": 1,
+    "text": "acy of Lighthou"
+  },
+  {
+    "type": "text",
+    "index": 1,
+    "text": "ses\n\nFor thousands of years"
+  },
+  {
+    "type": "text",
+    "index": 1,
+    "text": ", lighthouses have"
+  },
+  {
+    "type": "text",
+    "index": 1,
+    "text": " stood at"
+  },
+  {
+    "type": "text",
+    "index": 1,
+    "text": " the ed"
+  },
+  {
+    "type": "usage",
+    "inputTokens": 24,
+    "outputTokens": 64,
+    "cacheReadTokens": 0,
+    "cacheWriteTokens": 0,
+    "reasoningTokens": 17
+  },
+  {
+    "type": "done",
+    "stopReason": "max_tokens",
+    "rawStopReason": "max_tokens"
+  }
+]

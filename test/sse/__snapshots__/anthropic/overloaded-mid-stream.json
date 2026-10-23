@@ -1,0 +1,27 @@
+[
+  {
+    "type": "usage",
+    "inputTokens": 18,
+    "outputTokens": 1
+  },
+  {
+    "type": "text",
+    "index": 0,
+    "text": "The sea is"
+  },
+  {
+    "type": "error",
+    "message": "Overloaded",
+    "raw": {
+      "type": "error",
+      "error": {
+        "type": "overloaded_error",
+        "message": "Overloaded"
+      }
+    }
+  },
+  {
+    "type": "done",
+    "stopReason": "error"
+  }
+]

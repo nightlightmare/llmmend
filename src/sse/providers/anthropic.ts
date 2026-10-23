@@ -1,0 +1,160 @@
+import type { LlmEvent, LlmUsage, ProviderAdapter, StopReason } from '../events'
+import type { SSEEvent } from '../parse'
+
+interface RawUsage {
+  input_tokens?: number
+  output_tokens?: number
+  cache_read_input_tokens?: number
+  cache_creation_input_tokens?: number
+  output_tokens_details?: { thinking_tokens?: number }
+}
+
+/** The fields of the Messages API stream events this adapter reads. */
+interface RawEvent {
+  type?: string
+  index?: number
+  message?: { usage?: RawUsage }
+  content_block?: {
+    type?: string
+    text?: string
+    thinking?: string
+    signature?: string
+    data?: string
+    id?: string
+    name?: string
+  }
+  delta?: {
+    type?: string
+    text?: string
+    thinking?: string
+    signature?: string
+    partial_json?: string
+    stop_reason?: string | null
+  }
+  usage?: RawUsage
+  error?: { message?: string }
+}
+
+const STOP_REASONS = new Map<string, StopReason>([
+  ['end_turn', 'end'],
+  ['max_tokens', 'max_tokens'],
+  ['model_context_window_exceeded', 'max_tokens'],
+  ['tool_use', 'tool_use'],
+  ['stop_sequence', 'stop_sequence'],
+  ['refusal', 'refused'],
+  ['pause_turn', 'paused'],
+])
+
+function parse(data: string): RawEvent | undefined {
+  try {
+    const value: unknown = JSON.parse(data)
+    return typeof value === 'object' && value !== null ? value : undefined
+  } catch {
+    return undefined
+  }
+}
+
+function create(): (event: SSEEvent) => LlmEvent[] {
+  // Blocks started as tool calls, so their argument deltas can be told from unknown Blocks.
+  const toolBlocks = new Set<number>()
+  // `message_delta` may repeat only some counts, so each one keeps its latest value.
+  let input: number | undefined
+  let read: number | undefined
+  let write: number | undefined
+  let output: number | undefined
+  let thinking: number | undefined
+  let rawStopReason: string | undefined
+
+  const usage = (raw: RawUsage | undefined): LlmEvent[] => {
+    if (!raw) return []
+    input = raw.input_tokens ?? input
+    read = raw.cache_read_input_tokens ?? read
+    write = raw.cache_creation_input_tokens ?? write
+    output = raw.output_tokens ?? output
+    thinking = raw.output_tokens_details?.thinking_tokens ?? thinking
+    const event: { type: 'usage' } & LlmUsage = { type: 'usage' }
+    // Anthropic counts cached tokens apart from `input_tokens`; llmmend's `inputTokens` includes them.
+    if (input !== undefined) event.inputTokens = input + (read ?? 0) + (write ?? 0)
+    if (output !== undefined) event.outputTokens = output
+    if (read !== undefined) event.cacheReadTokens = read
+    if (write !== undefined) event.cacheWriteTokens = write
+    if (thinking !== undefined) event.reasoningTokens = thinking
+    return [event]
+  }
+
+  return (sse) => {
+    const raw = parse(sse.data)
+    const other: LlmEvent[] = [{ type: 'other', raw: sse }]
+    if (!raw) return other
+    const index = raw.index ?? 0
+    switch (raw.type) {
+      case 'message_start':
+        return usage(raw.message?.usage)
+      case 'content_block_start': {
+        const block = raw.content_block
+        switch (block?.type) {
+          case 'text':
+            return block.text ? [{ type: 'text', index, text: block.text }] : []
+          case 'thinking': {
+            const events: LlmEvent[] = []
+            if (block.thinking) events.push({ type: 'reasoning', index, text: block.thinking })
+            if (block.signature)
+              events.push({ type: 'reasoning_signature', index, signature: block.signature })
+            return events
+          }
+          case 'redacted_thinking':
+            return [{ type: 'reasoning', index, text: '', redacted: block.data ?? '' }]
+          case 'tool_use':
+            toolBlocks.add(index)
+            return [{ type: 'tool_call_start', index, id: block.id ?? '', name: block.name ?? '' }]
+          default:
+            return other
+        }
+      }
+      case 'content_block_delta': {
+        const delta = raw.delta
+        switch (delta?.type) {
+          case 'text_delta':
+            return delta.text ? [{ type: 'text', index, text: delta.text }] : []
+          case 'thinking_delta':
+            return delta.thinking ? [{ type: 'reasoning', index, text: delta.thinking }] : []
+          case 'signature_delta':
+            return delta.signature
+              ? [{ type: 'reasoning_signature', index, signature: delta.signature }]
+              : []
+          case 'input_json_delta':
+            // Server tools stream arguments too, but their Blocks surface as `other`.
+            if (!toolBlocks.has(index)) return other
+            return delta.partial_json
+              ? [{ type: 'tool_call_delta', index, argsDelta: delta.partial_json }]
+              : []
+          default:
+            return other
+        }
+      }
+      case 'message_delta':
+        rawStopReason = raw.delta?.stop_reason ?? rawStopReason
+        return usage(raw.usage)
+      case 'message_stop':
+        return [
+          rawStopReason === undefined
+            ? { type: 'done', stopReason: 'unknown' }
+            : {
+                type: 'done',
+                stopReason: STOP_REASONS.get(rawStopReason) ?? 'unknown',
+                rawStopReason,
+              },
+        ]
+      case 'error':
+        return [{ type: 'error', message: raw.error?.message ?? 'Provider error', raw }]
+      case 'ping':
+      case 'content_block_stop':
+        return []
+      default:
+        return other
+    }
+  }
+}
+
+/** Adapter for the Anthropic Messages API stream. */
+export const anthropic: ProviderAdapter = { name: 'anthropic', create }
