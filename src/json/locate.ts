@@ -92,7 +92,8 @@ function createStartCheck(text: string, lenient: boolean): (i: number) => boolea
   }
 }
 
-export function locate(text: string, repair: Repair): Located {
+/** With `first`, stops at the first Candidate. */
+export function locate(text: string, repair: Repair, first = false): Located {
   const lenient = repair !== 'none'
   const mayStartAt = createStartCheck(text, lenient)
   const candidates: Candidate[] = []
@@ -111,6 +112,7 @@ export function locate(text: string, repair: Repair): Located {
     const result = parseValueAt(text, i, { repair })
     if (result.ok) {
       candidates.push({ start: i, end: result.end, value: result.value, issues: result.issues })
+      if (first) break
       i = result.end
       continue
     }
