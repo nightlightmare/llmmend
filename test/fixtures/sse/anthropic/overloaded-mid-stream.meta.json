@@ -1,0 +1,8 @@
+{
+  "provider": "anthropic",
+  "case": "overloaded-mid-stream",
+  "description": "Provider error event after the first text delta; the stream ends without message_stop.",
+  "model": "claude-opus-5-5",
+  "synthetic": true,
+  "source": "https://docs.claude.com/en/docs/build-with-claude/streaming#error-events"
+}

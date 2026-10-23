@@ -1,0 +1,26 @@
+{
+  "description": "Reads the cache entry written by cache-1-write (cache_read_input_tokens > 0). Run within 5 minutes of it.",
+  "body": {
+    "model": "claude-opus-5-5",
+    "max_tokens": 1024,
+    "stream": true,
+    "output_config": {
+      "effort": "low"
+    },
+    "system": [
+      {
+        "type": "text",
+        "text": "You are a harbour pilot. Reference notes follow. {{filler:3000}}",
+        "cache_control": {
+          "type": "ephemeral"
+        }
+      }
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "Reply with the single word: ready."
+      }
+    ]
+  }
+}

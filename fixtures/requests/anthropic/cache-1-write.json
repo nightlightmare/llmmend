@@ -1,0 +1,26 @@
+{
+  "description": "Writes a prompt cache entry (cache_creation_input_tokens > 0).",
+  "body": {
+    "model": "claude-opus-5-5",
+    "max_tokens": 1024,
+    "stream": true,
+    "output_config": {
+      "effort": "low"
+    },
+    "system": [
+      {
+        "type": "text",
+        "text": "You are a harbour pilot. Reference notes follow. {{filler:3000}}",
+        "cache_control": {
+          "type": "ephemeral"
+        }
+      }
+    ],
+    "messages": [
+      {
+        "role": "user",
+        "content": "Reply with the single word: ready."
+      }
+    ]
+  }
+}

@@ -1,0 +1,12 @@
+data: {"id":"synthetic-reasoning-content","object":"chat.completion.chunk","created":1761206400,"model":"deepseek-reasoner","choices":[{"index":0,"delta":{"role":"assistant","content":null,"reasoning_content":""},"logprobs":null,"finish_reason":null}]}
+
+data: {"id":"synthetic-reasoning-content","object":"chat.completion.chunk","created":1761206400,"model":"deepseek-reasoner","choices":[{"index":0,"delta":{"content":null,"reasoning_content":"2^31 - 1 is a Mersenne"},"logprobs":null,"finish_reason":null}]}
+
+data: {"id":"synthetic-reasoning-content","object":"chat.completion.chunk","created":1761206400,"model":"deepseek-reasoner","choices":[{"index":0,"delta":{"content":null,"reasoning_content":" prime, proven by Euler."},"logprobs":null,"finish_reason":null}]}
+
+data: {"id":"synthetic-reasoning-content","object":"chat.completion.chunk","created":1761206400,"model":"deepseek-reasoner","choices":[{"index":0,"delta":{"content":"Yes: 2147483647 is prime.","reasoning_content":null},"logprobs":null,"finish_reason":null}]}
+
+data: {"id":"synthetic-reasoning-content","object":"chat.completion.chunk","created":1761206400,"model":"deepseek-reasoner","choices":[{"index":0,"delta":{"content":"","reasoning_content":null},"logprobs":null,"finish_reason":"stop"}],"usage":{"prompt_tokens":21,"completion_tokens":27,"total_tokens":48,"prompt_tokens_details":{"cached_tokens":0},"completion_tokens_details":{"reasoning_tokens":14}}}
+
+data: [DONE]
+

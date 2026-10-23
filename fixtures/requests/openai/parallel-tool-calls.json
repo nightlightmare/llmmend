@@ -1,0 +1,37 @@
+{
+  "description": "Two tool calls in one answer, arguments streamed in pieces.",
+  "body": {
+    "model": "gpt-5-mini",
+    "stream": true,
+    "stream_options": {
+      "include_usage": true
+    },
+    "tools": [
+      {
+        "type": "function",
+        "function": {
+          "name": "get_weather",
+          "description": "Get the current weather for a city.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "city": {
+                "type": "string",
+                "description": "City name"
+              }
+            },
+            "required": ["city"],
+            "additionalProperties": false
+          }
+        }
+      }
+    ],
+    "parallel_tool_calls": true,
+    "messages": [
+      {
+        "role": "user",
+        "content": "What is the weather in Paris and in Tokyo right now? Call the tool for both cities."
+      }
+    ]
+  }
+}

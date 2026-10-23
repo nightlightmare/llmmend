@@ -1,0 +1,14 @@
+{
+  "description": "Reply with a preamble and a fenced JSON block.",
+  "save": "reply",
+  "body": {
+    "model": "qwen2.5:3b",
+    "stream": false,
+    "messages": [
+      {
+        "role": "user",
+        "content": "Describe a fictional book as JSON with title, author, year and tags. Start with a friendly sentence, then put the JSON in a markdown code block, then add a closing remark."
+      }
+    ]
+  }
+}

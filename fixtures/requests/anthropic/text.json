@@ -1,0 +1,17 @@
+{
+  "description": "Plain text answer with default thinking (omitted display).",
+  "body": {
+    "model": "claude-opus-5-5",
+    "max_tokens": 2048,
+    "stream": true,
+    "output_config": {
+      "effort": "low"
+    },
+    "messages": [
+      {
+        "role": "user",
+        "content": "Write two short sentences about the sea. Include one emoji and one Cyrillic word."
+      }
+    ]
+  }
+}

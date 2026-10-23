@@ -1,0 +1,16 @@
+{
+  "description": "Thinking model; reasoning in delta.reasoning.",
+  "body": {
+    "model": "qwen3:4b",
+    "stream": true,
+    "stream_options": {
+      "include_usage": true
+    },
+    "messages": [
+      {
+        "role": "user",
+        "content": "Is 2^31 - 1 prime? Answer yes or no with one sentence of justification."
+      }
+    ]
+  }
+}
