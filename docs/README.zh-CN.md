@@ -3,7 +3,10 @@
 # 🩹 llmmend
 
 [![npm](https://img.shields.io/npm/v/llmmend)](https://www.npmjs.com/package/llmmend)
-[![bundle size](https://img.shields.io/bundlephobia/minzip/llmmend)](https://bundlephobia.com/package/llmmend)
+[![bundle size](https://img.shields.io/bundlejs/size/llmmend)](https://bundlejs.com/?q=llmmend)
+[![CI](https://github.com/nightlightmare/llmmend/actions/workflows/ci.yml/badge.svg)](https://github.com/nightlightmare/llmmend/actions/workflows/ci.yml)
+[![provenance](https://img.shields.io/badge/npm-provenance-blue)](https://www.npmjs.com/package/llmmend#provenance)
+[![zero deps](https://img.shields.io/badge/dependencies-0-brightgreen)](https://www.npmjs.com/package/llmmend?activeTab=dependencies)
 [![license](https://img.shields.io/npm/l/llmmend)](https://github.com/nightlightmare/llmmend/blob/main/LICENSE)
 
 **修复 LLM 返回的内容。** 提取并修复 JSON，解析任意提供商的流式响应。零依赖。可在 Node、Bun、Deno、浏览器和边缘运行时中使用。

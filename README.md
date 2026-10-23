@@ -3,7 +3,10 @@
 # 🩹 llmmend
 
 [![npm](https://img.shields.io/npm/v/llmmend)](https://www.npmjs.com/package/llmmend)
-[![bundle size](https://img.shields.io/bundlephobia/minzip/llmmend)](https://bundlephobia.com/package/llmmend)
+[![bundle size](https://img.shields.io/bundlejs/size/llmmend)](https://bundlejs.com/?q=llmmend)
+[![CI](https://github.com/nightlightmare/llmmend/actions/workflows/ci.yml/badge.svg)](https://github.com/nightlightmare/llmmend/actions/workflows/ci.yml)
+[![provenance](https://img.shields.io/badge/npm-provenance-blue)](https://www.npmjs.com/package/llmmend#provenance)
+[![zero deps](https://img.shields.io/badge/dependencies-0-brightgreen)](https://www.npmjs.com/package/llmmend?activeTab=dependencies)
 [![license](https://img.shields.io/npm/l/llmmend)](https://github.com/nightlightmare/llmmend/blob/main/LICENSE)
 
 **Fix what your LLM returns.** Extract and repair JSON, parse streaming responses from any provider. Zero dependencies. Works in Node, Bun, Deno, browsers and edge runtimes.
