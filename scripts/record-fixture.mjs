@@ -35,6 +35,14 @@ const providers = {
     key: null,
     auth: () => ({}),
   },
+  // The model goes in the URL, not the body.
+  gemini: {
+    url: (body) =>
+      `https://generativelanguage.googleapis.com/v1beta/models/${body.model}:streamGenerateContent?alt=sse`,
+    key: 'GEMINI_API_KEY',
+    auth: (k) => ({ 'x-goog-api-key': k }),
+    body: (body) => Object.fromEntries(Object.entries(body).filter(([k]) => k !== 'model')),
+  },
 }
 
 // Deterministic filler, so cache-write and cache-read requests share a byte-identical prefix.
@@ -63,10 +71,11 @@ async function listCases() {
 }
 
 async function sendDirect(config, key, body) {
-  const res = await fetch(config.url, {
+  const url = typeof config.url === 'function' ? config.url(body) : config.url
+  const res = await fetch(url, {
     method: 'POST',
     headers: { 'content-type': 'application/json', ...config.auth(key) },
-    body: JSON.stringify(body),
+    body: JSON.stringify(config.body ? config.body(body) : body),
     signal: AbortSignal.timeout(300_000),
   })
   return { status: res.status, bytes: new Uint8Array(await res.arrayBuffer()) }

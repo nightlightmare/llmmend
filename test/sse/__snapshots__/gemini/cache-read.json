@@ -1,0 +1,24 @@
+[
+  {
+    "type": "text",
+    "index": 0,
+    "text": "7"
+  },
+  {
+    "type": "usage",
+    "inputTokens": 3019,
+    "outputTokens": 1,
+    "cacheReadTokens": 2041
+  },
+  {
+    "type": "usage",
+    "inputTokens": 3019,
+    "outputTokens": 1,
+    "cacheReadTokens": 2041
+  },
+  {
+    "type": "done",
+    "stopReason": "end",
+    "rawStopReason": "STOP"
+  }
+]

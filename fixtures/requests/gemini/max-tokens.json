@@ -1,0 +1,13 @@
+{
+  "description": "Cut off by maxOutputTokens.",
+  "body": {
+    "model": "gemini-3.8-flash",
+    "contents": [
+      {
+        "role": "user",
+        "parts": [{ "text": "Write a long story about a lighthouse keeper." }]
+      }
+    ],
+    "generationConfig": { "maxOutputTokens": 40, "thinkingConfig": { "thinkingBudget": 0 } }
+  }
+}

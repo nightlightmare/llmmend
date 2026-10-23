@@ -1,0 +1,17 @@
+{
+  "description": "Plain text answer, thoughts not included.",
+  "body": {
+    "model": "gemini-3.8-flash",
+    "contents": [
+      {
+        "role": "user",
+        "parts": [
+          {
+            "text": "Write two short sentences about the sea. Include one emoji and one Cyrillic word."
+          }
+        ]
+      }
+    ],
+    "generationConfig": { "thinkingConfig": { "thinkingBudget": 0 } }
+  }
+}

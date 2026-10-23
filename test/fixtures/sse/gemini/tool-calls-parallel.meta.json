@@ -1,0 +1,8 @@
+{
+  "provider": "gemini",
+  "case": "tool-calls-parallel",
+  "description": "Two parallel function calls, with thinking on so a thoughtSignature comes back.",
+  "model": "gemini-3.8-flash",
+  "recordedAt": "2026-10-23T21:18:15.114Z",
+  "synthetic": false
+}

@@ -1,0 +1,8 @@
+{
+  "provider": "gemini",
+  "case": "text",
+  "description": "Plain text answer, thoughts not included.",
+  "model": "gemini-3.8-flash",
+  "recordedAt": "2026-10-23T21:12:19.931Z",
+  "synthetic": false
+}

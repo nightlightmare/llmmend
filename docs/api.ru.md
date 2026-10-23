@@ -193,6 +193,7 @@ for await (const ev of streamLlm(res, { provider: 'openai' })) {
 
 - `'anthropic'`: Anthropic Messages API.
 - `'openai'`: OpenAI Chat Completions и API, повторяющие его формат: OpenRouter, Groq, Ollama, DeepSeek, vLLM, LM Studio. Читается только первый вариант ответа; `n > 1` не поддерживается. OpenAI присылает расход токенов только с `stream_options: { include_usage: true }`.
+- `'gemini'`: Google Gemini `streamGenerateContent` (`?alt=sse`). Читается только первый кандидат. Новый блок начинается, когда меняется вид части (рассуждение ↔ текст), и у каждого вызова функции свой блок, поэтому блоки идут в том же порядке, что части у Gemini. Вызовы функций приходят целиком: `tool_call_start`, затем один `tool_call_delta`.
 - свой адаптер, см. ниже.
 
 ### LLM-события
@@ -218,17 +219,17 @@ function show(ev: LlmEvent): string {
 }
 ```
 
-| `type`                | Поля                                                                                         | Смысл                                                                                                                              |
-| --------------------- | -------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| `text`                | `index`, `text`                                                                              | Кусок текста ответа.                                                                                                               |
-| `reasoning`           | `index`, `text`, `redacted?`                                                                 | Кусок рассуждения. В `redacted` лежат зашифрованные данные `redacted_thinking` от Anthropic; отправляйте их обратно без изменений. |
-| `reasoning_signature` | `index`, `signature`                                                                         | Подпись рассуждения от Anthropic; без неё рассуждение нельзя отправить обратно при вызове инструментов.                            |
-| `tool_call_start`     | `index`, `id`, `name`                                                                        | Начало вызова инструмента.                                                                                                         |
-| `tool_call_delta`     | `index`, `argsDelta`                                                                         | Кусок JSON-аргументов вызова; склеивайте по порядку.                                                                               |
-| `usage`               | `inputTokens?`, `outputTokens?`, `cacheReadTokens?`, `cacheWriteTokens?`, `reasoningTokens?` | Расход токенов на текущий момент.                                                                                                  |
-| `done`                | `stopReason`, `rawStopReason?`                                                               | Конец стрима.                                                                                                                      |
-| `error`               | `message`, `raw`                                                                             | Провайдер сообщил об ошибке посреди стрима.                                                                                        |
-| `other`               | `raw`                                                                                        | Событие, которого адаптер не знает, в том виде, в каком его разобрал `parseSSE`.                                                   |
+| `type`                | Поля                                                                                         | Смысл                                                                                                                                                                                                                         |
+| --------------------- | -------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `text`                | `index`, `text`                                                                              | Кусок текста ответа.                                                                                                                                                                                                          |
+| `reasoning`           | `index`, `text`, `redacted?`                                                                 | Кусок рассуждения. В `redacted` лежат зашифрованные данные `redacted_thinking` от Anthropic; отправляйте их обратно без изменений.                                                                                            |
+| `reasoning_signature` | `index`, `signature`                                                                         | Данные, которые нужно вернуть без изменений вместе с блоком `index`, продолжая разговор: подпись рассуждения от Anthropic или `thoughtSignature` от Gemini, который может оказаться на любой части (часто на вызове функции). |
+| `tool_call_start`     | `index`, `id`, `name`                                                                        | Начало вызова инструмента.                                                                                                                                                                                                    |
+| `tool_call_delta`     | `index`, `argsDelta`                                                                         | Кусок JSON-аргументов вызова; склеивайте по порядку.                                                                                                                                                                          |
+| `usage`               | `inputTokens?`, `outputTokens?`, `cacheReadTokens?`, `cacheWriteTokens?`, `reasoningTokens?` | Расход токенов на текущий момент.                                                                                                                                                                                             |
+| `done`                | `stopReason`, `rawStopReason?`                                                               | Конец стрима.                                                                                                                                                                                                                 |
+| `error`               | `message`, `raw`                                                                             | Провайдер сообщил об ошибке посреди стрима.                                                                                                                                                                                   |
+| `other`               | `raw`                                                                                        | Событие, которого адаптер не знает, в том виде, в каком его разобрал `parseSSE`.                                                                                                                                              |
 
 `index` — это номер блока: текст, рассуждение и каждый вызов инструмента получают свой номер, одинаково для всех провайдеров. `tool_call_delta` всегда приходит после `tool_call_start` с тем же `index`.
 
@@ -236,16 +237,16 @@ function show(ev: LlmEvent): string {
 
 Причины остановки:
 
-| `stopReason`    | Anthropic                                     | OpenAI                         |
-| --------------- | --------------------------------------------- | ------------------------------ |
-| `end`           | `end_turn`                                    | `stop`                         |
-| `max_tokens`    | `max_tokens`, `model_context_window_exceeded` | `length`                       |
-| `tool_use`      | `tool_use`                                    | `tool_calls`, `function_call`  |
-| `stop_sequence` | `stop_sequence`                               |                                |
-| `refused`       | `refusal`                                     | `content_filter`               |
-| `paused`        | `pause_turn`                                  |                                |
-| `error`         | событие `error`                               | объект `error` в данных        |
-| `unknown`       | что-то другое или нет финального события      | что-то другое или нет `[DONE]` |
+| `stopReason`    | Anthropic                                     | OpenAI                         | Gemini                                                                                       |
+| --------------- | --------------------------------------------- | ------------------------------ | -------------------------------------------------------------------------------------------- |
+| `end`           | `end_turn`                                    | `stop`                         | `STOP`                                                                                       |
+| `max_tokens`    | `max_tokens`, `model_context_window_exceeded` | `length`                       | `MAX_TOKENS`                                                                                 |
+| `tool_use`      | `tool_use`                                    | `tool_calls`, `function_call`  | `STOP` после вызовов функций                                                                 |
+| `stop_sequence` | `stop_sequence`                               |                                |                                                                                              |
+| `refused`       | `refusal`                                     | `content_filter`               | `SAFETY`, `RECITATION`, `BLOCKLIST`, `PROHIBITED_CONTENT`, `SPII`, …; заблокированный промпт |
+| `paused`        | `pause_turn`                                  |                                | `CONTINUATION`                                                                               |
+| `error`         | событие `error`                               | объект `error` в данных        | объект `error` в данных; `MALFORMED_FUNCTION_CALL`, `MISSING_THOUGHT_SIGNATURE`, …           |
+| `unknown`       | что-то другое или нет финального события      | что-то другое или нет `[DONE]` | что-то другое или нет причины остановки                                                      |
 
 `rawStopReason` хранит исходную строку провайдера.
 

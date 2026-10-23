@@ -1,0 +1,27 @@
+[
+  {
+    "type": "text",
+    "index": 0,
+    "text": "The sea is"
+  },
+  {
+    "type": "usage",
+    "inputTokens": 8,
+    "outputTokens": 3
+  },
+  {
+    "type": "error",
+    "message": "The model is overloaded. Please try again later.",
+    "raw": {
+      "error": {
+        "code": 503,
+        "message": "The model is overloaded. Please try again later.",
+        "status": "UNAVAILABLE"
+      }
+    }
+  },
+  {
+    "type": "done",
+    "stopReason": "error"
+  }
+]

@@ -1,0 +1,37 @@
+[
+  {
+    "type": "text",
+    "index": 0,
+    "text": "The vast sea whispered secrets to the shore under the moonlight. \n\nStanding on the cliffs"
+  },
+  {
+    "type": "usage",
+    "inputTokens": 19,
+    "outputTokens": 18
+  },
+  {
+    "type": "text",
+    "index": 0,
+    "text": ", I marveled at the infinite *море*. 🌊"
+  },
+  {
+    "type": "usage",
+    "inputTokens": 19,
+    "outputTokens": 31
+  },
+  {
+    "type": "reasoning_signature",
+    "index": 0,
+    "signature": "EmkKZwFpFH0TRVdArnBs9TllwYjY3h+UHYPkMy33nEte7uSAbv1hYmSmkUEHkIdTwDaUEDvcdh+C8cSZebzQig+kVbX631mM64KT7WRPHUKvbSSycd6AD6OaW0tcRt2sc1/JvDdmNH1xxZQ="
+  },
+  {
+    "type": "usage",
+    "inputTokens": 19,
+    "outputTokens": 31
+  },
+  {
+    "type": "done",
+    "stopReason": "end",
+    "rawStopReason": "STOP"
+  }
+]

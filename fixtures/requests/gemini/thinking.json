@@ -1,0 +1,17 @@
+{
+  "description": "Thinking with thought summaries: parts with thought: true before the answer.",
+  "body": {
+    "model": "gemini-3.8-flash",
+    "contents": [
+      {
+        "role": "user",
+        "parts": [
+          {
+            "text": "Find the smallest positive integer solution of x^2 - 7y^2 = 1. Explain briefly."
+          }
+        ]
+      }
+    ],
+    "generationConfig": { "thinkingConfig": { "includeThoughts": true, "thinkingBudget": 2048 } }
+  }
+}

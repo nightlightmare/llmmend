@@ -193,6 +193,7 @@ for await (const ev of streamLlm(res, { provider: 'openai' })) {
 
 - `'anthropic'`：Anthropic Messages API。
 - `'openai'`：OpenAI Chat Completions 以及沿用其格式的 API：OpenRouter、Groq、Ollama、DeepSeek、vLLM、LM Studio。只读取第一个候选回答；不支持 `n > 1`。OpenAI 只有在设置 `stream_options: { include_usage: true }` 时才会发送 token 用量。
+- `'gemini'`：Google Gemini `streamGenerateContent`（`?alt=sse`）。只读取第一个候选。每当部分的类型变化（推理 ↔ 文本）时开始一个新块，每次函数调用各占一个块，因此块的顺序与 Gemini 的部分顺序一致。函数调用整体到达：先 `tool_call_start`，再一个 `tool_call_delta`。
 - 自定义适配器，见下文。
 
 ### LLM 事件
@@ -218,17 +219,17 @@ function show(ev: LlmEvent): string {
 }
 ```
 
-| `type`                | 字段                                                                                         | 含义                                                                                    |
-| --------------------- | -------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| `text`                | `index`, `text`                                                                              | 回答文本的一个片段。                                                                    |
-| `reasoning`           | `index`, `text`, `redacted?`                                                                 | 推理的一个片段。`redacted` 保存 Anthropic 加密的 `redacted_thinking` 数据；请原样发回。 |
-| `reasoning_signature` | `index`, `signature`                                                                         | Anthropic 的推理签名，在工具调用过程中回传推理时需要它。                                |
-| `tool_call_start`     | `index`, `id`, `name`                                                                        | 一次工具调用开始。                                                                      |
-| `tool_call_delta`     | `index`, `argsDelta`                                                                         | 工具调用 JSON 参数的一个片段；按顺序拼接。                                              |
-| `usage`               | `inputTokens?`, `outputTokens?`, `cacheReadTokens?`, `cacheWriteTokens?`, `reasoningTokens?` | 截至目前的 token 用量。                                                                 |
-| `done`                | `stopReason`, `rawStopReason?`                                                               | 流结束。                                                                                |
-| `error`               | `message`, `raw`                                                                             | 提供商在流中途报告了错误。                                                              |
-| `other`               | `raw`                                                                                        | 适配器不认识的事件，即 `parseSSE` 解析出的原样事件。                                    |
+| `type`                | 字段                                                                                         | 含义                                                                                                                                       |
+| --------------------- | -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `text`                | `index`, `text`                                                                              | 回答文本的一个片段。                                                                                                                       |
+| `reasoning`           | `index`, `text`, `redacted?`                                                                 | 推理的一个片段。`redacted` 保存 Anthropic 加密的 `redacted_thinking` 数据；请原样发回。                                                    |
+| `reasoning_signature` | `index`, `signature`                                                                         | 继续对话时需要随块 `index` 原样发回的数据：Anthropic 的推理签名，或 Gemini 的 `thoughtSignature`（可能出现在任何部分上，通常是函数调用）。 |
+| `tool_call_start`     | `index`, `id`, `name`                                                                        | 一次工具调用开始。                                                                                                                         |
+| `tool_call_delta`     | `index`, `argsDelta`                                                                         | 工具调用 JSON 参数的一个片段；按顺序拼接。                                                                                                 |
+| `usage`               | `inputTokens?`, `outputTokens?`, `cacheReadTokens?`, `cacheWriteTokens?`, `reasoningTokens?` | 截至目前的 token 用量。                                                                                                                    |
+| `done`                | `stopReason`, `rawStopReason?`                                                               | 流结束。                                                                                                                                   |
+| `error`               | `message`, `raw`                                                                             | 提供商在流中途报告了错误。                                                                                                                 |
+| `other`               | `raw`                                                                                        | 适配器不认识的事件，即 `parseSSE` 解析出的原样事件。                                                                                       |
 
 `index` 是块的编号：文本、推理和每次工具调用各有自己的编号，所有提供商都一样。`tool_call_delta` 总是在相同 `index` 的 `tool_call_start` 之后到达。
 
@@ -236,16 +237,16 @@ function show(ev: LlmEvent): string {
 
 停止原因：
 
-| `stopReason`    | Anthropic                                     | OpenAI                        |
-| --------------- | --------------------------------------------- | ----------------------------- |
-| `end`           | `end_turn`                                    | `stop`                        |
-| `max_tokens`    | `max_tokens`, `model_context_window_exceeded` | `length`                      |
-| `tool_use`      | `tool_use`                                    | `tool_calls`, `function_call` |
-| `stop_sequence` | `stop_sequence`                               |                               |
-| `refused`       | `refusal`                                     | `content_filter`              |
-| `paused`        | `pause_turn`                                  |                               |
-| `error`         | `error` 事件                                  | 数据中的 `error` 对象         |
-| `unknown`       | 其他值，或没有最终事件                        | 其他值，或没有 `[DONE]`       |
+| `stopReason`    | Anthropic                                     | OpenAI                        | Gemini                                                                               |
+| --------------- | --------------------------------------------- | ----------------------------- | ------------------------------------------------------------------------------------ |
+| `end`           | `end_turn`                                    | `stop`                        | `STOP`                                                                               |
+| `max_tokens`    | `max_tokens`, `model_context_window_exceeded` | `length`                      | `MAX_TOKENS`                                                                         |
+| `tool_use`      | `tool_use`                                    | `tool_calls`, `function_call` | 函数调用之后的 `STOP`                                                                |
+| `stop_sequence` | `stop_sequence`                               |                               |                                                                                      |
+| `refused`       | `refusal`                                     | `content_filter`              | `SAFETY`, `RECITATION`, `BLOCKLIST`, `PROHIBITED_CONTENT`, `SPII`, …；被拦截的提示词 |
+| `paused`        | `pause_turn`                                  |                               | `CONTINUATION`                                                                       |
+| `error`         | `error` 事件                                  | 数据中的 `error` 对象         | 数据中的 `error` 对象；`MALFORMED_FUNCTION_CALL`, `MISSING_THOUGHT_SIGNATURE`, …     |
+| `unknown`       | 其他值，或没有最终事件                        | 其他值，或没有 `[DONE]`       | 其他值，或没有停止原因                                                               |
 
 `rawStopReason` 保留提供商的原始字符串。
 

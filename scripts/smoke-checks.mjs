@@ -69,5 +69,13 @@ export const checks = {
       items.push(item)
     assert.deepEqual(items[0], { done: false, partial: { a: [1] }, complete: true })
     assert.deepEqual(items[1].result.value, { a: [1] })
+    const gemini = { candidates: [{ content: { parts: [{ text: 'Hi' }] }, finishReason: 'STOP' }] }
+    const geminiBody = new Response(`data: ${JSON.stringify(gemini)}
+
+`)
+    assert.deepEqual(await m.collectText(geminiBody, { provider: 'gemini' }), {
+      text: 'Hi',
+      stopReason: 'end',
+    })
   },
 }

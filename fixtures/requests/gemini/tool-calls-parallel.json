@@ -1,0 +1,32 @@
+{
+  "description": "Two parallel function calls, with thinking on so a thoughtSignature comes back.",
+  "body": {
+    "model": "gemini-3.8-flash",
+    "contents": [
+      {
+        "role": "user",
+        "parts": [
+          {
+            "text": "What is the weather in Paris and in Tokyo right now? Call the tool for both cities."
+          }
+        ]
+      }
+    ],
+    "tools": [
+      {
+        "functionDeclarations": [
+          {
+            "name": "get_weather",
+            "description": "Get the current weather for a city.",
+            "parameters": {
+              "type": "object",
+              "properties": { "city": { "type": "string", "description": "City name" } },
+              "required": ["city"]
+            }
+          }
+        ]
+      }
+    ],
+    "generationConfig": { "thinkingConfig": { "includeThoughts": true, "thinkingBudget": 1024 } }
+  }
+}
