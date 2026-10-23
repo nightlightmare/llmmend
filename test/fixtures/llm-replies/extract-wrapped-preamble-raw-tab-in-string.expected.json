@@ -1,0 +1,4 @@
+{
+  "value": ["a\tb", "c"],
+  "issues": ["stripped_wrapper", "unescaped_control_char"]
+}

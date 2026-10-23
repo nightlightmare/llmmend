@@ -1,0 +1,5 @@
+Here is the user record:
+
+{'name': 'Ada', 'admin': True, 'manager': None}
+
+All fields are filled.

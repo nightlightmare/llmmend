@@ -1,0 +1,9 @@
+{
+  "value": {
+    "a": 1
+  },
+  "issues": ["stripped_wrapper"],
+  "options": {
+    "repair": "none"
+  }
+}

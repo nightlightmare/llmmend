@@ -1,0 +1,2 @@
+<thinking>The user wants a list.</thinking>
+["a", "b"]

@@ -1,0 +1,5 @@
+Here is the result:
+```json
+{user_id: 1, $ref: "x", first-name: "A"}
+```
+Let me know if anything is missing.

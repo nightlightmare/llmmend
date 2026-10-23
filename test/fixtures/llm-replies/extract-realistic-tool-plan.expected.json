@@ -1,0 +1,10 @@
+{
+  "value": {
+    "tool": "search",
+    "args": {
+      "query": "weather Paris",
+      "limit": 5
+    }
+  },
+  "issues": ["stripped_wrapper", "unquoted_key", "unquoted_key", "trailing_comma", "trailing_comma"]
+}

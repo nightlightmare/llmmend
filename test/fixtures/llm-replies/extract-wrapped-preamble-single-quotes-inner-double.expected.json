@@ -1,0 +1,6 @@
+{
+  "value": {
+    "quote": "He said \"hi\""
+  },
+  "issues": ["stripped_wrapper", "single_quotes", "single_quotes"]
+}

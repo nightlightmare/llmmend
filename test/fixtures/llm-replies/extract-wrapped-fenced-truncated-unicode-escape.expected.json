@@ -1,0 +1,6 @@
+{
+  "value": {
+    "a": "line "
+  },
+  "issues": ["stripped_wrapper", "truncated_closed"]
+}

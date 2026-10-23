@@ -1,0 +1,13 @@
+{
+  "value": {
+    "outer": {
+      "inner": [
+        1,
+        {
+          "deep": true
+        }
+      ]
+    }
+  },
+  "issues": ["stripped_wrapper"]
+}

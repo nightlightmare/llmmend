@@ -1,0 +1,5 @@
+Here you go:
+```json
+{"a": 1}
+```
+Hope this helps.

@@ -16,6 +16,7 @@ const checks = {
   './json': (m) => {
     assert.equal(new m.LlmmendJsonError('truncated', '', []).code, 'truncated')
     assert.equal(m.repairJson("{name: 'Ada', ok: True,").json, '{"name":"Ada","ok":true}')
+    assert.deepEqual(m.extractJsonOrThrow('Sure:\n```json\n{"a": [1, 2]}\n```'), { a: [1, 2] })
   },
   './sse': async (m) => {
     assert.equal(new m.LlmmendHttpError(429, new Headers(), '').status, 429)

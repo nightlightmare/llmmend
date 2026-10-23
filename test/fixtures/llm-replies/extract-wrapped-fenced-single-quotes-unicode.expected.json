@@ -1,0 +1,6 @@
+{
+  "value": {
+    "привет": "🌊 中文"
+  },
+  "issues": ["stripped_wrapper", "single_quotes", "single_quotes"]
+}

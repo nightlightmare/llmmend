@@ -1,0 +1,8 @@
+{
+  "value": {
+    "x": null,
+    "y": null,
+    "z": null
+  },
+  "issues": ["stripped_wrapper", "non_finite_number", "non_finite_number", "non_finite_number"]
+}

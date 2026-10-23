@@ -1,0 +1,2 @@
+Output:
+{'name': 'Ada', 'is_admin': False, 'manager': None, 'roles': ['dev', 'ops'],}

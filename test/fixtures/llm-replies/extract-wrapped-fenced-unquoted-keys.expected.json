@@ -1,0 +1,7 @@
+{
+  "value": {
+    "name": "Ada",
+    "age": 36
+  },
+  "issues": ["stripped_wrapper", "unquoted_key", "unquoted_key"]
+}

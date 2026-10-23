@@ -1,0 +1,7 @@
+{
+  "value": {
+    "name": "Ada",
+    "tags": ["x", "y"]
+  },
+  "issues": ["stripped_wrapper", "truncated_closed"]
+}

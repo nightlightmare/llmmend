@@ -1,0 +1,2 @@
+Output:
+{"x": NaN, "y": Infinity, "z": -Infinity}

@@ -1,0 +1,4 @@
+{
+  "value": [true, null],
+  "issues": ["stripped_wrapper", "python_literal", "python_literal"]
+}
