@@ -1,5 +1,6 @@
 {
   "description": "Thinking model; reasoning in delta.reasoning.",
+  "expectEvents": ["reasoning", "usage"],
   "body": {
     "model": "qwen3:4b",
     "stream": true,

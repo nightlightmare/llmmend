@@ -77,8 +77,12 @@
     "format:check": "oxfmt --check",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:webkit": "vitest run --config vitest.webkit.config.ts",
     "coverage": "vitest run --coverage",
+    "bench": "pnpm build && vitest bench --run --reporter=verbose",
     "smoke": "node scripts/smoke.mjs",
+    "smoke:workers": "node scripts/smoke-workers.mjs",
+    "drift": "node scripts/drift.mjs",
     "record": "node scripts/record-fixture.mjs",
     "size": "size-limit",
     "check:publish": "publint && attw --pack . --profile node16",
@@ -89,11 +93,17 @@
     "@arethetypeswrong/cli": "^0.18.5",
     "@changesets/cli": "^3.0.3",
     "@size-limit/preset-small-lib": "^14.3.0",
+    "@vitest/browser-playwright": "5.0.5",
     "@vitest/coverage-v8": "^5.0.5",
     "arktype": "^2.2.9",
+    "eventsource-parser": "4.1.2",
     "fast-check": "^4.10.2",
+    "jsonrepair": "3.15.0",
+    "miniflare": "4.20260730.0",
     "oxfmt": "^0.74.0",
     "oxlint": "^1.89.0",
+    "partial-json": "0.1.7",
+    "playwright": "1.64.1",
     "publint": "^0.3.25",
     "size-limit": "^14.3.0",
     "tsdown": "^0.23.1",
@@ -123,5 +133,10 @@
   "engines": {
     "node": ">=20"
   },
-  "packageManager": "pnpm@10.34.7"
+  "packageManager": "pnpm@10.34.7",
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "workerd"
+    ]
+  }
 }

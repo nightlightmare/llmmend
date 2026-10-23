@@ -1,9 +1,12 @@
 {
   "description": "Tool calls in the OpenAI-compatible format from a small local model.",
+  "expectEvents": ["tool_call_start", "tool_call_delta", "usage"],
   "body": {
     "model": "qwen2.5:3b",
     "stream": true,
-    "stream_options": { "include_usage": true },
+    "stream_options": {
+      "include_usage": true
+    },
     "tools": [
       {
         "type": "function",
@@ -12,7 +15,12 @@
           "description": "Get the current weather for a city.",
           "parameters": {
             "type": "object",
-            "properties": { "city": { "type": "string", "description": "City name" } },
+            "properties": {
+              "city": {
+                "type": "string",
+                "description": "City name"
+              }
+            },
             "required": ["city"],
             "additionalProperties": false
           }

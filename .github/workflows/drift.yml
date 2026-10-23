@@ -1,0 +1,62 @@
+name: Drift
+
+# Replays the Ollama fixture requests against the latest Ollama and opens an issue when the
+# stream format has drifted. Free and without secrets; not a required check.
+on:
+  schedule:
+    - cron: '0 6 * * 1' # Mondays 06:00 UTC
+  workflow_dispatch:
+    inputs:
+      force_failure:
+        description: Report drift even if there is none (tests the issue reporting)
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  ollama:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    services:
+      ollama:
+        image: ollama/ollama:latest
+        ports:
+          - 11434:11434
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - name: Pull the models the requests name
+        run: |
+          for model in $(jq -r '.body.model' fixtures/requests/ollama/*.json | sort -u); do
+            curl -fsS http://localhost:11434/api/pull -d "{\"model\":\"$model\",\"stream\":false}"
+            echo
+          done
+      - run: pnpm drift
+        env:
+          DRIFT_FORCE_FAILURE: ${{ inputs.force_failure }}
+      - name: Open or update the drift issue
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          {
+            echo "The weekly drift check failed: $RUN_URL"
+            echo
+            cat drift-report.md 2>/dev/null || echo "The run failed before writing a report; see the log."
+          } > body.md
+          issue=$(gh issue list --label drift --state open --json number --jq '.[0].number')
+          if [ -n "$issue" ]; then
+            gh issue comment "$issue" --body-file body.md
+          else
+            gh issue create --title "Provider format drift" --label drift --body-file body.md
+          fi

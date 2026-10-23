@@ -22,7 +22,8 @@ const SPACE = 0x20
 
 /** Builds events from lines, following the WHATWG "interpret an event stream" rules. */
 function createEventBuilder(): (line: string) => SSEEvent | undefined {
-  let data = ''
+  // The data lines so far, joined with `\n`; `undefined` until the event has a data line.
+  let data: string | undefined
   let type = ''
   let lastId = ''
   let retry: number | undefined
@@ -30,24 +31,27 @@ function createEventBuilder(): (line: string) => SSEEvent | undefined {
   return (line) => {
     if (line === '') {
       // A block without data dispatches nothing but still resets the event type.
-      const hadData = data !== ''
-      const event: SSEEvent = { event: type || 'message', data: data.slice(0, -1) }
-      data = ''
+      const event: SSEEvent | undefined =
+        data === undefined ? undefined : { event: type || 'message', data }
+      data = undefined
       type = ''
-      if (!hadData) return undefined
+      if (!event) return undefined
       if (lastId !== '') event.id = lastId
       if (retry !== undefined) event.retry = retry
       return event
     }
     if (line.charCodeAt(0) === COLON) return undefined
     const colon = line.indexOf(':')
-    const field = colon === -1 ? line : line.slice(0, colon)
+    // Fields are matched by length and prefix, so no field name string is sliced out.
+    const length = colon === -1 ? line.length : colon
     const value =
       colon === -1 ? '' : line.slice(colon + (line.charCodeAt(colon + 1) === SPACE ? 2 : 1))
-    if (field === 'data') data += value + '\n'
-    else if (field === 'event') type = value
-    else if (field === 'id' && !value.includes('\0')) lastId = value
-    else if (field === 'retry' && isDigits(value)) retry = Number(value)
+    if (length === 4 && line.startsWith('data'))
+      data = data === undefined ? value : `${data}\n${value}`
+    else if (length === 5 && line.startsWith('event')) type = value
+    else if (length === 2 && line.startsWith('id')) {
+      if (!value.includes('\0')) lastId = value
+    } else if (length === 5 && line.startsWith('retry') && isDigits(value)) retry = Number(value)
     return undefined
   }
 }

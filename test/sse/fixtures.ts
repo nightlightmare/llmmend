@@ -1,19 +1,14 @@
-import { readdirSync, readFileSync } from 'node:fs'
 import { expect } from 'vitest'
+import { fixtureDir } from '../fixtures'
 import { type LlmEvent, type StreamLlmOptions, streamLlm } from '../../src/sse/index'
 
-const root = new URL('../fixtures/sse/', import.meta.url)
 const encoder = new TextEncoder()
 
 /** The recorded and synthetic streams of one fixture directory, by case name. */
 export function sseFixtures(dir: string): { name: string; bytes: Uint8Array }[] {
-  const base = new URL(`${dir}/`, root)
-  return readdirSync(base)
-    .filter((f) => f.endsWith('.sse'))
-    .map((f) => ({
-      name: f.slice(0, -'.sse'.length),
-      bytes: encoder.encode(readFileSync(new URL(f, base), 'utf8')),
-    }))
+  return [...fixtureDir(`sse/${dir}`)]
+    .filter(([f]) => f.endsWith('.sse'))
+    .map(([f, text]) => ({ name: f.slice(0, -'.sse'.length), bytes: encoder.encode(text) }))
 }
 
 export function byteStream(chunks: Uint8Array[]): ReadableStream<Uint8Array> {

@@ -1,5 +1,6 @@
 {
   "description": "Plain text from a small local model.",
+  "expectEvents": ["text", "usage"],
   "body": {
     "model": "qwen2.5:3b",
     "stream": true,

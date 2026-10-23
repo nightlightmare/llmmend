@@ -1,4 +1,3 @@
-import { readdirSync, readFileSync } from 'node:fs'
 import { type } from 'arktype'
 import * as fc from 'fast-check'
 import * as v from 'valibot'
@@ -13,22 +12,21 @@ import {
   LlmmendError,
   LlmmendJsonError,
 } from '../../src/json/index'
+import { fixtureDir } from '../fixtures'
 
-const fixtures = new URL('../fixtures/llm-replies/', import.meta.url)
+const fixtures = fixtureDir('llm-replies')
 
 type Expected = ({ value: unknown; issues: string[] } | { error: string }) & {
   options?: ExtractOptions<unknown>
 }
 
-const corpus = readdirSync(fixtures)
+const corpus = [...fixtures.keys()]
   // extract-* are written for Extraction; real-* are recorded model Replies.
   .filter((f) => (f.startsWith('extract-') || f.startsWith('real-')) && f.endsWith('.txt'))
   .map((f) => {
     const name = f.slice(0, -'.txt'.length)
-    const text = readFileSync(new URL(f, fixtures), 'utf8')
-    const expected = JSON.parse(
-      readFileSync(new URL(`${name}.expected.json`, fixtures), 'utf8'),
-    ) as Expected
+    const text = fixtures.get(f) ?? ''
+    const expected = JSON.parse(fixtures.get(`${name}.expected.json`) ?? '') as Expected
     return { name, text, expected }
   })
 
@@ -42,7 +40,7 @@ function outcome(text: string, options: ExtractOptions<unknown> = {}): Expected 
 
 describe('extractJson: fixture corpus', () => {
   it('has at least 150 Replies including the repair corpus', () => {
-    expect(readdirSync(fixtures).filter((f) => f.endsWith('.txt')).length).toBeGreaterThanOrEqual(
+    expect([...fixtures.keys()].filter((f) => f.endsWith('.txt')).length).toBeGreaterThanOrEqual(
       150,
     )
   })
