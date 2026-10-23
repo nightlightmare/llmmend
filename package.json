@@ -1,8 +1,7 @@
 {
   "name": "llmmend",
-  "version": "0.0.0",
-  "private": true,
-  "description": "Extract & repair JSON from LLM replies, parse SSE streams from any provider, token-aware text chunking. Zero deps, TS-first.",
+  "version": "0.1.0",
+  "description": "Extract & repair JSON from LLM replies, parse SSE streams from any provider. Zero deps, TS-first.",
   "keywords": [
     "anthropic",
     "json",
@@ -87,7 +86,6 @@
     "size": "size-limit",
     "check:publish": "publint && attw --pack . --profile node16",
     "changeset": "changeset",
-    "release": "pnpm build && changeset publish",
     "check:docs": "node scripts/check-i18n.mjs && node scripts/check-examples.mjs"
   },
   "devDependencies": {
