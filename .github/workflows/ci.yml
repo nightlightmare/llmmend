@@ -52,6 +52,10 @@ jobs:
   webkit:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    # WebKit's system libraries come with the image: installing them with `--with-deps` means
+    # ~180 apt packages, which slow Azure mirrors have stretched past the timeout. Keep the tag in
+    # step with the `playwright` devDependency; on a mismatch only the browser is downloaded.
+    container: mcr.microsoft.com/playwright:v1.64.1-noble
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6
@@ -60,7 +64,7 @@ jobs:
           node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm exec playwright install --with-deps webkit
+      - run: pnpm exec playwright install webkit
       - run: pnpm test:webkit
 
   # Dev tooling needs Node 22+, so older/alternative runtimes run a smoke test against the built dist.
