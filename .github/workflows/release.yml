@@ -26,9 +26,9 @@ jobs:
       - run: npm install -g npm@latest
       - run: pnpm install --frozen-lockfile
       - uses: changesets/action@v2
+        # v2 renamed the inputs and takes the token as an input, not from the environment.
         with:
-          publish: pnpm release
-          title: Version Packages
-          commit: Version Packages
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          publish-script: pnpm release
+          pr-title: Version Packages
+          commit-message: Version Packages
+          github-token: ${{ secrets.GITHUB_TOKEN }}
