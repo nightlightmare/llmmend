@@ -136,7 +136,7 @@ Full reference: [docs/api.md](https://github.com/nightlightmare/llmmend/blob/mai
 | Module          | min+brotli                         |
 | --------------- | ---------------------------------- |
 | `llmmend/json`  | ~3.5 kB                            |
-| `llmmend/sse`   | ~2.9 kB (`parseSSE` alone ~0.9 kB) |
+| `llmmend/sse`   | ~3.6 kB (`parseSSE` alone ~0.9 kB) |
 | `llmmend/chunk` | ~1.4 kB                            |
 
 ## Contributing

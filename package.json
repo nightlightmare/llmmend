@@ -1,6 +1,6 @@
 {
   "name": "llmmend",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Extract & repair JSON from LLM replies, parse SSE streams from any provider, token-aware text chunking. Zero deps, TS-first.",
   "keywords": [
     "anthropic",
