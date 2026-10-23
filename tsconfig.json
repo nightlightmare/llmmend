@@ -16,7 +16,7 @@
     "skipLibCheck": true,
     "noEmit": true,
     // Benchmarks import the package by name so they run the built `dist`; types come from `src`.
-    "paths": { "llmmend/*": ["./src/*/index.ts"] }
+    "paths": { "llmmend": ["./src/index.ts"], "llmmend/*": ["./src/*/index.ts"] }
   },
   "include": ["src", "test"]
 }

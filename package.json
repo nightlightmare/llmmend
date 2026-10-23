@@ -87,7 +87,8 @@
     "size": "size-limit",
     "check:publish": "publint && attw --pack . --profile node16",
     "changeset": "changeset",
-    "release": "pnpm build && changeset publish"
+    "release": "pnpm build && changeset publish",
+    "check:docs": "node scripts/check-i18n.mjs && node scripts/check-examples.mjs"
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.5",
