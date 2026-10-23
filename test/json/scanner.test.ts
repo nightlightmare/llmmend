@@ -40,13 +40,14 @@ describe('skipComment', () => {
     ['/* a */1', 7],
     ['/* multi\nline */1', 16],
     ['/* unterminated', 15],
+    ['/', 1],
   ])('skips %j', (text, end) => {
     const c = at(text)
     expect(skipComment(c)).toBe(true)
     expect(c.pos).toBe(end)
   })
 
-  it.each(['/x', '/', 'a', ''])('leaves %j alone', (text) => {
+  it.each(['/x', '/ ', 'a', ''])('leaves %j alone', (text) => {
     const c = at(text)
     expect(skipComment(c)).toBe(false)
     expect(c.pos).toBe(0)
@@ -63,28 +64,54 @@ describe('scanString', () => {
     ['"\\ud83c\\udf0a"', '🌊'],
     ['"\\ud800"', '\ud800'],
     ['"a\\nb\\tc"', 'a\nb\tc'],
+    ['"it\'s"', "it's"],
   ])('scans %s', (text, value) => {
     const c = at(text + ' rest')
-    expect(scanString(c)).toBe(value)
+    expect(scanString(c)).toEqual({ value, terminated: true, controlAt: -1 })
     expect(c.pos).toBe(text.length)
   })
 
   it.each([
     ['"\\x"', 1],
-    ['"\\u12"', 1],
+    ['"\\\'"', 1],
     ['"\\u12G4"', 1],
-    ['"ab\\', 3],
+    ['"\\u1G"', 1],
     ['"a\nb"', 2],
     ['"a\u0000"', 2],
-    ['"unterminated', 13],
   ])('rejects %j at %i', (text, pos) => {
     const c = at(text)
     expect(scanString(c)).toBeUndefined()
     expect(c.pos).toBe(pos)
   })
 
+  it.each([
+    ['"unterminated', 'unterminated'],
+    ['"ab\\', 'ab'],
+    ['"ab\\u12', 'ab'],
+    ['"ab\\u', 'ab'],
+    ['"a\\nb', 'a\nb'],
+  ])('returns what %j holds when cut off', (text, value) => {
+    const c = at(text)
+    expect(scanString(c)).toEqual({ value, terminated: false, controlAt: -1 })
+    expect(c.pos).toBe(text.length)
+  })
+
   it('accepts DEL and other non-control characters raw', () => {
-    expect(scanString(at('"\u007f "'))).toBe('\u007f ')
+    expect(scanString(at('"\u007f "'))?.value).toBe('\u007f ')
+  })
+
+  it("scans single-quoted strings, where \\' is an escape", () => {
+    const c = at("'it\\'s \"ok\"' rest")
+    expect(scanString(c, 0x27)).toEqual({ value: 'it\'s "ok"', terminated: true, controlAt: -1 })
+    expect(c.pos).toBe(12)
+  })
+
+  it('keeps raw control characters when lenient and reports the first', () => {
+    expect(scanString(at('"a\nb\tc"'), 0x22, true)).toEqual({
+      value: 'a\nb\tc',
+      terminated: true,
+      controlAt: 2,
+    })
   })
 })
 

@@ -1,0 +1,4 @@
+{
+  "value": [1, null, 2],
+  "issues": ["non_finite_number"]
+}

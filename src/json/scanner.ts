@@ -12,6 +12,7 @@ const LF = 0x0a
 const CR = 0x0d
 const SPACE = 0x20
 const QUOTE = 0x22
+const APOS = 0x27
 const STAR = 0x2a
 const PLUS = 0x2b
 const MINUS = 0x2d
@@ -37,11 +38,16 @@ export function skipWhitespace(c: Cursor): void {
 
 /**
  * Skips one `//` or `/* *\/` comment at the cursor and returns true, or returns false and leaves
- * the cursor alone. An unterminated block comment runs to the end of the text (a Truncation).
+ * the cursor alone. An unterminated block comment, or a `/` that is the last character, runs to
+ * the end of the text (a Truncation).
  */
 export function skipComment(c: Cursor): boolean {
   const { text, pos } = c
   if (text.charCodeAt(pos) !== SLASH) return false
+  if (pos + 1 === text.length) {
+    c.pos = text.length
+    return true
+  }
   const next = text.charCodeAt(pos + 1)
   if (next === SLASH) {
     let i = pos + 2
@@ -85,46 +91,83 @@ const ESCAPES: Record<number, string> = {
   0x74: '\t',
 }
 
+export interface ScannedString {
+  value: string
+  /** False when the text ended before the closing quote; `value` then holds what was there. */
+  terminated: boolean
+  /** Position of the first raw control character (lenient only), or -1. */
+  controlAt: number
+}
+
+/** True if every character from `i` to the end of the text is a hex digit. */
+function hexToEnd(text: string, i: number): boolean {
+  for (let k = i; k < text.length; k++) if (hexDigit(text.charCodeAt(k)) < 0) return false
+  return true
+}
+
 /**
- * Scans a double-quoted JSON string starting at the opening quote and returns its value.
- * On an invalid escape, a raw control character or a missing closing quote, returns
- * `undefined` with the cursor at the offending position (the end of the text if unterminated).
+ * Scans a quoted string starting at the opening `quote` and returns its value. Returns
+ * `undefined` with the cursor at the offending position on an invalid escape, or on a raw
+ * control character unless `lenient`. A string the text cuts off (even mid-escape) comes back
+ * with `terminated: false` and the cursor at the end. `\'` is a valid escape inside `'…'`.
  */
-export function scanString(c: Cursor): string | undefined {
+export function scanString(
+  c: Cursor,
+  quote: number = QUOTE,
+  lenient = false,
+): ScannedString | undefined {
   const { text } = c
+  const end = text.length
   let i = c.pos + 1
   let chunk = i
   let out = ''
-  while (i < text.length) {
+  let controlAt = -1
+  while (i < end) {
     const ch = text.charCodeAt(i)
-    if (ch === QUOTE) {
+    if (ch === quote) {
       c.pos = i + 1
-      return out + text.slice(chunk, i)
+      return { value: out + text.slice(chunk, i), terminated: true, controlAt }
     }
     if (ch === BACKSLASH) {
       out += text.slice(chunk, i)
       const esc = text.charCodeAt(i + 1)
-      const simple = ESCAPES[esc]
+      const simple = ESCAPES[esc] ?? (quote === APOS && esc === APOS ? "'" : undefined)
       if (simple !== undefined) {
         out += simple
         i += 2
       } else if (esc === 0x75) {
         const code = hex4(text, i + 2)
-        if (code < 0) break
-        // Lone surrogates are kept as-is, like JSON.parse does.
-        out += String.fromCharCode(code)
-        i += 6
+        if (code < 0) {
+          if (!hexToEnd(text, i + 2)) {
+            c.pos = i
+            return undefined
+          }
+          i = end // cut off inside \uXXXX: drop the partial escape
+        } else {
+          // Lone surrogates are kept as-is, like JSON.parse does.
+          out += String.fromCharCode(code)
+          i += 6
+        }
+      } else if (i + 1 >= end) {
+        i = end // cut off right after the backslash
       } else {
-        break
+        c.pos = i
+        return undefined
       }
       chunk = i
       continue
     }
-    if (ch < SPACE) break
+    if (ch < SPACE) {
+      if (!lenient) {
+        c.pos = i
+        return undefined
+      }
+      if (controlAt < 0) controlAt = i
+    }
     i++
   }
-  c.pos = i
-  return undefined
+  c.pos = end
+  return { value: out + text.slice(chunk, end), terminated: false, controlAt }
 }
 
 /**

@@ -1,0 +1,9 @@
+{
+  "value": {
+    "a": [1],
+    "b": {
+      "c": 1
+    }
+  },
+  "issues": ["trailing_comma", "trailing_comma", "trailing_comma"]
+}

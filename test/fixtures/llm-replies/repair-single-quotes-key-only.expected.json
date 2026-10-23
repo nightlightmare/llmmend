@@ -1,0 +1,6 @@
+{
+  "value": {
+    "a": "say \"hi\""
+  },
+  "issues": ["single_quotes"]
+}

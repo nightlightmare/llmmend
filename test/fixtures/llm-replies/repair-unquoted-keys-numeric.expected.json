@@ -1,0 +1,7 @@
+{
+  "value": {
+    "1": "one",
+    "2": "two"
+  },
+  "issues": ["unquoted_key", "unquoted_key"]
+}
