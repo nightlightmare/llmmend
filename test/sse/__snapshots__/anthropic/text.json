@@ -1,0 +1,82 @@
+[
+  {
+    "type": "usage",
+    "inputTokens": 36,
+    "outputTokens": 8,
+    "cacheReadTokens": 0,
+    "cacheWriteTokens": 0
+  },
+  {
+    "type": "text",
+    "index": 0,
+    "text": "The sea stretches endl"
+  },
+  {
+    "type": "text",
+    "index": 0,
+    "text": "essly, its"
+  },
+  {
+    "type": "text",
+    "index": 0,
+    "text": " waves whispering sec"
+  },
+  {
+    "type": "text",
+    "index": 0,
+    "text": "rets to the shore "
+  },
+  {
+    "type": "text",
+    "index": 0,
+    "text": "🌊. S"
+  },
+  {
+    "type": "text",
+    "index": 0,
+    "text": "ailors have"
+  },
+  {
+    "type": "text",
+    "index": 0,
+    "text": " long called it by"
+  },
+  {
+    "type": "text",
+    "index": 0,
+    "text": " many"
+  },
+  {
+    "type": "text",
+    "index": 0,
+    "text": " names, but"
+  },
+  {
+    "type": "text",
+    "index": 0,
+    "text": " my"
+  },
+  {
+    "type": "text",
+    "index": 0,
+    "text": " favorite is the"
+  },
+  {
+    "type": "text",
+    "index": 0,
+    "text": " Russian word «море»."
+  },
+  {
+    "type": "usage",
+    "inputTokens": 36,
+    "outputTokens": 57,
+    "cacheReadTokens": 0,
+    "cacheWriteTokens": 0,
+    "reasoningTokens": 0
+  },
+  {
+    "type": "done",
+    "stopReason": "end",
+    "rawStopReason": "end_turn"
+  }
+]

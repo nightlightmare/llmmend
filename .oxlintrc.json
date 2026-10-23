@@ -6,5 +6,8 @@
     "suspicious": "warn",
     "perf": "warn"
   },
+  "rules": {
+    "vitest/expect-expect": ["error", { "assertFunctionNames": ["expect", "expectInvariants"] }]
+  },
   "ignorePatterns": ["dist", "coverage"]
 }

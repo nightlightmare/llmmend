@@ -33,6 +33,18 @@ const checks = {
     const events = []
     for await (const event of m.parseSSE(stream)) events.push(event)
     assert.deepEqual(events, [{ event: 'message', data: '🌊' }])
+    // Exercises the runtime's Response.
+    const reply = [
+      { type: 'content_block_delta', index: 0, delta: { type: 'text_delta', text: 'Hi' } },
+      { type: 'message_delta', delta: { stop_reason: 'end_turn' }, usage: { output_tokens: 1 } },
+      { type: 'message_stop' },
+    ]
+    const body = reply.map((e) => `data: ${JSON.stringify(e)}\n\n`).join('')
+    assert.deepEqual(await m.collectText(new Response(body), { provider: 'anthropic' }), {
+      text: 'Hi',
+      stopReason: 'end',
+      usage: { outputTokens: 1 },
+    })
   },
 }
 

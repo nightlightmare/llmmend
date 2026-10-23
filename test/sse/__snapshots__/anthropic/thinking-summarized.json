@@ -1,0 +1,167 @@
+[
+  {
+    "type": "usage",
+    "inputTokens": 58,
+    "outputTokens": 8,
+    "cacheReadTokens": 0,
+    "cacheWriteTokens": 0
+  },
+  {
+    "type": "reasoning",
+    "index": 0,
+    "text": "I"
+  },
+  {
+    "type": "reasoning",
+    "index": 0,
+    "text": "'"
+  },
+  {
+    "type": "reasoning",
+    "index": 0,
+    "text": "m sol"
+  },
+  {
+    "type": "reasoning",
+    "index": 0,
+    "text": "ving the"
+  },
+  {
+    "type": "reasoning",
+    "index": 0,
+    "text": " Pell equation x²"
+  },
+  {
+    "type": "reasoning",
+    "index": 0,
+    "text": "-7"
+  },
+  {
+    "type": "reasoning",
+    "index": 0,
+    "text": "y²=1 by"
+  },
+  {
+    "type": "reasoning",
+    "index": 0,
+    "text": " gener"
+  },
+  {
+    "type": "reasoning",
+    "index": 0,
+    "text": "ating success"
+  },
+  {
+    "type": "reasoning",
+    "index": 0,
+    "text": "ive solutions starting from ("
+  },
+  {
+    "type": "reasoning",
+    "index": 0,
+    "text": "8"
+  },
+  {
+    "type": "reasoning",
+    "index": 0,
+    "text": ",3), comput"
+  },
+  {
+    "type": "reasoning",
+    "index": 0,
+    "text": "ing (127"
+  },
+  {
+    "type": "reasoning",
+    "index": 0,
+    "text": ",48"
+  },
+  {
+    "type": "reasoning",
+    "index": 0,
+    "text": "),"
+  },
+  {
+    "type": "reasoning",
+    "index": 0,
+    "text": " then (2"
+  },
+  {
+    "type": "reasoning",
+    "index": 0,
+    "text": "024,765"
+  },
+  {
+    "type": "reasoning",
+    "index": 0,
+    "text": "),"
+  },
+  {
+    "type": "reasoning",
+    "index": 0,
+    "text": " no"
+  },
+  {
+    "type": "reasoning",
+    "index": 0,
+    "text": "ting (8"
+  },
+  {
+    "type": "reasoning",
+    "index": 0,
+    "text": ",3) and (127,48"
+  },
+  {
+    "type": "reasoning",
+    "index": 0,
+    "text": ") st"
+  },
+  {
+    "type": "reasoning",
+    "index": 0,
+    "text": "ay under 1000 while "
+  },
+  {
+    "type": "reasoning",
+    "index": 0,
+    "text": "2024 exceeds it"
+  },
+  {
+    "type": "reasoning",
+    "index": 0,
+    "text": ".\n\n"
+  },
+  {
+    "type": "reasoning_signature",
+    "index": 0,
+    "signature": "CAQSvwUKEggTEAEYAjgBQgh0aGlua2luZxIMk9NtEzOAIqRUAIs/Ggye+EhMlBD9aY85s9oiMJQMFsyxOFI+CHCfvVxejdD5iQSaLEG0jlMJjhAGp1gUooUmMgShYFDCj+Ixt5A6QyraBIKp7HXXH6ydd1Kx58hNO8/mQXc6WJ2rz9i5esjUXQnb65e90jIRW5r6nsHvYCBK5yZ8I0psql5TOzLyOhvZZqqtD2Zod4zVpDJ3DdG2alsx4vHTLOVhnN1ju3g5NaNRqLsTx7R5iNMBuF9OIjEYxnuA63fhpWPP8gS0brGctI45vKpHLgycylFsUQmIyWVwVRAK5IBqFc9cyA3p9nrAO70Ey8Jr09BNSYZuz27coD1ArB6Hdy15LYvdHZCwcwEczuYj0BP4g/4PDJRXcNacK+FEWZa5emtrzaWXzelO0Wv6S66mm4foIRvEf3nlg9YNvRYbLk21Ubqs6AcbUoCNFoM3F5mJ5wlE+8K7cMfISPi90jz7BV1fRMlzd9coQgrURQCIuHJeYYEtUFGS4+5sRWyREUlJ0MilsQu0EQDeA/yoaRKQUpfSo5Y0Wk9cM/vu+e38ZKSNcVpQR1g8AoVRIzUlfdyBsWZXm/HxPjW0jDa8OtZZjFMogzM8rDScgmj7D5kuLHrfAzA6U09t3EcwF4td+FiqDfWJTF0I5yzPk9qK8bpZGlJDRveeeRy3Dx0EB7GvFJyHMX9tuLSUaQEKI95LTJHTQjU3lA2S+dkGmhggL1xRX272kxuEA4Gye8qNvZlrqrb6/4by73fE0RchFMjpnv6ngfmhraoWz1VGoDkgQlzlkP4M5tby8bVkcJRLhpoLN1deynWlkjYAGQ+u3Iit3PbdRMuMoVbLBr4dxDXUna0yrUyiDJnme2PzFIvNJtkukXkjtgUSj0Rw7MIA6NnZO252se8LlekhGAE="
+  },
+  {
+    "type": "text",
+    "index": 1,
+    "text": "("
+  },
+  {
+    "type": "text",
+    "index": 1,
+    "text": "8, 3), (127,"
+  },
+  {
+    "type": "text",
+    "index": 1,
+    "text": " 48)"
+  },
+  {
+    "type": "usage",
+    "inputTokens": 58,
+    "outputTokens": 174,
+    "cacheReadTokens": 0,
+    "cacheWriteTokens": 0,
+    "reasoningTokens": 160
+  },
+  {
+    "type": "done",
+    "stopReason": "end",
+    "rawStopReason": "end_turn"
+  }
+]

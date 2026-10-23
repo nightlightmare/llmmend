@@ -1,0 +1,32 @@
+[
+  {
+    "type": "usage",
+    "inputTokens": 52,
+    "outputTokens": 3,
+    "cacheReadTokens": 0,
+    "cacheWriteTokens": 0
+  },
+  {
+    "type": "reasoning",
+    "index": 0,
+    "text": "",
+    "redacted": "EmwKAhgBEgy3va3pzix/LafPsn4aDFIT2Xlxh0L5L8rLVyIwxtE3rAFBa8cr3qpPkNRj2YfWXGmKDxH4mPnZ5sQ7vB5URj2pabWa5kCo2cCyJHkm"
+  },
+  {
+    "type": "text",
+    "index": 1,
+    "text": "Here is the answer."
+  },
+  {
+    "type": "usage",
+    "inputTokens": 52,
+    "outputTokens": 41,
+    "cacheReadTokens": 0,
+    "cacheWriteTokens": 0
+  },
+  {
+    "type": "done",
+    "stopReason": "end",
+    "rawStopReason": "end_turn"
+  }
+]

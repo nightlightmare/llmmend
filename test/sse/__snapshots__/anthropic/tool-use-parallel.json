@@ -1,0 +1,54 @@
+[
+  {
+    "type": "usage",
+    "inputTokens": 436,
+    "outputTokens": 16,
+    "cacheReadTokens": 0,
+    "cacheWriteTokens": 0
+  },
+  {
+    "type": "tool_call_start",
+    "index": 0,
+    "id": "toolu_bdrk_015GWRtT4ZesppvbtnYQA77H",
+    "name": "get_weather"
+  },
+  {
+    "type": "tool_call_delta",
+    "index": 0,
+    "argsDelta": "{\"city\": \"Paris"
+  },
+  {
+    "type": "tool_call_delta",
+    "index": 0,
+    "argsDelta": "\"}"
+  },
+  {
+    "type": "tool_call_start",
+    "index": 1,
+    "id": "toolu_bdrk_01HycGuweaMSyopJuXC8tCdt",
+    "name": "get_weather"
+  },
+  {
+    "type": "tool_call_delta",
+    "index": 1,
+    "argsDelta": "{\"city\": \"Tokyo"
+  },
+  {
+    "type": "tool_call_delta",
+    "index": 1,
+    "argsDelta": "\"}"
+  },
+  {
+    "type": "usage",
+    "inputTokens": 436,
+    "outputTokens": 99,
+    "cacheReadTokens": 0,
+    "cacheWriteTokens": 0,
+    "reasoningTokens": 0
+  },
+  {
+    "type": "done",
+    "stopReason": "tool_use",
+    "rawStopReason": "tool_use"
+  }
+]
