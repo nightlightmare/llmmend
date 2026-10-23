@@ -3,7 +3,8 @@ import { defineConfig } from 'tsdown'
 export default defineConfig({
   entry: {
     index: 'src/index.ts',
-    'example/index': 'src/example/index.ts',
+    'json/index': 'src/json/index.ts',
+    'sse/index': 'src/sse/index.ts',
   },
   format: ['esm', 'cjs'],
   dts: true,

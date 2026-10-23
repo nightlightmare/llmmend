@@ -1,5 +1,7 @@
 import { defineConfig } from 'vitest/config'
 
+const full = { lines: 100, branches: 100, functions: 100, statements: 100 }
+
 export default defineConfig({
   test: {
     include: ['test/**/*.test.ts'],
@@ -7,7 +9,15 @@ export default defineConfig({
       provider: 'v8',
       include: ['src/**/*.ts'],
       reporter: ['text', 'lcov'],
-      thresholds: { lines: 90, branches: 90, functions: 90, statements: 90 },
+      thresholds: {
+        lines: 95,
+        branches: 90,
+        functions: 90,
+        statements: 90,
+        // The riskiest code: ReDoS and endless loops in the scanner, split UTF-8 in the decoder.
+        'src/json/scanner.ts': full,
+        'src/sse/decoder.ts': full,
+      },
     },
   },
 })
