@@ -6,7 +6,9 @@
 // Messages API and SSE), signed with the AWS CLI's credentials; AWS_REGION defaults to us-east-1.
 import { execFile, spawn } from 'node:child_process'
 import { existsSync } from 'node:fs'
-import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises'
+import { mkdir, mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 
 const root = new URL('../', import.meta.url)
 const requestsDir = new URL('fixtures/requests/', root)
@@ -87,37 +89,46 @@ async function bedrockCredentials() {
 }
 
 // curl signs the request with SigV4 (service bedrock-mantle); the body goes in on stdin, the
-// response bytes come out on stdout untouched, and the status code on stderr.
+// response bytes come out on stdout untouched, and the status code on stderr. The credentials
+// go in a curl config file readable only by this user and deleted right after, never on the
+// command line, where any process on the machine could read them.
 async function sendViaBedrock(body) {
   const region = process.env.AWS_REGION ?? 'us-east-1'
   const creds = await bedrockCredentials()
-  const args = [
-    '-s',
-    '-m',
-    '300',
-    `https://bedrock-mantle.${region}.api.aws/anthropic/v1/messages`,
-    '--aws-sigv4',
-    `aws:amz:${region}:bedrock-mantle`,
-    '-u',
-    `${creds.AccessKeyId}:${creds.SecretAccessKey}`,
-    '-H',
-    'content-type: application/json',
-    '-H',
-    'anthropic-version: 2026-10-21',
-    '--data-binary',
-    '@-',
-    '-w',
-    '%{stderr}%{http_code}',
-  ]
-  if (creds.SessionToken) args.push('-H', `x-amz-security-token: ${creds.SessionToken}`)
-  const curl = spawn('curl', args)
-  const out = []
-  let status = ''
-  curl.stdout.on('data', (chunk) => out.push(chunk))
-  curl.stderr.on('data', (chunk) => (status += chunk))
-  curl.stdin.end(JSON.stringify({ ...body, model: `anthropic.${body.model}` }))
-  await new Promise((resolve, reject) => curl.on('close', resolve).on('error', reject))
-  return { status: Number(status.trim()), bytes: new Uint8Array(Buffer.concat(out)) }
+  const lines = [`user = "${creds.AccessKeyId}:${creds.SecretAccessKey}"`]
+  if (creds.SessionToken) lines.push(`header = "x-amz-security-token: ${creds.SessionToken}"`)
+  const dir = await mkdtemp(join(tmpdir(), 'llmmend-record-'))
+  const config = join(dir, 'curl.conf')
+  try {
+    await writeFile(config, lines.join('\n') + '\n', { mode: 0o600 })
+    const curl = spawn('curl', [
+      '-s',
+      '-m',
+      '300',
+      '-K',
+      config,
+      `https://bedrock-mantle.${region}.api.aws/anthropic/v1/messages`,
+      '--aws-sigv4',
+      `aws:amz:${region}:bedrock-mantle`,
+      '-H',
+      'content-type: application/json',
+      '-H',
+      'anthropic-version: 2026-10-21',
+      '--data-binary',
+      '@-',
+      '-w',
+      '%{stderr}%{http_code}',
+    ])
+    const out = []
+    let status = ''
+    curl.stdout.on('data', (chunk) => out.push(chunk))
+    curl.stderr.on('data', (chunk) => (status += chunk))
+    curl.stdin.end(JSON.stringify({ ...body, model: `anthropic.${body.model}` }))
+    await new Promise((resolve, reject) => curl.on('close', resolve).on('error', reject))
+    return { status: Number(status.trim()), bytes: new Uint8Array(Buffer.concat(out)) }
+  } finally {
+    await rm(dir, { recursive: true, force: true })
+  }
 }
 
 async function record(id) {
