@@ -1,0 +1,59 @@
+[
+  {
+    "type": "other",
+    "raw": {
+      "event": "response.output_item.added",
+      "data": "{\"type\":\"response.output_item.added\",\"sequence_number\":2,\"output_index\":0,\"item\":{\"id\":\"ws_synthetic\",\"type\":\"web_search_call\",\"status\":\"in_progress\"}}"
+    }
+  },
+  {
+    "type": "other",
+    "raw": {
+      "event": "response.web_search_call.in_progress",
+      "data": "{\"type\":\"response.web_search_call.in_progress\",\"sequence_number\":3,\"item_id\":\"ws_synthetic\",\"output_index\":0}"
+    }
+  },
+  {
+    "type": "other",
+    "raw": {
+      "event": "response.web_search_call.searching",
+      "data": "{\"type\":\"response.web_search_call.searching\",\"sequence_number\":4,\"item_id\":\"ws_synthetic\",\"output_index\":0}"
+    }
+  },
+  {
+    "type": "other",
+    "raw": {
+      "event": "response.web_search_call.completed",
+      "data": "{\"type\":\"response.web_search_call.completed\",\"sequence_number\":5,\"item_id\":\"ws_synthetic\",\"output_index\":0}"
+    }
+  },
+  {
+    "type": "other",
+    "raw": {
+      "event": "response.output_item.done",
+      "data": "{\"type\":\"response.output_item.done\",\"sequence_number\":6,\"output_index\":0,\"item\":{\"id\":\"ws_synthetic\",\"type\":\"web_search_call\",\"status\":\"completed\",\"action\":{\"type\":\"search\",\"query\":\"weather Paris\"}}}"
+    }
+  },
+  {
+    "type": "text",
+    "index": 1,
+    "text": "It is 18 °C"
+  },
+  {
+    "type": "text",
+    "index": 1,
+    "text": " in Paris."
+  },
+  {
+    "type": "usage",
+    "inputTokens": 310,
+    "outputTokens": 22,
+    "cacheReadTokens": 128,
+    "reasoningTokens": 0
+  },
+  {
+    "type": "done",
+    "stopReason": "end",
+    "rawStopReason": "completed"
+  }
+]

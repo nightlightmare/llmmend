@@ -1,0 +1,15 @@
+event: response.created
+data: {"type":"response.created","sequence_number":0,"response":{"id":"resp_failed","object":"response","created_at":1792800000,"status":"in_progress","error":null,"incomplete_details":null,"model":"gpt-5-mini","output":[],"usage":null}}
+
+event: response.in_progress
+data: {"type":"response.in_progress","sequence_number":1,"response":{"id":"resp_failed","object":"response","created_at":1792800000,"status":"in_progress","error":null,"incomplete_details":null,"model":"gpt-5-mini","output":[],"usage":null}}
+
+event: response.output_item.added
+data: {"type":"response.output_item.added","sequence_number":2,"output_index":0,"item":{"id":"msg_failed","type":"message","status":"in_progress","role":"assistant","content":[]}}
+
+event: response.output_text.delta
+data: {"type":"response.output_text.delta","sequence_number":3,"item_id":"msg_failed","output_index":0,"content_index":0,"delta":"The sea is","logprobs":[]}
+
+event: response.failed
+data: {"type":"response.failed","sequence_number":4,"response":{"id":"resp_failed","object":"response","created_at":1792800000,"status":"failed","error":{"code":"server_error","message":"The server had an error while processing your request."},"incomplete_details":null,"model":"gpt-5-mini","output":[],"usage":null}}
+

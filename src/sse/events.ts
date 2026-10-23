@@ -51,7 +51,7 @@ export interface ProviderAdapter {
 
 /**
  * A built-in Provider name, or a custom adapter. `'openai'` is Chat Completions, the format shared
- * by OpenAI-compatible APIs (OpenRouter, Groq, Ollama, vLLM, LM Studio); `'gemini'` is Google
- * Gemini `streamGenerateContent`.
+ * by OpenAI-compatible APIs (OpenRouter, Groq, Ollama, vLLM, LM Studio); `'openai-responses'` is the
+ * OpenAI Responses API; `'gemini'` is Google Gemini `streamGenerateContent`.
  */
-export type Provider = 'anthropic' | 'openai' | 'gemini' | ProviderAdapter
+export type Provider = 'anthropic' | 'openai' | 'openai-responses' | 'gemini' | ProviderAdapter

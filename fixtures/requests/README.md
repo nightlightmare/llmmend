@@ -31,13 +31,15 @@ Without an Anthropic key, record the `anthropic` cases through Claude in Amazon 
 
 Gemini takes a free Google AI Studio key (`GEMINI_API_KEY`); the free tier does not reproduce implicit caching, so `gemini/cache-read` is synthetic.
 
+The `ollama-responses` cases record Ollama's OpenAI Responses API (`/v1/responses`) for the `'openai-responses'` adapter; what Ollama does not produce (`encrypted_content` as real ciphertext, refusals, `response.incomplete`, built-in tools) is in the synthetic `openai-responses/` fixtures.
+
 Ollama needs no key; it must be running locally with the models named in `ollama/*.json` pulled (`OLLAMA_BASE_URL` overrides `http://localhost:11434`). A provider whose key is missing is skipped.
 
 Recording costs a few cents per run. Re-record a case when a Provider changes its format, and review the diff of the `.sse` file before committing.
 
 ## Drift check
 
-`pnpm drift` (weekly in CI, `.github/workflows/drift.yml`) sends every streaming `ollama/*` case to a local Ollama again and compares the fresh stream with the recorded fixture. A case may set `expectEvents`, the LLM event types its stream must contain. The check fails when:
+`pnpm drift` (weekly in CI, `.github/workflows/drift.yml`) sends every streaming `ollama/*` and `ollama-responses/*` case to a local Ollama again and compares the fresh stream with the recorded fixture. A case may set `expectEvents`, the LLM event types its stream must contain. The check fails when:
 
 - the stream breaks an invariant (one final `done`, tool call deltas after their start), stops with `error` or `unknown`, or has an `other` event;
 - an event type from `expectEvents` is missing;

@@ -1,0 +1,24 @@
+[
+  {
+    "type": "text",
+    "index": 0,
+    "text": "The lighthouse keeper"
+  },
+  {
+    "type": "text",
+    "index": 0,
+    "text": " climbed the"
+  },
+  {
+    "type": "usage",
+    "inputTokens": 12,
+    "outputTokens": 16,
+    "cacheReadTokens": 0,
+    "reasoningTokens": 0
+  },
+  {
+    "type": "done",
+    "stopReason": "max_tokens",
+    "rawStopReason": "max_output_tokens"
+  }
+]

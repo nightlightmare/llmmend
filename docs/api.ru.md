@@ -193,6 +193,7 @@ for await (const ev of streamLlm(res, { provider: 'openai' })) {
 
 - `'anthropic'`: Anthropic Messages API.
 - `'openai'`: OpenAI Chat Completions и API, повторяющие его формат: OpenRouter, Groq, Ollama, DeepSeek, vLLM, LM Studio. Читается только первый вариант ответа; `n > 1` не поддерживается. OpenAI присылает расход токенов только с `stream_options: { include_usage: true }`.
+- `'openai-responses'`: OpenAI Responses API (его же отдаёт Ollama по `/v1/responses`). Каждый элемент ответа — один блок с номером `output_index`; сводки рассуждений приходят как `reasoning`, а `encrypted_content` (при `include: ['reasoning.encrypted_content']`) — как `reasoning_signature`, который нужно вернуть вместе с этим блоком. Элементы `function_call` и `custom_tool_call` — вызовы инструментов; встроенные инструменты вроде веб-поиска приходят как `other`. Причины остановки: `response.completed` — это `end` (`tool_use` после вызовов инструментов, `refused` после отказа), у `response.incomplete` берётся причина (`max_output_tokens` → `max_tokens`, `content_filter` → `refused`), `response.failed` — это `error`.
 - `'gemini'`: Google Gemini `streamGenerateContent` (`?alt=sse`). Читается только первый кандидат. Новый блок начинается, когда меняется вид части (рассуждение ↔ текст), и у каждого вызова функции свой блок, поэтому блоки идут в том же порядке, что части у Gemini. Вызовы функций приходят целиком: `tool_call_start`, затем один `tool_call_delta`.
 - свой адаптер, см. ниже.
 

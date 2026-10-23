@@ -1,0 +1,24 @@
+[
+  {
+    "type": "text",
+    "index": 0,
+    "text": "I'm sorry, "
+  },
+  {
+    "type": "text",
+    "index": 0,
+    "text": "but I can't help with that."
+  },
+  {
+    "type": "usage",
+    "inputTokens": 20,
+    "outputTokens": 11,
+    "cacheReadTokens": 0,
+    "reasoningTokens": 0
+  },
+  {
+    "type": "done",
+    "stopReason": "refused",
+    "rawStopReason": "completed"
+  }
+]

@@ -252,3 +252,19 @@ describe('openai adapter: mapping', () => {
     expect(b({ event: 'message', data: tool })).toMatchObject([{ index: 0 }])
   })
 })
+
+describe('openai adapter: refusals', () => {
+  it('shows a structured-outputs refusal as text and ends as refused', () => {
+    const next = openai.create()
+    const events = [
+      { choices: [{ index: 0, delta: { refusal: "I can't" } }] },
+      { choices: [{ index: 0, delta: { refusal: ' help.' }, finish_reason: 'stop' }] },
+    ].flatMap((p) => next({ event: 'message', data: JSON.stringify(p) }))
+    events.push(...next({ event: 'message', data: '[DONE]' }))
+    expect(events).toEqual([
+      { type: 'text', index: 0, text: "I can't" },
+      { type: 'text', index: 0, text: ' help.' },
+      { type: 'done', stopReason: 'refused', rawStopReason: 'stop' },
+    ])
+  })
+})

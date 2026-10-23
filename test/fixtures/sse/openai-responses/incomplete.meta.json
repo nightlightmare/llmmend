@@ -1,0 +1,8 @@
+{
+  "provider": "openai-responses",
+  "case": "incomplete",
+  "description": "Text cut off by max_output_tokens: response.incomplete.",
+  "model": "gpt-5-mini",
+  "synthetic": true,
+  "source": "https://platform.openai.com/docs/api-reference/responses-streaming"
+}

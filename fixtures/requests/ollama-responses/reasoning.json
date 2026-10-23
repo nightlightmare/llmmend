@@ -1,0 +1,10 @@
+{
+  "description": "A thinking model through Ollama's OpenAI Responses API.",
+  "expectEvents": ["reasoning", "usage"],
+  "body": {
+    "model": "qwen3:4b",
+    "stream": true,
+    "max_output_tokens": 600,
+    "input": "What is 17 * 23? Think briefly, then answer with the number only."
+  }
+}

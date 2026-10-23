@@ -1,0 +1,8 @@
+{
+  "provider": "ollama-responses",
+  "case": "reasoning",
+  "description": "A thinking model through Ollama's OpenAI Responses API.",
+  "model": "qwen3:4b",
+  "recordedAt": "2026-10-23T22:11:32.926Z",
+  "synthetic": false
+}

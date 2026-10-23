@@ -1,0 +1,8 @@
+{
+  "provider": "ollama-responses",
+  "case": "tool-calls",
+  "description": "Function calls through Ollama's OpenAI Responses API.",
+  "model": "qwen2.5:3b",
+  "recordedAt": "2026-10-23T22:11:40.033Z",
+  "synthetic": false
+}

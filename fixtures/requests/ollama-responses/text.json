@@ -1,0 +1,9 @@
+{
+  "description": "Plain text through Ollama's OpenAI Responses API.",
+  "expectEvents": ["text", "usage"],
+  "body": {
+    "model": "qwen2.5:3b",
+    "stream": true,
+    "input": "Write two short sentences about the sea. Include one emoji and one Cyrillic word."
+  }
+}

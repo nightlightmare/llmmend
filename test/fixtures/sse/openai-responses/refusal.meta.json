@@ -1,0 +1,8 @@
+{
+  "provider": "openai-responses",
+  "case": "refusal",
+  "description": "The answer is a refusal content part instead of output_text.",
+  "model": "gpt-5-mini",
+  "synthetic": true,
+  "source": "https://platform.openai.com/docs/api-reference/responses-streaming"
+}

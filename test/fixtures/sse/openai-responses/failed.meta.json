@@ -1,0 +1,8 @@
+{
+  "provider": "openai-responses",
+  "case": "failed",
+  "description": "response.failed after the first text delta.",
+  "model": "gpt-5-mini",
+  "synthetic": true,
+  "source": "https://platform.openai.com/docs/api-reference/responses-streaming"
+}

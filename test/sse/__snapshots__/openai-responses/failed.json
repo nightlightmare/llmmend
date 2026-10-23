@@ -1,0 +1,33 @@
+[
+  {
+    "type": "text",
+    "index": 0,
+    "text": "The sea is"
+  },
+  {
+    "type": "error",
+    "message": "The server had an error while processing your request.",
+    "raw": {
+      "type": "response.failed",
+      "sequence_number": 4,
+      "response": {
+        "id": "resp_failed",
+        "object": "response",
+        "created_at": 1792800000,
+        "status": "failed",
+        "error": {
+          "code": "server_error",
+          "message": "The server had an error while processing your request."
+        },
+        "incomplete_details": null,
+        "model": "gpt-5-mini",
+        "output": [],
+        "usage": null
+      }
+    }
+  },
+  {
+    "type": "done",
+    "stopReason": "error"
+  }
+]
