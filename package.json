@@ -1,0 +1,95 @@
+{
+  "name": "PACKAGE_NAME",
+  "version": "0.0.0",
+  "private": true,
+  "description": "PACKAGE_DESCRIPTION",
+  "keywords": [],
+  "homepage": "https://github.com/nightlightmare/PACKAGE_NAME#readme",
+  "bugs": "https://github.com/nightlightmare/PACKAGE_NAME/issues",
+  "license": "MIT",
+  "author": "nightlightmare",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nightlightmare/PACKAGE_NAME.git"
+  },
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.cts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./example": {
+      "import": {
+        "types": "./dist/example/index.d.ts",
+        "default": "./dist/example/index.js"
+      },
+      "require": {
+        "types": "./dist/example/index.d.cts",
+        "default": "./dist/example/index.cjs"
+      }
+    },
+    "./package.json": "./package.json"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "scripts": {
+    "build": "tsdown",
+    "typecheck": "tsc --noEmit",
+    "lint": "oxlint",
+    "format": "oxfmt",
+    "format:check": "oxfmt --check",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "coverage": "vitest run --coverage",
+    "smoke": "node scripts/smoke.mjs",
+    "size": "size-limit",
+    "check:publish": "publint && attw --pack . --profile node16",
+    "changeset": "changeset",
+    "release": "pnpm build && changeset publish"
+  },
+  "devDependencies": {
+    "@arethetypeswrong/cli": "^0.18.5",
+    "@changesets/cli": "^3.0.3",
+    "@size-limit/preset-small-lib": "^14.3.0",
+    "@vitest/coverage-v8": "^5.0.5",
+    "fast-check": "^4.10.2",
+    "oxfmt": "^0.74.0",
+    "oxlint": "^1.89.0",
+    "publint": "^0.3.25",
+    "size-limit": "^14.3.0",
+    "tsdown": "^0.23.1",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.5"
+  },
+  "size-limit": [
+    {
+      "name": ".",
+      "path": "dist/index.js",
+      "limit": "1 kB"
+    },
+    {
+      "name": "./example",
+      "path": "dist/example/index.js",
+      "limit": "1 kB"
+    }
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "packageManager": "pnpm@10.34.7"
+}
