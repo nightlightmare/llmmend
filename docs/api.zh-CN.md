@@ -355,6 +355,61 @@ for await (const ev of streamLlm(res, { provider: myProvider })) console.log(ev)
 
 适配器把每个解析后的 SSE 事件转换为零个或多个 LLM 事件。`create()` 每个流调用一次，所以请把流的状态保存在它的闭包里。保证由 `streamLlm` 提供：遇到 `done` 后停止，在 `error` 之后补上 `done`，流没有 `done` 就结束时也会补上。
 
+## llmmend/chunk
+
+### chunkText
+
+```ts
+import { chunkText } from 'llmmend/chunk'
+
+const text = 'One two three. Four five six.\n\nSeven eight nine. Ten eleven twelve.'
+chunkText(text, { maxTokens: 10 }).map((c) => c.text)
+// ['One two three. Four five six.\n\n', 'Seven eight nine. Ten eleven twelve.']
+```
+
+`chunkText(text, options)` 把文本切成每块最多 `maxTokens` 个 token 的块，返回 `{ text, start, end, tokens, index, oversized? }[]`。
+
+| 选项          | 默认值           | 含义                                                            |
+| ------------- | ---------------- | --------------------------------------------------------------- |
+| `maxTokens`   | （必填）         | 每块的预算。                                                    |
+| `overlap`     | `0`              | 从上一块末尾重复的 token 数。                                   |
+| `countTokens` | `estimateTokens` | 使用真实分词器计数以获得精确预算。                              |
+| `separators`  | 见下文           | 字符串或正则表达式，从粗到细；`''` 在字素簇之间切分。           |
+| `mode`        | `'text'`         | `'markdown'` 让块从标题开始，并在放得下时保持代码块和表格完整。 |
+
+默认分隔符：段落（`\n\n`）、行、句子（`.`、`!`、`?`、`…` 后跟空白，或 `。！？`）、单词，最后是字素簇。在 `markdown` 模式下，标题（`#` 到 `####`）排在最前。文本在能放下的最粗粒度分隔符处切分，然后只要放得下就把片段重新合并。
+
+保证：
+
+- `chunk.text === text.slice(chunk.start, chunk.end)`，`tokens` 即 `countTokens(chunk.text)`。
+- `tokens <= maxTokens`，除非块被标记为 `oversized`：没有任何分隔符能把它切得更小（使用默认分隔符时，即单个字素簇）。
+- 块按顺序排列且没有空隙；没有重叠时，每块都从上一块结束处开始，拼接起来即还原原文。有重叠时，块从上一块内部开始，位于在 `overlap` 和 `maxTokens` 两个预算内重叠最长的分隔符处。
+- 字素簇（带修饰符的表情、带重音的字母）永远不会被切开。
+
+### estimateTokens
+
+```ts
+import { estimateTokens } from 'llmmend/chunk'
+
+estimateTokens('Hello, world!') // 3
+```
+
+无需词表，根据文本中的字符种类估算 token 数。它相对 OpenAI、Gemini 和 Claude 分词器的实测精度见 README；Claude 的分词器产生的 token 约为 1.5 倍。
+
+### truncateToTokens
+
+```ts
+import { truncateToTokens } from 'llmmend/chunk'
+
+truncateToTokens('The quick brown fox jumps over the lazy dog', 5, {
+  from: 'middle',
+  ellipsis: ' … ',
+})
+// 'The quick … lazy dog'
+```
+
+`truncateToTokens(text, max, { from?, ellipsis?, countTokens? })` 把文本缩短到最多 `max` 个 token，且不切开字素簇。`from` 指定切的位置：`'end'`（默认）保留开头，`'start'` 保留结尾，`'middle'` 两端都保留。`ellipsis`（默认 `''`）标记切分处并计入 `max`；如果连它都放不下，结果为 `''`。
+
 ## 错误
 
 ```ts

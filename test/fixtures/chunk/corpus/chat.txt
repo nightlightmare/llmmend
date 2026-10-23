@@ -1,0 +1,19 @@
+hey!! did you see the release notes?? 🎉🎉 the new parser handles trailing commas now 👍
+
+yeah lol finally. i had a regex for that since march 😅 it broke on every second reply from the model
+
+same. also the streaming thing: we got "content_block_delta" events split in the middle of an emoji 🌊 and the UI showed garbage for a frame. now it's fine ✅
+
+ok cool. quick q — does it work with ollama? we run qwen locally for the internal bot 🤖 and switch to claude in prod
+
+it does, the README says OpenAI-compatible APIs work with provider 'openai', and there's auto-detect now too. Ollama, vLLM, LM Studio, OpenRouter, Groq... 🙌
+
+nice!!! what about tokens, we need to split docs before embedding them. 2,500 pages of PDFs → markdown → chunks of ~512 tokens with 64 overlap
+
+there's a chunk module coming. it estimates tokens without a vocabulary, so it's like ±15% vs tiktoken. if you need exact counts you pass your own countTokens fn
+
+±15% is ok for us tbh 🤷 we leave headroom anyway. 512 → we'd target 450
+
+makes sense. ping me when you try it, i want to know how it does on the Russian docs — "Руководство пользователя" has those huge tables 😬
+
+will do. thx!! 🙏

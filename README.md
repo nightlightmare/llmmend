@@ -3,13 +3,15 @@
 # 🩹 llmmend
 
 [![npm](https://img.shields.io/npm/v/llmmend)](https://www.npmjs.com/package/llmmend)
+[![downloads](https://img.shields.io/npm/dm/llmmend)](https://www.npmjs.com/package/llmmend)
+[![GitHub stars](https://img.shields.io/github/stars/nightlightmare/llmmend)](https://github.com/nightlightmare/llmmend/stargazers)
 [![bundle size](https://img.shields.io/bundlejs/size/llmmend)](https://bundlejs.com/?q=llmmend)
 [![CI](https://github.com/nightlightmare/llmmend/actions/workflows/ci.yml/badge.svg)](https://github.com/nightlightmare/llmmend/actions/workflows/ci.yml)
 [![provenance](https://img.shields.io/badge/npm-provenance-blue)](https://www.npmjs.com/package/llmmend#provenance)
 [![zero deps](https://img.shields.io/badge/dependencies-0-brightgreen)](https://www.npmjs.com/package/llmmend?activeTab=dependencies)
 [![license](https://img.shields.io/npm/l/llmmend)](https://github.com/nightlightmare/llmmend/blob/main/LICENSE)
 
-**Fix what your LLM returns.** Extract and repair JSON, parse streaming responses from any provider. Zero dependencies. Works in Node, Bun, Deno, browsers and edge runtimes.
+**Fix what your LLM returns.** Extract and repair JSON, parse streaming responses from any provider, split text into token-sized chunks. Zero dependencies. Works in Node, Bun, Deno, browsers and edge runtimes.
 
 ```bash
 npm i llmmend
@@ -87,12 +89,43 @@ Supports Anthropic, Google Gemini, the OpenAI Responses API and OpenAI-compatibl
 
 > **OpenAI usage:** pass `stream_options: { include_usage: true }` in the request, or OpenAI won't send token usage at all.
 
+## Text that fits the context window
+
+```ts
+import { chunkText, truncateToTokens } from 'llmmend/chunk'
+
+const doc = '# Guide\n\nWhat it does.\n\n## Install\n\nRun the installer, then restart.\n'
+
+for (const chunk of chunkText(doc, { maxTokens: 500, overlap: 50, mode: 'markdown' })) {
+  console.log(chunk.index, chunk.start, chunk.end, chunk.tokens) // 0 0 69 19: the guide fits in one chunk
+}
+
+truncateToTokens('A title far too long for the card it has to fit on', 8, { ellipsis: '…' }) // 'A title far too long for the …'
+```
+
+`chunkText` cuts at the coarsest separator that fits: paragraphs, then lines, sentences, words, and grapheme clusters as a last resort. Every chunk is a slice of the text with its `start` and `end`, and joining them gives the text back. In `markdown` mode chunks start at headings, and code fences and tables stay whole when they fit.
+
+Tokens are estimated without a vocabulary. The estimate minus the real count:
+
+| Text            | `o200k_base` (OpenAI) | Gemini 3.8 Flash | Claude Opus 5.5 |
+| --------------- | --------------------- | ---------------- | --------------- |
+| English         | +2 %                  | −8 %             | −35 %           |
+| Russian         | +4 %                  | −4 %             | −35 %           |
+| Chinese         | −2 %                  | −1 %             | −36 %           |
+| Japanese        | −11 %                 | +22 %            | −25 %           |
+| Korean          | −5 %                  | +3 %             | −46 %           |
+| Code            | −2 %                  | −15 %            | −36 %           |
+| Chat with emoji | −7 %                  | −11 %            | −39 %           |
+
+Claude's tokenizer produces about 1.5× as many tokens: for Claude, divide the budget by 1.5 or pass an exact `countTokens`.
+
 ## API
 
-| Import         | Functions                                                                                                   |
-| -------------- | ----------------------------------------------------------------------------------------------------------- |
-| `llmmend/json` | `extractJson`, `extractJsonAsync`, `extractJsonOrThrow`, `extractAllJson`, `repairJson`, `parsePartialJson` |
-| `llmmend/sse`  | `parseSSE`, `streamLlm`, `streamText`, `collectText`, `streamJson`                                          |
+| Import          | Functions                                                                                                   |
+| --------------- | ----------------------------------------------------------------------------------------------------------- |
+| `llmmend/json`  | `extractJson`, `extractJsonAsync`, `extractJsonOrThrow`, `extractAllJson`, `repairJson`, `parsePartialJson` |
+| `llmmend/sse`   | `parseSSE`, `streamLlm`, `streamText`, `collectText`, `streamJson`                                          |
+| `llmmend/chunk` | `chunkText`, `estimateTokens`, `truncateToTokens`                                                           |
 
 Everything is also re-exported from the root: `import { extractJson } from 'llmmend'` stays tree-shakeable.
 
@@ -100,10 +133,11 @@ Full reference: [docs/api.md](https://github.com/nightlightmare/llmmend/blob/mai
 
 ## Size
 
-| Module         | min+brotli                         |
-| -------------- | ---------------------------------- |
-| `llmmend/json` | ~3.5 kB                            |
-| `llmmend/sse`  | ~2.9 kB (`parseSSE` alone ~0.9 kB) |
+| Module          | min+brotli                         |
+| --------------- | ---------------------------------- |
+| `llmmend/json`  | ~3.5 kB                            |
+| `llmmend/sse`   | ~2.9 kB (`parseSSE` alone ~0.9 kB) |
+| `llmmend/chunk` | ~1.4 kB                            |
 
 ## Contributing
 

@@ -79,4 +79,12 @@ export const checks = {
       stopReason: 'end',
     })
   },
+  './chunk': (m) => {
+    // Exercises the runtime's Intl.Segmenter: the family emoji is one grapheme cluster.
+    const chunks = m.chunkText('One. Two. 👨‍👩‍👧', { maxTokens: 1, countTokens: (t) => [...t].length })
+    assert.equal(chunks.map((c) => c.text).join(''), 'One. Two. 👨‍👩‍👧')
+    assert.ok(chunks.some((c) => c.text === '👨‍👩‍👧' && c.oversized))
+    assert.equal(m.truncateToTokens('abcdef', 3, { countTokens: (t) => t.length }), 'abc')
+    assert.ok(m.estimateTokens('Hello, world!') > 0)
+  },
 }
