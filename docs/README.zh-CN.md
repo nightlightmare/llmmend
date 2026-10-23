@@ -92,7 +92,7 @@ for await (const ev of streamLlm(res, { provider: 'anthropic' })) {
 | 导入           | 函数                                                                                                        |
 | -------------- | ----------------------------------------------------------------------------------------------------------- |
 | `llmmend/json` | `extractJson`, `extractJsonAsync`, `extractJsonOrThrow`, `extractAllJson`, `repairJson`, `parsePartialJson` |
-| `llmmend/sse`  | `parseSSE`, `streamLlm`, `streamText`, `collectText`                                                        |
+| `llmmend/sse`  | `parseSSE`, `streamLlm`, `streamText`, `collectText`, `streamJson`                                          |
 
 所有内容也从根模块重新导出：`import { extractJson } from 'llmmend'` 依然支持 tree-shaking。
 

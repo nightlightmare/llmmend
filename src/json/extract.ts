@@ -74,6 +74,31 @@ function matches(value: unknown, expect: ExtractOptions<unknown>['expect']): boo
   return true
 }
 
+/** The Candidate `pick` chooses; `wanted` must not be empty. */
+function choose(wanted: Candidate[], pick: ExtractOptions<unknown>['pick'] = 'last'): Candidate {
+  let candidate = pick === 'first' ? wanted[0]! : wanted[wanted.length - 1]!
+  if (pick === 'largest') {
+    for (const c of wanted) if (c.end - c.start > candidate.end - candidate.start) candidate = c
+  }
+  return candidate
+}
+
+/**
+ * The Candidate `pick` would choose from text that may still be arriving, parsed the way
+ * `parsePartialJson` parses; `undefined` while no object or array (of the `expect`ed kind) has
+ * started. `streamJson` shows it as `partial`.
+ */
+export function partialCandidate(
+  text: string,
+  opts: Pick<ExtractOptions<unknown>, 'pick' | 'expect'>,
+): { value: unknown; complete: boolean } | undefined {
+  const wanted = locate(text, 'partial').candidates.filter((c) => matches(c.value, opts.expect))
+  if (!wanted.length) return undefined
+  const candidate = choose(wanted, opts.pick)
+  const complete = !candidate.issues.some((i) => i.code === 'truncated_closed')
+  return { value: candidate.value, complete }
+}
+
 function select(text: string, opts: ExtractOptions<unknown>): Selected | Failure {
   const { candidates, failure } = locate(text, opts.repair ?? 'full')
   // A value the Reply cuts off after the last Candidate is the real answer, cut short: never
@@ -86,11 +111,7 @@ function select(text: string, opts: ExtractOptions<unknown>): Selected | Failure
       return { ok: false, error: failure.error, issues: failure.issues }
     return { ok: false, error: 'not_found', issues: [] }
   }
-  const pick = opts.pick ?? 'last'
-  let candidate = pick === 'first' ? wanted[0]! : wanted[wanted.length - 1]!
-  if (pick === 'largest') {
-    for (const c of wanted) if (c.end - c.start > candidate.end - candidate.start) candidate = c
-  }
+  const candidate = choose(wanted, opts.pick)
   const detail = wrapperDetail(text, candidate)
   const issues: Issue[] = detail
     ? [{ code: 'stripped_wrapper', detail }, ...candidate.issues]

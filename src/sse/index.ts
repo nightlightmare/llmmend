@@ -8,4 +8,5 @@ export {
   type StreamLlmOptions,
   type StreamSource,
 } from './stream'
+export { streamJson, type StreamJsonItem, type StreamJsonOptions } from './stream-json'
 export { LlmmendError, LlmmendHttpError, type LlmmendErrorCode } from '../shared/errors'

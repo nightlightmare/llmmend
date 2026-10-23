@@ -294,6 +294,40 @@ console.log(text, stopReason, usage?.outputTokens)
 
 Reads the whole stream and returns `{ text, stopReason, usage? }`, with the last usage snapshot.
 
+### streamJson
+
+```ts
+import { streamJson } from 'llmmend/sse'
+import { z } from 'zod'
+
+const res = await fetch('http://localhost:11434/v1/chat/completions', {
+  method: 'POST',
+  body: JSON.stringify({
+    model: 'qwen2.5:3b',
+    stream: true,
+    messages: [{ role: 'user', content: 'A pancake recipe as JSON with "title" and "steps".' }],
+  }),
+})
+const schema = z.object({ title: z.string(), steps: z.array(z.string()) })
+
+for await (const item of streamJson(res, { provider: 'openai', schema })) {
+  if (!item.done) console.log(item.partial) // grows as the model writes
+  else if (item.result.ok) console.log(item.result.value.steps) // typed by the schema
+  else console.log(item.result.error, item.stopReason) // e.g. schema_mismatch, max_tokens
+}
+```
+
+Streams a Reply that contains JSON. While it arrives, `streamJson` yields `{ done: false, partial, complete }` each time the Partial value changes. The Partial value is the Candidate that `pick` would choose from the text so far (by default the last one, so a format example in the preamble never wins over the answer), read the way `parsePartialJson` reads it. Nothing is yielded before an object or array starts.
+
+Then it yields exactly one final item, `done: true`, with:
+
+- `result`: `extractJsonAsync` over the whole Reply with the same options (`schema`, `pick`, `repair`, `expect`), so a schema mismatch or a cut-off value is a result, not an exception, and async schemas work;
+- `partial` and `complete`: the last Partial value;
+- `text`: the whole Reply;
+- `stopReason`, `rawStopReason?`, `usage?`, and `error?` with the message of a mid-stream Provider error.
+
+Only text counts: reasoning and tool call arguments are ignored, and all text Blocks form one Reply. It throws only what `streamLlm` throws. Each text event re-parses the whole Reply, so the cost grows with the square of its length: fine for typical structured output, slow for hundreds of kilobytes.
+
 ### Custom Provider adapters
 
 ```ts

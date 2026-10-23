@@ -58,5 +58,16 @@ export const checks = {
       text: 'Hi',
       stopReason: 'end',
     })
+    const json = [{ choices: [{ delta: { content: '{"a": [1]}' } }] }, '[DONE]']
+    const items = []
+    const body2 = json.map(
+      (c) => `data: ${typeof c === 'string' ? c : JSON.stringify(c)}
+
+`,
+    )
+    for await (const item of m.streamJson(new Response(body2.join('')), { provider: 'openai' }))
+      items.push(item)
+    assert.deepEqual(items[0], { done: false, partial: { a: [1] }, complete: true })
+    assert.deepEqual(items[1].result.value, { a: [1] })
   },
 }
