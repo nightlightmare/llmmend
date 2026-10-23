@@ -193,6 +193,7 @@ for await (const ev of streamLlm(res, { provider: 'openai' })) {
 
 - `'anthropic'`：Anthropic Messages API。
 - `'openai'`：OpenAI Chat Completions 以及沿用其格式的 API：OpenRouter、Groq、Ollama、DeepSeek、vLLM、LM Studio。只读取第一个候选回答；不支持 `n > 1`。OpenAI 只有在设置 `stream_options: { include_usage: true }` 时才会发送 token 用量。
+- `'openai-responses'`：OpenAI Responses API（Ollama 也在 `/v1/responses` 提供）。每个输出项是一个块，编号为 `output_index`；推理摘要以 `reasoning` 送达，`encrypted_content`（需设置 `include: ['reasoning.encrypted_content']`）以 `reasoning_signature` 送达，需随该块发回。`function_call` 和 `custom_tool_call` 项是工具调用；网页搜索等内置工具以 `other` 送达。停止原因：`response.completed` 为 `end`（有工具调用时为 `tool_use`，有拒绝时为 `refused`），`response.incomplete` 按其原因映射（`max_output_tokens` → `max_tokens`，`content_filter` → `refused`），`response.failed` 为 `error`。
 - `'gemini'`：Google Gemini `streamGenerateContent`（`?alt=sse`）。只读取第一个候选。每当部分的类型变化（推理 ↔ 文本）时开始一个新块，每次函数调用各占一个块，因此块的顺序与 Gemini 的部分顺序一致。函数调用整体到达：先 `tool_call_start`，再一个 `tool_call_delta`。
 - 自定义适配器，见下文。
 

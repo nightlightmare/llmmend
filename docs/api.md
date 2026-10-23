@@ -193,6 +193,7 @@ Providers:
 
 - `'anthropic'`: the Anthropic Messages API.
 - `'openai'`: OpenAI Chat Completions and the APIs that copy its format: OpenRouter, Groq, Ollama, DeepSeek, vLLM, LM Studio. Only the first choice is read; `n > 1` is not supported. OpenAI sends token usage only with `stream_options: { include_usage: true }`.
+- `'openai-responses'`: the OpenAI Responses API (also served by Ollama at `/v1/responses`). Each output item is one Block, numbered by `output_index`; reasoning summaries are `reasoning`, and `encrypted_content` (with `include: ['reasoning.encrypted_content']`) is a `reasoning_signature` to send back with that Block. `function_call` and `custom_tool_call` items are tool calls; built-in tools such as web search arrive as `other`. Stop reasons: `response.completed` is `end` (`tool_use` after tool calls, `refused` after a refusal), `response.incomplete` maps its reason (`max_output_tokens` → `max_tokens`, `content_filter` → `refused`), `response.failed` is `error`.
 - `'gemini'`: Google Gemini `streamGenerateContent` (`?alt=sse`). Only the first candidate is read. A new Block starts whenever the kind of part changes (thought ↔ text), and every function call is its own Block, so Blocks follow Gemini's part order. Function calls arrive whole: `tool_call_start`, then one `tool_call_delta`.
 - a custom adapter, see below.
 

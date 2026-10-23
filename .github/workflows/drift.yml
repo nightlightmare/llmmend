@@ -1,6 +1,6 @@
 name: Drift
 
-# Replays the Ollama fixture requests against the latest Ollama and opens an issue when the
+# Replays the Ollama fixture requests (Chat Completions and Responses) against the latest Ollama and opens an issue when the
 # stream format has drifted. Free and without secrets; not a required check.
 on:
   schedule:
@@ -36,7 +36,7 @@ jobs:
       - run: pnpm build
       - name: Pull the models the requests name
         run: |
-          for model in $(jq -r '.body.model' fixtures/requests/ollama/*.json | sort -u); do
+          for model in $(jq -r '.body.model' fixtures/requests/ollama/*.json fixtures/requests/ollama-responses/*.json | sort -u); do
             curl -fsS http://localhost:11434/api/pull -d "{\"model\":\"$model\",\"stream\":false}"
             echo
           done

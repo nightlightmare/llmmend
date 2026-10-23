@@ -1,0 +1,8 @@
+{
+  "provider": "openai-responses",
+  "case": "web-search",
+  "description": "A built-in web_search_call item before the answer.",
+  "model": "gpt-5-mini",
+  "synthetic": true,
+  "source": "https://platform.openai.com/docs/api-reference/responses-streaming"
+}

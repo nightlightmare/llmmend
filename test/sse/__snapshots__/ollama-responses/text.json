@@ -1,0 +1,129 @@
+[
+  {
+    "type": "text",
+    "index": 0,
+    "text": "М"
+  },
+  {
+    "type": "text",
+    "index": 0,
+    "text": "ор"
+  },
+  {
+    "type": "text",
+    "index": 0,
+    "text": "е"
+  },
+  {
+    "type": "text",
+    "index": 0,
+    "text": " т"
+  },
+  {
+    "type": "text",
+    "index": 0,
+    "text": "он"
+  },
+  {
+    "type": "text",
+    "index": 0,
+    "text": "ет"
+  },
+  {
+    "type": "text",
+    "index": 0,
+    "text": " в"
+  },
+  {
+    "type": "text",
+    "index": 0,
+    "text": " с"
+  },
+  {
+    "type": "text",
+    "index": 0,
+    "text": "олн"
+  },
+  {
+    "type": "text",
+    "index": 0,
+    "text": "еч"
+  },
+  {
+    "type": "text",
+    "index": 0,
+    "text": "ных"
+  },
+  {
+    "type": "text",
+    "index": 0,
+    "text": " луч"
+  },
+  {
+    "type": "text",
+    "index": 0,
+    "text": "ах"
+  },
+  {
+    "type": "text",
+    "index": 0,
+    "text": ","
+  },
+  {
+    "type": "text",
+    "index": 0,
+    "text": " с"
+  },
+  {
+    "type": "text",
+    "index": 0,
+    "text": "мотр"
+  },
+  {
+    "type": "text",
+    "index": 0,
+    "text": "я"
+  },
+  {
+    "type": "text",
+    "index": 0,
+    "text": " на"
+  },
+  {
+    "type": "text",
+    "index": 0,
+    "text": " гор"
+  },
+  {
+    "type": "text",
+    "index": 0,
+    "text": "из"
+  },
+  {
+    "type": "text",
+    "index": 0,
+    "text": "онт"
+  },
+  {
+    "type": "text",
+    "index": 0,
+    "text": "."
+  },
+  {
+    "type": "text",
+    "index": 0,
+    "text": " 🌞"
+  },
+  {
+    "type": "usage",
+    "inputTokens": 46,
+    "outputTokens": 26,
+    "cacheReadTokens": 0,
+    "reasoningTokens": 0
+  },
+  {
+    "type": "done",
+    "stopReason": "end",
+    "rawStopReason": "completed"
+  }
+]

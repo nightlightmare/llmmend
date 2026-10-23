@@ -1,0 +1,33 @@
+event: response.created
+data: {"response":{"background":false,"completed_at":null,"created_at":1792793499,"error":null,"frequency_penalty":0,"id":"resp_467023","incomplete_details":null,"instructions":null,"max_output_tokens":null,"max_tool_calls":null,"metadata":{},"model":"qwen2.5:3b","object":"response","output":[],"parallel_tool_calls":true,"presence_penalty":0,"previous_response_id":null,"prompt_cache_key":null,"reasoning":null,"safety_identifier":null,"service_tier":"default","status":"in_progress","store":false,"temperature":1,"text":{"format":{"type":"text"}},"tool_choice":"auto","tools":[{"type":"function","name":"get_weather","description":"Get the current weather for a city.","parameters":{"additionalProperties":false,"properties":{"city":{"description":"City name","type":"string"}},"required":["city"],"type":"object"}}],"top_logprobs":0,"top_p":1,"truncation":"disabled","usage":null},"sequence_number":0,"type":"response.created"}
+
+event: response.in_progress
+data: {"response":{"background":false,"completed_at":null,"created_at":1792793499,"error":null,"frequency_penalty":0,"id":"resp_467023","incomplete_details":null,"instructions":null,"max_output_tokens":null,"max_tool_calls":null,"metadata":{},"model":"qwen2.5:3b","object":"response","output":[],"parallel_tool_calls":true,"presence_penalty":0,"previous_response_id":null,"prompt_cache_key":null,"reasoning":null,"safety_identifier":null,"service_tier":"default","status":"in_progress","store":false,"temperature":1,"text":{"format":{"type":"text"}},"tool_choice":"auto","tools":[{"type":"function","name":"get_weather","description":"Get the current weather for a city.","parameters":{"additionalProperties":false,"properties":{"city":{"description":"City name","type":"string"}},"required":["city"],"type":"object"}}],"top_logprobs":0,"top_p":1,"truncation":"disabled","usage":null},"sequence_number":1,"type":"response.in_progress"}
+
+event: response.output_item.added
+data: {"item":{"arguments":"","call_id":"call_trir5kan","id":"fc_421431_0","name":"get_weather","status":"in_progress","type":"function_call"},"output_index":0,"sequence_number":2,"type":"response.output_item.added"}
+
+event: response.function_call_arguments.delta
+data: {"delta":"{\"city\":\"Paris\"}","item_id":"fc_421431_0","output_index":0,"sequence_number":3,"type":"response.function_call_arguments.delta"}
+
+event: response.function_call_arguments.done
+data: {"arguments":"{\"city\":\"Paris\"}","item_id":"fc_421431_0","output_index":0,"sequence_number":4,"type":"response.function_call_arguments.done"}
+
+event: response.output_item.done
+data: {"item":{"arguments":"{\"city\":\"Paris\"}","call_id":"call_trir5kan","id":"fc_421431_0","name":"get_weather","status":"completed","type":"function_call"},"output_index":0,"sequence_number":5,"type":"response.output_item.done"}
+
+event: response.output_item.added
+data: {"item":{"arguments":"","call_id":"call_r5g1vw49","id":"fc_530436_0","name":"get_weather","status":"in_progress","type":"function_call"},"output_index":1,"sequence_number":6,"type":"response.output_item.added"}
+
+event: response.function_call_arguments.delta
+data: {"delta":"{\"city\":\"Tokyo\"}","item_id":"fc_530436_0","output_index":1,"sequence_number":7,"type":"response.function_call_arguments.delta"}
+
+event: response.function_call_arguments.done
+data: {"arguments":"{\"city\":\"Tokyo\"}","item_id":"fc_530436_0","output_index":1,"sequence_number":8,"type":"response.function_call_arguments.done"}
+
+event: response.output_item.done
+data: {"item":{"arguments":"{\"city\":\"Tokyo\"}","call_id":"call_r5g1vw49","id":"fc_530436_0","name":"get_weather","status":"completed","type":"function_call"},"output_index":1,"sequence_number":9,"type":"response.output_item.done"}
+
+event: response.completed
+data: {"response":{"background":false,"completed_at":1792793500,"created_at":1792793500,"error":null,"frequency_penalty":0,"id":"resp_467023","incomplete_details":null,"instructions":null,"max_output_tokens":null,"max_tool_calls":null,"metadata":{},"model":"qwen2.5:3b","object":"response","output":[{"arguments":"{\"city\":\"Paris\"}","call_id":"call_trir5kan","id":"fc_421431_0","name":"get_weather","status":"completed","type":"function_call"},{"arguments":"{\"city\":\"Tokyo\"}","call_id":"call_r5g1vw49","id":"fc_530436_0","name":"get_weather","status":"completed","type":"function_call"}],"parallel_tool_calls":true,"presence_penalty":0,"previous_response_id":null,"prompt_cache_key":null,"reasoning":null,"safety_identifier":null,"service_tier":"default","status":"completed","store":false,"temperature":1,"text":{"format":{"type":"text"}},"tool_choice":"auto","tools":[{"type":"function","name":"get_weather","description":"Get the current weather for a city.","parameters":{"additionalProperties":false,"properties":{"city":{"description":"City name","type":"string"}},"required":["city"],"type":"object"}}],"top_logprobs":0,"top_p":1,"truncation":"disabled","usage":{"input_tokens":170,"input_tokens_details":{"cached_tokens":18},"output_tokens":41,"output_tokens_details":{"reasoning_tokens":0},"total_tokens":211}},"sequence_number":10,"type":"response.completed"}
+

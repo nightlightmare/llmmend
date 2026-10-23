@@ -1,0 +1,44 @@
+[
+  {
+    "type": "reasoning",
+    "index": 0,
+    "text": "The user asks "
+  },
+  {
+    "type": "reasoning",
+    "index": 0,
+    "text": "for 12 squared."
+  },
+  {
+    "type": "reasoning",
+    "index": 0,
+    "text": "\n\n12 × 12 = 144."
+  },
+  {
+    "type": "reasoning_signature",
+    "index": 0,
+    "signature": "gAAAAABpSYNTHETICencryptedReasoningContent=="
+  },
+  {
+    "type": "text",
+    "index": 1,
+    "text": "12 squared"
+  },
+  {
+    "type": "text",
+    "index": 1,
+    "text": " is 144."
+  },
+  {
+    "type": "usage",
+    "inputTokens": 14,
+    "outputTokens": 96,
+    "cacheReadTokens": 0,
+    "reasoningTokens": 64
+  },
+  {
+    "type": "done",
+    "stopReason": "end",
+    "rawStopReason": "completed"
+  }
+]

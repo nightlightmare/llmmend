@@ -1,0 +1,8 @@
+{
+  "provider": "ollama-responses",
+  "case": "text",
+  "description": "Plain text through Ollama's OpenAI Responses API.",
+  "model": "qwen2.5:3b",
+  "recordedAt": "2026-10-23T22:11:39.317Z",
+  "synthetic": false
+}

@@ -4,6 +4,7 @@ import { parseSSE } from './parse'
 import { anthropic } from './providers/anthropic'
 import { gemini } from './providers/gemini'
 import { openai } from './providers/openai'
+import { openaiResponses } from './providers/openai-responses'
 
 /** A `fetch` response, or its body. */
 export type StreamSource = Response | ReadableStream<Uint8Array>
@@ -27,6 +28,7 @@ const PROVIDERS = new Map<string, ProviderAdapter>([
   ['anthropic', anthropic],
   ['openai', openai],
   ['gemini', gemini],
+  ['openai-responses', openaiResponses],
 ])
 
 /**

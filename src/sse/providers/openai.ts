@@ -13,6 +13,7 @@ interface RawChunk {
   choices?: {
     delta?: {
       content?: string | null
+      refusal?: string | null
       reasoning_content?: string | null
       reasoning?: string | null
       tool_calls?: RawToolCall[] | null
@@ -44,9 +45,13 @@ function create(): (event: SSEEvent) => LlmEvent[] {
   let textBlock: number | undefined
   const toolBlocks = new Map<number, number>()
   let rawStopReason: string | undefined
+  let refused = false
 
   return (sse) => {
     if (sse.data === '[DONE]') {
+      // A refusal (structured outputs) ends with `stop`; it still is a refusal.
+      if (refused && rawStopReason === 'stop')
+        return [{ type: 'done', stopReason: 'refused', rawStopReason }]
       return done(rawStopReason, STOP_REASONS)
     }
     const raw = parseObject<RawChunk>(sse.data)
@@ -64,9 +69,11 @@ function create(): (event: SSEEvent) => LlmEvent[] {
       reasoningBlock ??= blocks++
       events.push({ type: 'reasoning', index: reasoningBlock, text: reasoning })
     }
-    if (delta?.content) {
+    const text = delta?.content || delta?.refusal
+    if (text) {
+      if (delta?.refusal) refused = true
       textBlock ??= blocks++
-      events.push({ type: 'text', index: textBlock, text: delta.content })
+      events.push({ type: 'text', index: textBlock, text })
     }
     for (const [i, call] of (delta?.tool_calls ?? []).entries()) {
       const key = call.index ?? i

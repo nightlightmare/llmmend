@@ -35,6 +35,12 @@ const providers = {
     key: null,
     auth: () => ({}),
   },
+  // Ollama's OpenAI Responses API, for the 'openai-responses' adapter without an OpenAI key.
+  'ollama-responses': {
+    url: `${process.env.OLLAMA_BASE_URL ?? 'http://localhost:11434'}/v1/responses`,
+    key: null,
+    auth: () => ({}),
+  },
   // The model goes in the URL, not the body.
   gemini: {
     url: (body) =>
