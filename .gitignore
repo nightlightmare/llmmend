@@ -5,3 +5,4 @@ coverage/
 .env
 .env.*
 drift-report.md
+.examples/

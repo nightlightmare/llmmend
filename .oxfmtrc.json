@@ -2,5 +2,12 @@
   "semi": false,
   "singleQuote": true,
   "printWidth": 100,
-  "ignorePatterns": ["dist", "coverage", "pnpm-lock.yaml", ".changeset/*.md", "CHANGELOG.md"]
+  "ignorePatterns": [
+    "dist",
+    "coverage",
+    "pnpm-lock.yaml",
+    ".changeset/*.md",
+    "CHANGELOG.md",
+    ".github/ISSUE_TEMPLATE"
+  ]
 }
