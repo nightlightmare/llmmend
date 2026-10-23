@@ -11,8 +11,12 @@ import {
   skipWhitespace,
 } from './scanner'
 
-/** How much Repair the parser may do: none (strict JSON), syntax fixes, or also Truncation. */
-export type Repair = 'none' | 'syntax' | 'full'
+/**
+ * How much Repair the parser may do: none (strict JSON), syntax fixes, or also Truncation.
+ * `'partial'` is `'full'` for JSON still arriving: a number or literal that touches the end of
+ * the text is left out, because more text may still change it (`1` → `12`, `tru` → `true`).
+ */
+export type Repair = 'none' | 'syntax' | 'full' | 'partial'
 
 export type ParseError = 'unparseable' | 'truncated' | 'max_depth'
 
@@ -65,6 +69,7 @@ interface State extends Cursor {
   readonly maxDepth: number
   readonly lenient: boolean
   readonly closeTruncated: boolean
+  readonly partial: boolean
   readonly issues: Issue[]
   /** Characters appended so far to close a Truncation, innermost first. */
   closed: string
@@ -131,6 +136,16 @@ function parseValue(s: State, depth: number): unknown {
     return value
   }
   if (ch === QUOTE || (s.lenient && ch === APOS)) return parseString(s)
+  const value = parseScalar(s, ch)
+  if (s.partial && value !== MISSING && atEnd(s)) {
+    truncate(s)
+    return MISSING
+  }
+  return value
+}
+
+/** A number or literal (true, false, null and, when lenient, Python literals, NaN, Infinity). */
+function parseScalar(s: State, ch: number): unknown {
   // T(rue) F(alse) N(one, NaN) I(nfinity) -(Infinity): checked only when the first char can match.
   if (s.lenient && (ch === 0x54 || ch === 0x46 || ch === 0x4e || ch === 0x49 || ch === MINUS)) {
     const at = s.pos
@@ -313,7 +328,8 @@ function run(text: string, start: number, options: ParseOptions, whole: boolean)
     pos: start,
     maxDepth: options.maxDepth ?? DEFAULT_MAX_DEPTH,
     lenient: repair !== 'none',
-    closeTruncated: repair === 'full',
+    closeTruncated: repair === 'full' || repair === 'partial',
+    partial: repair === 'partial',
     issues: [],
     closed: '',
     truncated: false,
