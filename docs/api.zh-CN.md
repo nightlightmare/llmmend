@@ -294,6 +294,40 @@ console.log(text, stopReason, usage?.outputTokens)
 
 读取整个流，返回 `{ text, stopReason, usage? }`，其中是最后一次用量快照。
 
+### streamJson
+
+```ts
+import { streamJson } from 'llmmend/sse'
+import { z } from 'zod'
+
+const res = await fetch('http://localhost:11434/v1/chat/completions', {
+  method: 'POST',
+  body: JSON.stringify({
+    model: 'qwen2.5:3b',
+    stream: true,
+    messages: [{ role: 'user', content: 'A pancake recipe as JSON with "title" and "steps".' }],
+  }),
+})
+const schema = z.object({ title: z.string(), steps: z.array(z.string()) })
+
+for await (const item of streamJson(res, { provider: 'openai', schema })) {
+  if (!item.done) console.log(item.partial) // 随着模型输出而增长
+  else if (item.result.ok) console.log(item.result.value.steps) // 类型由 schema 决定
+  else console.log(item.result.error, item.stopReason) // 例如 schema_mismatch、max_tokens
+}
+```
+
+流式读取包含 JSON 的回复。在回复到达的过程中，每当部分值发生变化，`streamJson` 就产出 `{ done: false, partial, complete }`。部分值是 `pick` 会从目前已到达的文本中选出的候选（默认是最后一个，因此开场白里的格式示例不会盖过真正的答案），并按 `parsePartialJson` 的方式读取。在对象或数组开始之前不会产出任何内容。
+
+随后恰好产出一个最终项 `done: true`，其中包含：
+
+- `result`：对整个回复使用相同选项（`schema`、`pick`、`repair`、`expect`）调用 `extractJsonAsync` 的结果，因此 schema 不匹配或被截断的值都是结果而不是异常，异步 schema 也能使用；
+- `partial` 和 `complete`：最后一次的部分值；
+- `text`：完整的回复；
+- `stopReason`、`rawStopReason?`、`usage?`，以及带有流中途提供商错误信息的 `error?`。
+
+只计算文本：推理和工具调用参数会被忽略，所有文本块组成同一个回复。它只抛出 `streamLlm` 会抛出的异常。每个文本事件都会重新解析整个回复，因此开销随回复长度的平方增长：对常见的结构化输出没有影响，对数百 KB 的内容则会变慢。
+
 ### 自定义提供商适配器
 
 ```ts

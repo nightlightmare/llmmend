@@ -294,6 +294,40 @@ console.log(text, stopReason, usage?.outputTokens)
 
 Читает стрим целиком и возвращает `{ text, stopReason, usage? }` с последним снимком расхода токенов.
 
+### streamJson
+
+```ts
+import { streamJson } from 'llmmend/sse'
+import { z } from 'zod'
+
+const res = await fetch('http://localhost:11434/v1/chat/completions', {
+  method: 'POST',
+  body: JSON.stringify({
+    model: 'qwen2.5:3b',
+    stream: true,
+    messages: [{ role: 'user', content: 'A pancake recipe as JSON with "title" and "steps".' }],
+  }),
+})
+const schema = z.object({ title: z.string(), steps: z.array(z.string()) })
+
+for await (const item of streamJson(res, { provider: 'openai', schema })) {
+  if (!item.done) console.log(item.partial) // растёт по мере того, как модель пишет
+  else if (item.result.ok) console.log(item.result.value.steps) // типизировано схемой
+  else console.log(item.result.error, item.stopReason) // например schema_mismatch, max_tokens
+}
+```
+
+Стримит ответ, в котором есть JSON. Пока ответ приходит, `streamJson` выдаёт `{ done: false, partial, complete }` каждый раз, когда меняется частичное значение. Частичное значение — это кандидат, которого `pick` выбрал бы из текста на данный момент (по умолчанию последний, поэтому пример формата во вступлении не перебивает ответ), прочитанный так, как читает `parsePartialJson`. Пока не начался объект или массив, ничего не выдаётся.
+
+Затем выдаётся ровно один финальный элемент, `done: true`, в котором:
+
+- `result`: `extractJsonAsync` по всему ответу с теми же опциями (`schema`, `pick`, `repair`, `expect`), поэтому несовпадение со схемой или обрезанное значение — это результат, а не исключение, и асинхронные схемы работают;
+- `partial` и `complete`: последнее частичное значение;
+- `text`: весь ответ;
+- `stopReason`, `rawStopReason?`, `usage?` и `error?` с сообщением об ошибке провайдера посреди стрима.
+
+Учитывается только текст: рассуждения и аргументы вызовов инструментов пропускаются, а все текстовые блоки образуют один ответ. Бросает только то, что бросает `streamLlm`. Каждое текстовое событие заново разбирает весь ответ, поэтому затраты растут с квадратом его длины: для обычного структурированного вывода это незаметно, для сотен килобайт — медленно.
+
 ### Свои адаптеры провайдеров
 
 ```ts

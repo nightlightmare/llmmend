@@ -92,7 +92,7 @@ Supports Anthropic and OpenAI-compatible Chat Completions APIs (OpenAI, OpenRout
 | Import         | Functions                                                                                                   |
 | -------------- | ----------------------------------------------------------------------------------------------------------- |
 | `llmmend/json` | `extractJson`, `extractJsonAsync`, `extractJsonOrThrow`, `extractAllJson`, `repairJson`, `parsePartialJson` |
-| `llmmend/sse`  | `parseSSE`, `streamLlm`, `streamText`, `collectText`                                                        |
+| `llmmend/sse`  | `parseSSE`, `streamLlm`, `streamText`, `collectText`, `streamJson`                                          |
 
 Everything is also re-exported from the root: `import { extractJson } from 'llmmend'` stays tree-shakeable.
 
