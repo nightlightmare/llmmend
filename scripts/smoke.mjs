@@ -14,15 +14,29 @@ const checks = {
     assert.ok(new m.LlmmendHttpError(500, new Headers(), '') instanceof m.LlmmendError)
   },
   './json': (m) => assert.equal(new m.LlmmendJsonError('truncated', '', []).code, 'truncated'),
-  './sse': (m) => assert.equal(new m.LlmmendHttpError(429, new Headers(), '').status, 429),
+  './sse': async (m) => {
+    assert.equal(new m.LlmmendHttpError(429, new Headers(), '').status, 429)
+    // Exercises the runtime's ReadableStream and streaming TextDecoder: the emoji is split.
+    const bytes = new TextEncoder().encode('data: 🌊\r\n\r\n')
+    const stream = new ReadableStream({
+      start(controller) {
+        controller.enqueue(bytes.subarray(0, 8))
+        controller.enqueue(bytes.subarray(8))
+        controller.close()
+      },
+    })
+    const events = []
+    for await (const event of m.parseSSE(stream)) events.push(event)
+    assert.deepEqual(events, [{ event: 'message', data: '🌊' }])
+  },
 }
 
 for (const [subpath, target] of Object.entries(pkg.exports)) {
   if (subpath === './package.json') continue
   const check = checks[subpath]
   assert.ok(check, `no smoke check for "${subpath}"`)
-  check(await import(new URL(`../${target.import.default}`, import.meta.url).href))
-  check(require(`../${target.require.default}`))
+  await check(await import(new URL(`../${target.import.default}`, import.meta.url).href))
+  await check(require(`../${target.require.default}`))
 }
 
 console.log(`smoke ok: ${Object.keys(checks).join(', ')}`)
