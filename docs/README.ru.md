@@ -63,7 +63,7 @@ const res = await fetch('https://api.anthropic.com/v1/messages', {
   }),
 })
 
-for await (const ev of streamLlm(res, { provider: 'anthropic' })) {
+for await (const ev of streamLlm(res)) {
   switch (ev.type) {
     case 'text':
       process.stdout.write(ev.text)
@@ -83,7 +83,7 @@ for await (const ev of streamLlm(res, { provider: 'anthropic' })) {
 }
 ```
 
-Поддерживаются Anthropic, Google Gemini, OpenAI Responses API и API, совместимые с OpenAI Chat Completions (OpenAI, OpenRouter, Groq, Ollama, vLLM, LM Studio). Свой формат подключается адаптером строк на десять. `done` всегда приходит ровно один раз и последним; ошибка провайдера посреди стрима приходит событием `error`, а не исключением.
+Поддерживаются Anthropic, Google Gemini, OpenAI Responses API и API, совместимые с OpenAI Chat Completions (OpenAI, OpenRouter, Groq, Ollama, vLLM, LM Studio). Формат определяется по самому стриму; чтобы пропустить определение, передайте `{ provider }`. Свой формат подключается адаптером строк на десять. `done` всегда приходит ровно один раз и последним; ошибка провайдера посреди стрима приходит событием `error`, а не исключением.
 
 > **Usage у OpenAI:** передайте в запросе `stream_options: { include_usage: true }`, иначе OpenAI вообще не пришлёт расход токенов.
 

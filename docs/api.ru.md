@@ -187,10 +187,11 @@ for await (const ev of streamLlm(res, { provider: 'openai' })) {
 }
 ```
 
-`streamLlm(source, { provider, signal? })` превращает стрим провайдера в одну последовательность LLM-событий. `source` — это `Response` от `fetch` или его тело.
+`streamLlm(source, { provider?, signal? })` превращает стрим провайдера в одну последовательность LLM-событий. `source` — это `Response` от `fetch` или его тело.
 
 Провайдеры:
 
+- `'auto'` (по умолчанию): выбирает адаптер по первому событию, по которому виден формат (события `message_*` — Anthropic; `response.*` — OpenAI Responses; `choices` — Chat Completions; `candidates` — Gemini). Неопределённые события вроде `ping` придерживаются, не больше 20, и прогоняются через адаптер, когда формат стал ясен; ошибка до начала ответа в любом из этих форматов приходит как `error`. Стрим, так и не показавший формат, заканчивается `done { stopReason: 'unknown' }`; 20 неопределённых событий подряд бросают `LlmmendError` с кодом `unknown_provider`. Чтобы пропустить определение, передайте провайдера явно.
 - `'anthropic'`: Anthropic Messages API.
 - `'openai'`: OpenAI Chat Completions и API, повторяющие его формат: OpenRouter, Groq, Ollama, DeepSeek, vLLM, LM Studio. Читается только первый вариант ответа; `n > 1` не поддерживается. OpenAI присылает расход токенов только с `stream_options: { include_usage: true }`.
 - `'openai-responses'`: OpenAI Responses API (его же отдаёт Ollama по `/v1/responses`). Каждый элемент ответа — один блок с номером `output_index`; сводки рассуждений приходят как `reasoning`, а `encrypted_content` (при `include: ['reasoning.encrypted_content']`) — как `reasoning_signature`, который нужно вернуть вместе с этим блоком. Элементы `function_call` и `custom_tool_call` — вызовы инструментов; встроенные инструменты вроде веб-поиска приходят как `other`. Причины остановки: `response.completed` — это `end` (`tool_use` после вызовов инструментов, `refused` после отказа), у `response.incomplete` берётся причина (`max_output_tokens` → `max_tokens`, `content_filter` → `refused`), `response.failed` — это `error`.

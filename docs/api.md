@@ -187,10 +187,11 @@ for await (const ev of streamLlm(res, { provider: 'openai' })) {
 }
 ```
 
-`streamLlm(source, { provider, signal? })` turns a Provider's stream into one sequence of LLM events. `source` is a `fetch` `Response` or its body.
+`streamLlm(source, { provider?, signal? })` turns a Provider's stream into one sequence of LLM events. `source` is a `fetch` `Response` or its body.
 
 Providers:
 
+- `'auto'` (the default): picks the adapter from the first event that shows the format (`message_*` events: Anthropic; `response.*`: OpenAI Responses; `choices`: Chat Completions; `candidates`: Gemini). Undecided events such as `ping` are held back, at most 20, and replayed once the format is clear; an error payload before the answer arrives as `error` in any of these shapes. A stream that never shows its format ends with `done { stopReason: 'unknown' }`; 20 undecided events throw `LlmmendError` with code `unknown_provider`. Pass a Provider to skip the detection.
 - `'anthropic'`: the Anthropic Messages API.
 - `'openai'`: OpenAI Chat Completions and the APIs that copy its format: OpenRouter, Groq, Ollama, DeepSeek, vLLM, LM Studio. Only the first choice is read; `n > 1` is not supported. OpenAI sends token usage only with `stream_options: { include_usage: true }`.
 - `'openai-responses'`: the OpenAI Responses API (also served by Ollama at `/v1/responses`). Each output item is one Block, numbered by `output_index`; reasoning summaries are `reasoning`, and `encrypted_content` (with `include: ['reasoning.encrypted_content']`) is a `reasoning_signature` to send back with that Block. `function_call` and `custom_tool_call` items are tool calls; built-in tools such as web search arrive as `other`. Stop reasons: `response.completed` is `end` (`tool_use` after tool calls, `refused` after a refusal), `response.incomplete` maps its reason (`max_output_tokens` → `max_tokens`, `content_filter` → `refused`), `response.failed` is `error`.

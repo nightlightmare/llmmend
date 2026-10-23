@@ -187,10 +187,11 @@ for await (const ev of streamLlm(res, { provider: 'openai' })) {
 }
 ```
 
-`streamLlm(source, { provider, signal? })` 把提供商的流转换为统一的 LLM 事件序列。`source` 是 `fetch` 返回的 `Response` 或其 body。
+`streamLlm(source, { provider?, signal? })` 把提供商的流转换为统一的 LLM 事件序列。`source` 是 `fetch` 返回的 `Response` 或其 body。
 
 提供商：
 
+- `'auto'`（默认）：根据第一个能显示格式的事件选择适配器（`message_*` 事件：Anthropic；`response.*`：OpenAI Responses；`choices`：Chat Completions；`candidates`：Gemini）。`ping` 等无法判断的事件会被暂存（最多 20 个），在格式明确后重新交给适配器；回答开始前的错误无论哪种格式都以 `error` 送达。始终无法判断格式的流以 `done { stopReason: 'unknown' }` 结束；连续 20 个无法判断的事件会抛出代码为 `unknown_provider` 的 `LlmmendError`。显式传入提供商即可跳过检测。
 - `'anthropic'`：Anthropic Messages API。
 - `'openai'`：OpenAI Chat Completions 以及沿用其格式的 API：OpenRouter、Groq、Ollama、DeepSeek、vLLM、LM Studio。只读取第一个候选回答；不支持 `n > 1`。OpenAI 只有在设置 `stream_options: { include_usage: true }` 时才会发送 token 用量。
 - `'openai-responses'`：OpenAI Responses API（Ollama 也在 `/v1/responses` 提供）。每个输出项是一个块，编号为 `output_index`；推理摘要以 `reasoning` 送达，`encrypted_content`（需设置 `include: ['reasoning.encrypted_content']`）以 `reasoning_signature` 送达，需随该块发回。`function_call` 和 `custom_tool_call` 项是工具调用；网页搜索等内置工具以 `other` 送达。停止原因：`response.completed` 为 `end`（有工具调用时为 `tool_use`，有拒绝时为 `refused`），`response.incomplete` 按其原因映射（`max_output_tokens` → `max_tokens`，`content_filter` → `refused`），`response.failed` 为 `error`。

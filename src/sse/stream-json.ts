@@ -39,7 +39,7 @@ export type StreamJsonItem<T> =
  */
 export async function* streamJson<T = unknown>(
   source: StreamSource,
-  options: StreamJsonOptions<T>,
+  options: StreamJsonOptions<T> = {},
 ): AsyncIterable<StreamJsonItem<T>> {
   const { provider, signal, ...extract } = options
   let text = ''
@@ -52,7 +52,10 @@ export async function* streamJson<T = unknown>(
   let usage: LlmUsage | undefined
   let error: string | undefined
 
-  for await (const event of streamLlm(source, signal ? { provider, signal } : { provider })) {
+  const llmOptions: StreamLlmOptions = {}
+  if (provider) llmOptions.provider = provider
+  if (signal) llmOptions.signal = signal
+  for await (const event of streamLlm(source, llmOptions)) {
     if (event.type === 'text') {
       text += event.text
       const current = partialCandidate(text, extract)

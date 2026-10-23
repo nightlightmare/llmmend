@@ -63,7 +63,7 @@ const res = await fetch('https://api.anthropic.com/v1/messages', {
   }),
 })
 
-for await (const ev of streamLlm(res, { provider: 'anthropic' })) {
+for await (const ev of streamLlm(res)) {
   switch (ev.type) {
     case 'text':
       process.stdout.write(ev.text)
@@ -83,7 +83,7 @@ for await (const ev of streamLlm(res, { provider: 'anthropic' })) {
 }
 ```
 
-Supports Anthropic, Google Gemini, the OpenAI Responses API and OpenAI-compatible Chat Completions APIs (OpenAI, OpenRouter, Groq, Ollama, vLLM, LM Studio). Bring your own format with a 10-line adapter. `done` always arrives exactly once, last; mid-stream provider errors arrive as an `error` event, not an exception.
+Supports Anthropic, Google Gemini, the OpenAI Responses API and OpenAI-compatible Chat Completions APIs (OpenAI, OpenRouter, Groq, Ollama, vLLM, LM Studio). The format is detected from the stream; pass `{ provider }` to skip that. Bring your own format with a 10-line adapter. `done` always arrives exactly once, last; mid-stream provider errors arrive as an `error` event, not an exception.
 
 > **OpenAI usage:** pass `stream_options: { include_usage: true }` in the request, or OpenAI won't send token usage at all.
 
