@@ -1,5 +1,8 @@
 name: Release
 
+# A release is an ordinary PR that runs `pnpm changeset version` (bumping package.json and writing
+# CHANGELOG.md), so it gets the usual required checks. Once it lands on main, this workflow
+# publishes the version if npm does not have it yet, then tags it and creates a GitHub release.
 on:
   push:
     branches: [main]
@@ -7,13 +10,13 @@ on:
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 
 permissions:
-  contents: write
-  pull-requests: write
-  id-token: write # npm Trusted Publishing (OIDC) + provenance
+  contents: write # the tag and the GitHub release
+  id-token: write # npm Trusted Publishing (OIDC) and provenance
 
 jobs:
   release:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6
@@ -22,13 +25,33 @@ jobs:
           node-version: 24
           cache: pnpm
           registry-url: https://registry.npmjs.org
-      # Trusted Publishing needs npm >= 11.5.1
-      - run: npm install -g npm@latest
-      - run: pnpm install --frozen-lockfile
-      - uses: changesets/action@v2
-        # v2 renamed the inputs and takes the token as an input, not from the environment.
-        with:
-          publish-script: pnpm release
-          pr-title: Version Packages
-          commit-message: Version Packages
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Check whether this version is on npm
+        id: version
+        run: |
+          version=$(node -p "require('./package.json').version")
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          if npm view "llmmend@$version" version >/dev/null 2>&1; then
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+          fi
+      # Trusted Publishing needs npm >= 11.5.1.
+      - if: steps.version.outputs.publish == 'true'
+        run: npm install -g npm@latest
+      - if: steps.version.outputs.publish == 'true'
+        run: pnpm install --frozen-lockfile
+      - if: steps.version.outputs.publish == 'true'
+        run: pnpm build
+      # npm, not pnpm: npm handles the OIDC token exchange; provenance comes with it.
+      - if: steps.version.outputs.publish == 'true'
+        run: npm publish
+      - name: Tag and create the GitHub release
+        if: steps.version.outputs.publish == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          # The CHANGELOG.md section of this version, without its heading.
+          awk -v v="$VERSION" '$0 == "## " v { found = 1; next } /^## / && found { exit } found' \
+            CHANGELOG.md > notes.md
+          gh release create "v$VERSION" --target "$GITHUB_SHA" --title "v$VERSION" --notes-file notes.md
