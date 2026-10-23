@@ -1,0 +1,8 @@
+{
+  "provider": "openrouter",
+  "case": "reasoning",
+  "description": "Reasoning in delta.reasoning, a processing comment, usage on a chunk after finish_reason.",
+  "model": "deepseek/deepseek-r1",
+  "synthetic": true,
+  "source": "https://openrouter.ai/docs/use-cases/reasoning-tokens"
+}

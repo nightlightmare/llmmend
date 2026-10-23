@@ -1,0 +1,23 @@
+[
+  {
+    "type": "text",
+    "index": 0,
+    "text": "The sea"
+  },
+  {
+    "type": "error",
+    "message": "The server had an error while processing your request. Sorry about that!",
+    "raw": {
+      "error": {
+        "message": "The server had an error while processing your request. Sorry about that!",
+        "type": "server_error",
+        "param": null,
+        "code": null
+      }
+    }
+  },
+  {
+    "type": "done",
+    "stopReason": "error"
+  }
+]

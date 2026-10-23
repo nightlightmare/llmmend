@@ -1,0 +1,108 @@
+[
+  {
+    "type": "text",
+    "index": 0,
+    "text": "М"
+  },
+  {
+    "type": "text",
+    "index": 0,
+    "text": "ор"
+  },
+  {
+    "type": "text",
+    "index": 0,
+    "text": "е"
+  },
+  {
+    "type": "text",
+    "index": 0,
+    "text": " т"
+  },
+  {
+    "type": "text",
+    "index": 0,
+    "text": "их"
+  },
+  {
+    "type": "text",
+    "index": 0,
+    "text": "о"
+  },
+  {
+    "type": "text",
+    "index": 0,
+    "text": " бл"
+  },
+  {
+    "type": "text",
+    "index": 0,
+    "text": "ест"
+  },
+  {
+    "type": "text",
+    "index": 0,
+    "text": "ит"
+  },
+  {
+    "type": "text",
+    "index": 0,
+    "text": ","
+  },
+  {
+    "type": "text",
+    "index": 0,
+    "text": "宛如"
+  },
+  {
+    "type": "text",
+    "index": 0,
+    "text": "一面"
+  },
+  {
+    "type": "text",
+    "index": 0,
+    "text": "巨大的"
+  },
+  {
+    "type": "text",
+    "index": 0,
+    "text": "镜子"
+  },
+  {
+    "type": "text",
+    "index": 0,
+    "text": "."
+  },
+  {
+    "type": "text",
+    "index": 0,
+    "text": " (∧"
+  },
+  {
+    "type": "text",
+    "index": 0,
+    "text": "_"
+  },
+  {
+    "type": "text",
+    "index": 0,
+    "text": "∧"
+  },
+  {
+    "type": "text",
+    "index": 0,
+    "text": ")"
+  },
+  {
+    "type": "usage",
+    "inputTokens": 46,
+    "outputTokens": 21,
+    "cacheReadTokens": 24
+  },
+  {
+    "type": "done",
+    "stopReason": "end",
+    "rawStopReason": "stop"
+  }
+]

@@ -1,5 +1,6 @@
 import type { LlmEvent, LlmUsage, ProviderAdapter, StopReason } from '../events'
 import type { SSEEvent } from '../parse'
+import { done, parseObject } from './shared'
 
 interface RawUsage {
   input_tokens?: number
@@ -45,15 +46,6 @@ const STOP_REASONS = new Map<string, StopReason>([
   ['pause_turn', 'paused'],
 ])
 
-function parse(data: string): RawEvent | undefined {
-  try {
-    const value: unknown = JSON.parse(data)
-    return typeof value === 'object' && value !== null ? value : undefined
-  } catch {
-    return undefined
-  }
-}
-
 function create(): (event: SSEEvent) => LlmEvent[] {
   // Blocks started as tool calls, so their argument deltas can be told from unknown Blocks.
   const toolBlocks = new Set<number>()
@@ -83,7 +75,7 @@ function create(): (event: SSEEvent) => LlmEvent[] {
   }
 
   return (sse) => {
-    const raw = parse(sse.data)
+    const raw = parseObject<RawEvent>(sse.data)
     const other: LlmEvent[] = [{ type: 'other', raw: sse }]
     if (!raw) return other
     const index = raw.index ?? 0
@@ -136,15 +128,7 @@ function create(): (event: SSEEvent) => LlmEvent[] {
         rawStopReason = raw.delta?.stop_reason ?? rawStopReason
         return usage(raw.usage)
       case 'message_stop':
-        return [
-          rawStopReason === undefined
-            ? { type: 'done', stopReason: 'unknown' }
-            : {
-                type: 'done',
-                stopReason: STOP_REASONS.get(rawStopReason) ?? 'unknown',
-                rawStopReason,
-              },
-        ]
+        return done(rawStopReason, STOP_REASONS)
       case 'error':
         return [{ type: 'error', message: raw.error?.message ?? 'Provider error', raw }]
       case 'ping':

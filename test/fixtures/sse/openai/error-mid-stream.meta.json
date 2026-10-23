@@ -1,0 +1,8 @@
+{
+  "provider": "openai",
+  "case": "error-mid-stream",
+  "description": "An error payload after the first text delta; the stream ends without [DONE].",
+  "model": "gpt-5-mini",
+  "synthetic": true,
+  "source": "https://platform.openai.com/docs/api-reference/chat-streaming"
+}
