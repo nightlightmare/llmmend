@@ -1,16 +1,28 @@
 {
-  "name": "PACKAGE_NAME",
+  "name": "llmmend",
   "version": "0.0.0",
   "private": true,
-  "description": "PACKAGE_DESCRIPTION",
-  "keywords": [],
-  "homepage": "https://github.com/nightlightmare/PACKAGE_NAME#readme",
-  "bugs": "https://github.com/nightlightmare/PACKAGE_NAME/issues",
+  "description": "Extract & repair JSON from LLM replies, parse SSE streams from any provider, token-aware text chunking. Zero deps, TS-first.",
+  "keywords": [
+    "anthropic",
+    "json",
+    "json-repair",
+    "llm",
+    "openai",
+    "partial-json",
+    "server-sent-events",
+    "sse",
+    "standard-schema",
+    "streaming",
+    "zod"
+  ],
+  "homepage": "https://github.com/nightlightmare/llmmend#readme",
+  "bugs": "https://github.com/nightlightmare/llmmend/issues",
   "license": "MIT",
   "author": "nightlightmare",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/nightlightmare/PACKAGE_NAME.git"
+    "url": "git+https://github.com/nightlightmare/llmmend.git"
   },
   "files": [
     "dist"
@@ -31,14 +43,24 @@
         "default": "./dist/index.cjs"
       }
     },
-    "./example": {
+    "./json": {
       "import": {
-        "types": "./dist/example/index.d.ts",
-        "default": "./dist/example/index.js"
+        "types": "./dist/json/index.d.ts",
+        "default": "./dist/json/index.js"
       },
       "require": {
-        "types": "./dist/example/index.d.cts",
-        "default": "./dist/example/index.cjs"
+        "types": "./dist/json/index.d.cts",
+        "default": "./dist/json/index.cjs"
+      }
+    },
+    "./sse": {
+      "import": {
+        "types": "./dist/sse/index.d.ts",
+        "default": "./dist/sse/index.js"
+      },
+      "require": {
+        "types": "./dist/sse/index.d.cts",
+        "default": "./dist/sse/index.cjs"
       }
     },
     "./package.json": "./package.json"
@@ -78,14 +100,20 @@
   },
   "size-limit": [
     {
-      "name": ".",
+      "name": "llmmend (one import)",
       "path": "dist/index.js",
+      "import": "{ LlmmendError }",
       "limit": "1 kB"
     },
     {
-      "name": "./example",
-      "path": "dist/example/index.js",
-      "limit": "1 kB"
+      "name": "llmmend/json",
+      "path": "dist/json/index.js",
+      "limit": "2.5 kB"
+    },
+    {
+      "name": "llmmend/sse",
+      "path": "dist/sse/index.js",
+      "limit": "2 kB"
     }
   ],
   "engines": {

@@ -9,8 +9,12 @@ const pkg = JSON.parse(readFileSync(new URL('../package.json', import.meta.url),
 
 // One check per subpath; keep in sync with `exports`.
 const checks = {
-  '.': (m) => assert.equal(m.clamp(15, 0, 10), 10),
-  './example': (m) => assert.equal(m.clamp(-5, 0, 10), 0),
+  '.': (m) => {
+    assert.equal(new m.LlmmendJsonError('not_found', '', []).name, 'LlmmendJsonError')
+    assert.ok(new m.LlmmendHttpError(500, new Headers(), '') instanceof m.LlmmendError)
+  },
+  './json': (m) => assert.equal(new m.LlmmendJsonError('truncated', '', []).code, 'truncated'),
+  './sse': (m) => assert.equal(new m.LlmmendHttpError(429, new Headers(), '').status, 429),
 }
 
 for (const [subpath, target] of Object.entries(pkg.exports)) {
