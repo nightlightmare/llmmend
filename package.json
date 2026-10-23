@@ -79,6 +79,7 @@
     "test:watch": "vitest",
     "coverage": "vitest run --coverage",
     "smoke": "node scripts/smoke.mjs",
+    "record": "node scripts/record-fixture.mjs",
     "size": "size-limit",
     "check:publish": "publint && attw --pack . --profile node16",
     "changeset": "changeset",

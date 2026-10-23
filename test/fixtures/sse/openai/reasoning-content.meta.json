@@ -1,0 +1,8 @@
+{
+  "provider": "openai",
+  "case": "reasoning-content",
+  "description": "Reasoning in delta.reasoning_content (DeepSeek, vLLM), usage on the last chunk with finish_reason.",
+  "model": "deepseek-reasoner",
+  "synthetic": true,
+  "source": "https://api-docs.deepseek.com/guides/reasoning_model"
+}

@@ -1,0 +1,2 @@
+# Fixtures are recorded bytes: never convert their line endings (SSE tests depend on exact \n / \r\n).
+test/fixtures/** -text

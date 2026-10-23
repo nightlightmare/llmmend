@@ -1,0 +1,14 @@
+{
+  "description": "Reply likely to contain comments and trailing commas.",
+  "save": "reply",
+  "body": {
+    "model": "qwen2.5:3b",
+    "stream": false,
+    "messages": [
+      {
+        "role": "user",
+        "content": "Return a JSON array of 3 cities with name and population. Add a comment after each field explaining it, like you would in JavaScript."
+      }
+    ]
+  }
+}

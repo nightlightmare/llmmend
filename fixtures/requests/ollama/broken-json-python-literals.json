@@ -1,0 +1,14 @@
+{
+  "description": "Reply likely to use True/False/None and single quotes.",
+  "save": "reply",
+  "body": {
+    "model": "qwen2.5:3b",
+    "stream": false,
+    "messages": [
+      {
+        "role": "user",
+        "content": "Give me a Python dict literal describing a user with name, is_admin, manager (none) and roles. Just the dict, no explanation."
+      }
+    ]
+  }
+}

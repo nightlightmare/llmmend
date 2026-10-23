@@ -1,0 +1,17 @@
+{
+  "description": "Answer cut off by max_tokens.",
+  "body": {
+    "model": "claude-opus-5-5",
+    "max_tokens": 64,
+    "stream": true,
+    "output_config": {
+      "effort": "low"
+    },
+    "messages": [
+      {
+        "role": "user",
+        "content": "Write a 500-word essay about lighthouses."
+      }
+    ]
+  }
+}

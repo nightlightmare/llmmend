@@ -1,0 +1,19 @@
+{
+  "description": "Reasoning text in delta.reasoning.",
+  "body": {
+    "model": "deepseek/deepseek-r1",
+    "stream": true,
+    "stream_options": {
+      "include_usage": true
+    },
+    "reasoning": {
+      "effort": "low"
+    },
+    "messages": [
+      {
+        "role": "user",
+        "content": "Is 2^31 - 1 prime? Answer yes or no with one sentence of justification."
+      }
+    ]
+  }
+}
