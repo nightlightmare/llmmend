@@ -1,21 +1,21 @@
 import * as fc from 'fast-check'
 import { describe, expect, it } from 'vitest'
-import { DEFAULT_MAX_DEPTH, parseJson, parseValueAt } from '../../src/json/parser'
+import { DEFAULT_MAX_DEPTH, parseJson, parseValueAt, type Repair } from '../../src/json/parser'
 
-type Outcome = { ok: true; value: unknown } | { ok: false; error: string }
+type Outcome = { ok: true; value: unknown } | { ok: false }
 
 /** What JSON.parse makes of `text`, in the shape of a parse result without positions. */
 function native(text: string): Outcome {
   try {
     return { ok: true, value: JSON.parse(text) }
   } catch {
-    return { ok: false, error: 'unparseable' }
+    return { ok: false }
   }
 }
 
 function strict(text: string): Outcome {
   const result = parseJson(text)
-  return result.ok ? { ok: true, value: result.value } : { ok: false, error: result.error }
+  return result.ok ? { ok: true, value: result.value } : { ok: false }
 }
 
 function expectSameAsNative(text: string): void {
@@ -84,9 +84,25 @@ describe('parseJson (strict)', () => {
   ])('rejects %j like JSON.parse', expectSameAsNative)
 
   it('reports where parsing stopped', () => {
-    expect(parseJson('[1, x]')).toEqual({ ok: false, error: 'unparseable', at: 4 })
-    expect(parseJson('{"a":1;')).toEqual({ ok: false, error: 'unparseable', at: 6 })
-    expect(parseJson('[1] x')).toEqual({ ok: false, error: 'unparseable', at: 4 })
+    expect(parseJson('[1, x]')).toEqual({ ok: false, error: 'unparseable', at: 4, issues: [] })
+    expect(parseJson('{"a":1;')).toEqual({ ok: false, error: 'unparseable', at: 6, issues: [] })
+    expect(parseJson('[1] x')).toEqual({ ok: false, error: 'unparseable', at: 4, issues: [] })
+  })
+
+  it.each(['', '{', '{"a":', '[1, 2', '"abc', 'tru', '-', '1.', '{"a": [1, {"b": nul'])(
+    'reports %j, which the text cuts off, as truncated',
+    (text) => {
+      expect(parseJson(text)).toEqual({
+        ok: false,
+        error: 'truncated',
+        at: text.length,
+        issues: [],
+      })
+    },
+  )
+
+  it('does no Repair at all', () => {
+    expect(parseJson('[1,]', { repair: 'none' })).toMatchObject({ ok: false, error: 'unparseable' })
   })
 
   it('keeps __proto__ as an own property instead of setting the prototype', () => {
@@ -106,11 +122,11 @@ describe('parseJson (strict)', () => {
 describe('parseValueAt', () => {
   it('parses one value at an offset and reports where it ends', () => {
     const text = 'Here: {"a": [1, 2]} and more'
-    expect(parseValueAt(text, 6)).toEqual({ ok: true, value: { a: [1, 2] }, end: 19 })
+    expect(parseValueAt(text, 6)).toEqual({ ok: true, value: { a: [1, 2] }, end: 19, issues: [] })
   })
 
   it('accepts top-level scalars', () => {
-    expect(parseValueAt('  42,', 0)).toEqual({ ok: true, value: 42, end: 4 })
+    expect(parseValueAt('  42,', 0)).toEqual({ ok: true, value: 42, end: 4, issues: [] })
   })
 })
 
@@ -124,6 +140,7 @@ describe('depth limit', () => {
       ok: false,
       error: 'max_depth',
       at: DEFAULT_MAX_DEPTH,
+      issues: [],
     })
   })
 
@@ -142,11 +159,17 @@ describe('depth limit', () => {
 })
 
 describe('fuzzing', () => {
-  it('never throws on random input', () => {
+  const repairs = ['none', 'syntax', 'full'] as const
+
+  it('never throws on random input, at any Repair level', () => {
     fc.assert(
-      fc.property(fc.string({ unit: 'binary', maxLength: 2000 }), (text) => {
-        expect(() => parseJson(text)).not.toThrow()
-      }),
+      fc.property(
+        fc.oneof(fc.string({ unit: 'binary', maxLength: 2000 }), nearlyJson),
+        fc.constantFrom(...repairs),
+        (text, repair) => {
+          expect(() => parseJson(text, { repair })).not.toThrow()
+        },
+      ),
       { numRuns: 1000 },
     )
   })
@@ -159,15 +182,26 @@ describe('fuzzing', () => {
     'long number': '1'.repeat(size),
     'repeated keys': '{' + '"k":1,'.repeat(size / 6) + '"k":1}',
     'wide array': '[' + '0,'.repeat(size / 2 - 1) + '0]',
+    'single quotes and comments': "{'k': 'v', // c\n".repeat(size / 16),
     'random bytes': Array.from({ length: size }, (_, i) =>
       String.fromCharCode((i * 2654435761) % 256),
     ).join(''),
   }
 
-  it.each(Object.entries(inputs))('parses 100 kB of %s within 50 ms', (_, text) => {
-    parseJson(text) // warm up the JIT
-    const start = performance.now()
-    parseJson(text)
-    expect(performance.now() - start).toBeLessThan(50)
+  it.each(
+    Object.entries(inputs).flatMap(([name, text]) =>
+      repairs.map((repair): [string, Repair, string] => [name, repair, text]),
+    ),
+  )('parses 100 kB of %s within 50 ms (repair: %s)', (_, repair, text) => {
+    // Best of several runs after a warm-up: the budget is for the parser, not for JIT tiers,
+    // coverage instrumentation or a noisy CI neighbour.
+    for (let i = 0; i < 3; i++) parseJson(text, { repair })
+    let best = Infinity
+    for (let i = 0; i < 5; i++) {
+      const start = performance.now()
+      parseJson(text, { repair })
+      best = Math.min(best, performance.now() - start)
+    }
+    expect(best).toBeLessThan(50)
   })
 })

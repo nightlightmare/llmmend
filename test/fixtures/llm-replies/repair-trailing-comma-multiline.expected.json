@@ -1,0 +1,4 @@
+{
+  "value": [1, 2],
+  "issues": ["trailing_comma"]
+}

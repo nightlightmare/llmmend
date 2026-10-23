@@ -1,0 +1,8 @@
+{
+  "value": {
+    "active": true,
+    "admin": false,
+    "manager": null
+  },
+  "issues": ["python_literal", "python_literal", "python_literal"]
+}

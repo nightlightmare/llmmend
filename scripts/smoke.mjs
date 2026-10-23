@@ -13,7 +13,10 @@ const checks = {
     assert.equal(new m.LlmmendJsonError('not_found', '', []).name, 'LlmmendJsonError')
     assert.ok(new m.LlmmendHttpError(500, new Headers(), '') instanceof m.LlmmendError)
   },
-  './json': (m) => assert.equal(new m.LlmmendJsonError('truncated', '', []).code, 'truncated'),
+  './json': (m) => {
+    assert.equal(new m.LlmmendJsonError('truncated', '', []).code, 'truncated')
+    assert.equal(m.repairJson("{name: 'Ada', ok: True,").json, '{"name":"Ada","ok":true}')
+  },
   './sse': async (m) => {
     assert.equal(new m.LlmmendHttpError(429, new Headers(), '').status, 429)
     // Exercises the runtime's ReadableStream and streaming TextDecoder: the emoji is split.

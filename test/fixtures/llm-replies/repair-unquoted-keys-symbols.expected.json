@@ -1,0 +1,8 @@
+{
+  "value": {
+    "user_id": 1,
+    "$ref": "x",
+    "first-name": "A"
+  },
+  "issues": ["unquoted_key", "unquoted_key", "unquoted_key"]
+}

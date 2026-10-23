@@ -1,0 +1,21 @@
+{
+  "value": {
+    "items": [
+      {
+        "id": 1,
+        "ok": true
+      },
+      {
+        "id": 2,
+        "ok": null
+      }
+    ]
+  },
+  "issues": [
+    "python_literal",
+    "trailing_comma",
+    "python_literal",
+    "trailing_comma",
+    "trailing_comma"
+  ]
+}
