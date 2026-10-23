@@ -1,0 +1,10 @@
+{
+  "value": {
+    "title": "Whispers of Avalon",
+    "shape": "oval",
+    "author": "Derek Hawthorne",
+    "year": 2023,
+    "tags": ["fantasy", "magic", "quest"]
+  },
+  "issues": ["stripped_wrapper", "unquoted_key"]
+}

@@ -1,0 +1,8 @@
+{
+  "provider": "ollama",
+  "case": "broken-json-fenced-intro",
+  "description": "Reply with a preamble and a fenced JSON block.",
+  "model": "qwen2.5:3b",
+  "recordedAt": "2026-10-23T12:58:49.122Z",
+  "synthetic": false
+}

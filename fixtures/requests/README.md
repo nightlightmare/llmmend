@@ -27,6 +27,8 @@ pnpm record anthropic         # one provider
 pnpm record openai/text       # one case
 ```
 
+Without an Anthropic key, record the `anthropic` cases through Claude in Amazon Bedrock, which serves the same Messages API and SSE: `ANTHROPIC_VIA=bedrock pnpm record anthropic`. The script takes temporary credentials from the AWS CLI (`aws configure export-credentials`, so `aws login`, SSO or a profile all work), signs with `curl --aws-sigv4`, and marks the fixtures `via: "bedrock"`. `AWS_REGION` defaults to `us-east-1`.
+
 Ollama needs no key; it must be running locally with the models named in `ollama/*.json` pulled (`OLLAMA_BASE_URL` overrides `http://localhost:11434`). A provider whose key is missing is skipped.
 
 Recording costs a few cents per run. Re-record a case when a Provider changes its format, and review the diff of the `.sse` file before committing.

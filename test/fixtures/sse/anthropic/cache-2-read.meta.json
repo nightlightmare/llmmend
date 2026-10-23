@@ -1,0 +1,9 @@
+{
+  "provider": "anthropic",
+  "case": "cache-2-read",
+  "description": "Reads the cache entry written by cache-1-write (cache_read_input_tokens > 0). Run within 5 minutes of it.",
+  "model": "claude-opus-5-5",
+  "via": "bedrock",
+  "recordedAt": "2026-10-23T12:19:55.106Z",
+  "synthetic": false
+}

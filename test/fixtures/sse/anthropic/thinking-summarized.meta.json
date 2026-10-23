@@ -1,0 +1,9 @@
+{
+  "provider": "anthropic",
+  "case": "thinking-summarized",
+  "description": "Summarized thinking text (display: summarized) with a signature, then the answer.",
+  "model": "claude-opus-5-5",
+  "via": "bedrock",
+  "recordedAt": "2026-10-23T12:21:11.949Z",
+  "synthetic": false
+}

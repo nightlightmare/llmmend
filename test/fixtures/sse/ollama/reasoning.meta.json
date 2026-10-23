@@ -1,0 +1,8 @@
+{
+  "provider": "ollama",
+  "case": "reasoning",
+  "description": "Thinking model; reasoning in delta.reasoning.",
+  "model": "qwen3:4b",
+  "recordedAt": "2026-10-23T13:05:52.537Z",
+  "synthetic": false
+}

@@ -1,0 +1,4 @@
+{
+  "value": { "name": "user123", "is_admin": false, "manager": null, "roles": ["user"] },
+  "issues": []
+}

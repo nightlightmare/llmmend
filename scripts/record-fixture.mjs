@@ -2,8 +2,13 @@
 //   node scripts/record-fixture.mjs [--list] [filter...]
 // A filter matches `<provider>/<case>` by prefix, e.g. `anthropic` or `openai/text`.
 // Keys come from the environment or `.env` (git-ignored). Headers are never written to disk.
+// ANTHROPIC_VIA=bedrock sends the anthropic cases to Claude in Amazon Bedrock instead (same
+// Messages API and SSE), signed with the AWS CLI's credentials; AWS_REGION defaults to us-east-1.
+import { execFile, spawn } from 'node:child_process'
 import { existsSync } from 'node:fs'
-import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises'
+import { mkdir, mkdtemp, readdir, readFile, rm, writeFile } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 
 const root = new URL('../', import.meta.url)
 const requestsDir = new URL('fixtures/requests/', root)
@@ -57,24 +62,91 @@ async function listCases() {
     .toSorted()
 }
 
-async function record(id) {
-  const [provider, name] = id.split('/')
-  const config = providers[provider]
-  if (!config) throw new Error(`unknown provider "${provider}"`)
-  const key = config.key ? process.env[config.key] : ''
-  if (key === undefined) return console.log(`skip ${id}: ${config.key} is not set`)
-
-  const request = JSON.parse(await readFile(new URL(`${id}.json`, requestsDir), 'utf8'))
-  const body = expand(request.body)
+async function sendDirect(config, key, body) {
   const res = await fetch(config.url, {
     method: 'POST',
     headers: { 'content-type': 'application/json', ...config.auth(key) },
     body: JSON.stringify(body),
     signal: AbortSignal.timeout(300_000),
   })
-  if (!res.ok) {
+  return { status: res.status, bytes: new Uint8Array(await res.arrayBuffer()) }
+}
+
+const run = (cmd, args) =>
+  new Promise((resolve, reject) =>
+    execFile(cmd, args, { encoding: 'utf8' }, (error, stdout) =>
+      error ? reject(error) : resolve(stdout),
+    ),
+  )
+
+let awsCredentials
+// Temporary credentials of whatever the AWS CLI is logged in with (aws login, SSO, profile).
+async function bedrockCredentials() {
+  awsCredentials ??= JSON.parse(
+    await run('aws', ['configure', 'export-credentials', '--format', 'process']),
+  )
+  return awsCredentials
+}
+
+// curl signs the request with SigV4 (service bedrock-mantle); the body goes in on stdin, the
+// response bytes come out on stdout untouched, and the status code on stderr. The credentials
+// go in a curl config file readable only by this user and deleted right after, never on the
+// command line, where any process on the machine could read them.
+async function sendViaBedrock(body) {
+  const region = process.env.AWS_REGION ?? 'us-east-1'
+  const creds = await bedrockCredentials()
+  const lines = [`user = "${creds.AccessKeyId}:${creds.SecretAccessKey}"`]
+  if (creds.SessionToken) lines.push(`header = "x-amz-security-token: ${creds.SessionToken}"`)
+  const dir = await mkdtemp(join(tmpdir(), 'llmmend-record-'))
+  const config = join(dir, 'curl.conf')
+  try {
+    await writeFile(config, lines.join('\n') + '\n', { mode: 0o600 })
+    const curl = spawn('curl', [
+      '-s',
+      '-m',
+      '300',
+      '-K',
+      config,
+      `https://bedrock-mantle.${region}.api.aws/anthropic/v1/messages`,
+      '--aws-sigv4',
+      `aws:amz:${region}:bedrock-mantle`,
+      '-H',
+      'content-type: application/json',
+      '-H',
+      'anthropic-version: 2026-10-21',
+      '--data-binary',
+      '@-',
+      '-w',
+      '%{stderr}%{http_code}',
+    ])
+    const out = []
+    let status = ''
+    curl.stdout.on('data', (chunk) => out.push(chunk))
+    curl.stderr.on('data', (chunk) => (status += chunk))
+    curl.stdin.end(JSON.stringify({ ...body, model: `anthropic.${body.model}` }))
+    await new Promise((resolve, reject) => curl.on('close', resolve).on('error', reject))
+    return { status: Number(status.trim()), bytes: new Uint8Array(Buffer.concat(out)) }
+  } finally {
+    await rm(dir, { recursive: true, force: true })
+  }
+}
+
+async function record(id) {
+  const [provider, name] = id.split('/')
+  const config = providers[provider]
+  if (!config) throw new Error(`unknown provider "${provider}"`)
+  const viaBedrock = provider === 'anthropic' && process.env.ANTHROPIC_VIA === 'bedrock'
+  const key = config.key ? process.env[config.key] : ''
+  if (key === undefined && !viaBedrock) return console.log(`skip ${id}: ${config.key} is not set`)
+
+  const request = JSON.parse(await readFile(new URL(`${id}.json`, requestsDir), 'utf8'))
+  const body = expand(request.body)
+  const { status, bytes } = viaBedrock
+    ? await sendViaBedrock(body)
+    : await sendDirect(config, key, body)
+  if (status !== 200) {
     process.exitCode = 1
-    return console.log(`fail ${id}: HTTP ${res.status} ${await res.text()}`)
+    return console.log(`fail ${id}: HTTP ${status} ${new TextDecoder().decode(bytes)}`)
   }
 
   const meta = {
@@ -82,20 +154,21 @@ async function record(id) {
     case: name,
     description: request.description,
     model: body.model,
+    ...(viaBedrock && { via: 'bedrock' }),
     recordedAt: new Date().toISOString(),
     synthetic: false,
   }
   let out
   if (request.save === 'reply') {
     // Non-streaming reply text for the `json` corpus; the expected value is written by hand.
-    const json = await res.json()
+    const json = JSON.parse(new TextDecoder().decode(bytes))
     out = new URL(`test/fixtures/llm-replies/real-${provider}-${name}.txt`, root)
     await mkdir(new URL('.', out), { recursive: true })
     await writeFile(out, json.choices[0].message.content)
   } else {
     out = new URL(`test/fixtures/sse/${id}.sse`, root)
     await mkdir(new URL('.', out), { recursive: true })
-    await writeFile(out, new Uint8Array(await res.arrayBuffer()))
+    await writeFile(out, bytes)
   }
   await writeFile(
     new URL(out.href.replace(/\.(sse|txt)$/, '.meta.json')),

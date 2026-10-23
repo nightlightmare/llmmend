@@ -1,0 +1,8 @@
+{
+  "provider": "ollama",
+  "case": "text",
+  "description": "Plain text from a small local model.",
+  "model": "qwen2.5:3b",
+  "recordedAt": "2026-10-23T12:58:49.927Z",
+  "synthetic": false
+}

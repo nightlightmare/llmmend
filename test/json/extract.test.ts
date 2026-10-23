@@ -21,7 +21,8 @@ type Expected = ({ value: unknown; issues: string[] } | { error: string }) & {
 }
 
 const corpus = readdirSync(fixtures)
-  .filter((f) => f.startsWith('extract-') && f.endsWith('.txt'))
+  // extract-* are written for Extraction; real-* are recorded model Replies.
+  .filter((f) => (f.startsWith('extract-') || f.startsWith('real-')) && f.endsWith('.txt'))
   .map((f) => {
     const name = f.slice(0, -'.txt'.length)
     const text = readFileSync(new URL(f, fixtures), 'utf8')

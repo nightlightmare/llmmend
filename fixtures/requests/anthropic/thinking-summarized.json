@@ -1,0 +1,21 @@
+{
+  "description": "Summarized thinking text (display: summarized) with a signature, then the answer.",
+  "body": {
+    "model": "claude-opus-5-5",
+    "max_tokens": 8192,
+    "stream": true,
+    "thinking": {
+      "type": "adaptive",
+      "display": "summarized"
+    },
+    "output_config": {
+      "effort": "high"
+    },
+    "messages": [
+      {
+        "role": "user",
+        "content": "Find all positive integer solutions of x^2 - 7y^2 = 1 with x < 1000. Reply with the list of (x, y) pairs only."
+      }
+    ]
+  }
+}

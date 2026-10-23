@@ -1,0 +1,9 @@
+{
+  "provider": "anthropic",
+  "case": "thinking-omitted",
+  "description": "Thinking blocks with empty text (default display) and a signature.",
+  "model": "claude-opus-5-5",
+  "via": "bedrock",
+  "recordedAt": "2026-10-23T12:20:00.176Z",
+  "synthetic": false
+}

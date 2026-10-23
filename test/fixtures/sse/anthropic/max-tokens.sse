@@ -1,0 +1,54 @@
+event: message_start
+data: {"type":"message_start","message":{"model":"claude-opus-5-5","id":"msg_bdrk_6zhwtkhva7beo22itzg577mybtu6pd3lk7kre33gdkkxklbljn4a","type":"message","role":"assistant","content":[],"container":null,"stop_reason":null,"stop_sequence":null,"stop_details":null,"usage":{"input_tokens":24,"cache_creation_input_tokens":0,"cache_read_input_tokens":0,"cache_creation":{"ephemeral_5m_input_tokens":0,"ephemeral_1h_input_tokens":0},"output_tokens":8,"service_tier":"standard"}}}
+
+event: content_block_start
+data: {"type":"content_block_start","index":0,"content_block":{"type":"thinking","thinking":"","signature":""}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":0,"delta":{"type":"thinking_delta","thinking":""}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":0,"delta":{"type":"signature_delta","signature":"CAQS5gMKEggTEAEYAjgBQgh0aGlua2luZxIMYNTAGnVrVQcOTclsGgyHo0VKx/omec2fqiEiMG5ZOTlm9+61AHCRJzMTgtJQ7jzxn/UlbvMMa/zS61rJVz+7MUagngd0X2H+RfAueSqBA6x5V0q8E2n0HUbeIegLGQHQuEHpFUCGU6OAY03tDcaFH99VGDWezJKzz3bxnSPH35F7edQrrDhYFv4k9/NxPXJR1jrw6z98mi5x6/QCEe/W7XWSdt4I55RLmgTLk+wdrQ+aOD2Lgbcs1YMtOvraJ6qb8hEcACAIGWK8jRoLxwrHIikMLh//Q7dUGXN+vByBfXST1Z4MW8XduxU+aLBZar45B/3hF7WumeUsuOl/PNxHKVYfFP6L86nMXojO2cT2LXBQo9cMvPzVtKUuw+T8u2UkC/oxr/youClmth+cHKVe2f2F+iV+ZUMk23Q/YpVNL7DHRT9c0Z2GesD5MInPaTe2w3UjF9c1AJFn1h4RE++GUCnfLMH+K11wXMMf8u/GJsRYbe8nmRsPatZp8kItc8jW31XTh5jNe4lUX5MYp7RJJjWlEFohFMviUoOwEqP52i8SrYd6ZBDwwLnFvI2PvX+U+rRY5yQrBQFvIN5vAKs5gp0VElSTzBrFzraV8YTeUNYYAQ=="}}
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":0}
+
+event: content_block_start
+data: {"type":"content_block_start","index":1,"content_block":{"type":"text","text":""}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"text_delta","text":"# Sentinels"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"text_delta","text":" of the Sh"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"text_delta","text":"ore:"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"text_delta","text":" The Enduring Leg"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"text_delta","text":"acy of Lighthou"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"text_delta","text":"ses\n\nFor thousands of years"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"text_delta","text":", lighthouses have"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"text_delta","text":" stood at"}}
+
+event: content_block_delta
+data: {"type":"content_block_delta","index":1,"delta":{"type":"text_delta","text":" the ed"}}
+
+event: content_block_stop
+data: {"type":"content_block_stop","index":1}
+
+event: message_delta
+data: {"type":"message_delta","delta":{"stop_reason":"max_tokens","stop_sequence":null,"stop_details":null,"container":null},"usage":{"input_tokens":24,"cache_creation_input_tokens":0,"cache_read_input_tokens":0,"output_tokens":64,"output_tokens_details":{"thinking_tokens":17}}}
+
+event: message_stop
+data: {"type":"message_stop"}
+
