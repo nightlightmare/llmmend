@@ -193,6 +193,7 @@ Providers:
 
 - `'anthropic'`: the Anthropic Messages API.
 - `'openai'`: OpenAI Chat Completions and the APIs that copy its format: OpenRouter, Groq, Ollama, DeepSeek, vLLM, LM Studio. Only the first choice is read; `n > 1` is not supported. OpenAI sends token usage only with `stream_options: { include_usage: true }`.
+- `'gemini'`: Google Gemini `streamGenerateContent` (`?alt=sse`). Only the first candidate is read. A new Block starts whenever the kind of part changes (thought ↔ text), and every function call is its own Block, so Blocks follow Gemini's part order. Function calls arrive whole: `tool_call_start`, then one `tool_call_delta`.
 - a custom adapter, see below.
 
 ### LLM events
@@ -218,17 +219,17 @@ function show(ev: LlmEvent): string {
 }
 ```
 
-| `type`                | Fields                                                                                       | Meaning                                                                                                        |
-| --------------------- | -------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| `text`                | `index`, `text`                                                                              | A piece of the answer's text.                                                                                  |
-| `reasoning`           | `index`, `text`, `redacted?`                                                                 | A piece of reasoning. `redacted` holds Anthropic's encrypted `redacted_thinking` data; send it back unchanged. |
-| `reasoning_signature` | `index`, `signature`                                                                         | Anthropic's thinking signature, needed to send thinking back during tool use.                                  |
-| `tool_call_start`     | `index`, `id`, `name`                                                                        | A tool call begins.                                                                                            |
-| `tool_call_delta`     | `index`, `argsDelta`                                                                         | A piece of the tool call's JSON arguments; join them in order.                                                 |
-| `usage`               | `inputTokens?`, `outputTokens?`, `cacheReadTokens?`, `cacheWriteTokens?`, `reasoningTokens?` | Token counts so far.                                                                                           |
-| `done`                | `stopReason`, `rawStopReason?`                                                               | The end of the stream.                                                                                         |
-| `error`               | `message`, `raw`                                                                             | The Provider reported an error mid-stream.                                                                     |
-| `other`               | `raw`                                                                                        | An event the adapter does not know, as parsed by `parseSSE`.                                                   |
+| `type`                | Fields                                                                                       | Meaning                                                                                                                                                                                               |
+| --------------------- | -------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `text`                | `index`, `text`                                                                              | A piece of the answer's text.                                                                                                                                                                         |
+| `reasoning`           | `index`, `text`, `redacted?`                                                                 | A piece of reasoning. `redacted` holds Anthropic's encrypted `redacted_thinking` data; send it back unchanged.                                                                                        |
+| `reasoning_signature` | `index`, `signature`                                                                         | Data to send back unchanged with Block `index` when you continue the conversation: Anthropic’s thinking signature, or Gemini’s `thoughtSignature`, which can sit on any part (often a function call). |
+| `tool_call_start`     | `index`, `id`, `name`                                                                        | A tool call begins.                                                                                                                                                                                   |
+| `tool_call_delta`     | `index`, `argsDelta`                                                                         | A piece of the tool call's JSON arguments; join them in order.                                                                                                                                        |
+| `usage`               | `inputTokens?`, `outputTokens?`, `cacheReadTokens?`, `cacheWriteTokens?`, `reasoningTokens?` | Token counts so far.                                                                                                                                                                                  |
+| `done`                | `stopReason`, `rawStopReason?`                                                               | The end of the stream.                                                                                                                                                                                |
+| `error`               | `message`, `raw`                                                                             | The Provider reported an error mid-stream.                                                                                                                                                            |
+| `other`               | `raw`                                                                                        | An event the adapter does not know, as parsed by `parseSSE`.                                                                                                                                          |
 
 `index` is the Block: text, reasoning and each tool call get their own number, the same way for every Provider. `tool_call_delta` always comes after the `tool_call_start` with the same `index`.
 
@@ -236,16 +237,16 @@ function show(ev: LlmEvent): string {
 
 Stop reasons:
 
-| `stopReason`    | Anthropic                                     | OpenAI                        |
-| --------------- | --------------------------------------------- | ----------------------------- |
-| `end`           | `end_turn`                                    | `stop`                        |
-| `max_tokens`    | `max_tokens`, `model_context_window_exceeded` | `length`                      |
-| `tool_use`      | `tool_use`                                    | `tool_calls`, `function_call` |
-| `stop_sequence` | `stop_sequence`                               |                               |
-| `refused`       | `refusal`                                     | `content_filter`              |
-| `paused`        | `pause_turn`                                  |                               |
-| `error`         | an `error` event                              | an `error` payload            |
-| `unknown`       | anything else, or no final event              | anything else, or no `[DONE]` |
+| `stopReason`    | Anthropic                                     | OpenAI                        | Gemini                                                                                 |
+| --------------- | --------------------------------------------- | ----------------------------- | -------------------------------------------------------------------------------------- |
+| `end`           | `end_turn`                                    | `stop`                        | `STOP`                                                                                 |
+| `max_tokens`    | `max_tokens`, `model_context_window_exceeded` | `length`                      | `MAX_TOKENS`                                                                           |
+| `tool_use`      | `tool_use`                                    | `tool_calls`, `function_call` | `STOP` after function calls                                                            |
+| `stop_sequence` | `stop_sequence`                               |                               |                                                                                        |
+| `refused`       | `refusal`                                     | `content_filter`              | `SAFETY`, `RECITATION`, `BLOCKLIST`, `PROHIBITED_CONTENT`, `SPII`, …; a blocked prompt |
+| `paused`        | `pause_turn`                                  |                               | `CONTINUATION`                                                                         |
+| `error`         | an `error` event                              | an `error` payload            | an `error` payload; `MALFORMED_FUNCTION_CALL`, `MISSING_THOUGHT_SIGNATURE`, …          |
+| `unknown`       | anything else, or no final event              | anything else, or no `[DONE]` | anything else, or no finish reason                                                     |
 
 `rawStopReason` keeps the Provider's own string.
 

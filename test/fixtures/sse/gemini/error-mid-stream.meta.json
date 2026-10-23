@@ -1,0 +1,8 @@
+{
+  "provider": "gemini",
+  "case": "error-mid-stream",
+  "description": "An error payload after the first text chunk (the body shape of a real 503); the stream ends without a finish reason.",
+  "model": "gemini-3.8-flash",
+  "synthetic": true,
+  "source": "https://ai.google.dev/gemini-api/docs/troubleshooting"
+}

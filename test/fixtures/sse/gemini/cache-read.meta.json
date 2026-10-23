@@ -1,0 +1,8 @@
+{
+  "provider": "gemini",
+  "case": "cache-read",
+  "description": "Implicit cache hit: cachedContentTokenCount within promptTokenCount (not reproducible on the free tier).",
+  "model": "gemini-3.8-flash",
+  "synthetic": true,
+  "source": "https://ai.google.dev/gemini-api/docs/caching"
+}

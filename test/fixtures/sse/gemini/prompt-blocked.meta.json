@@ -1,0 +1,8 @@
+{
+  "provider": "gemini",
+  "case": "prompt-blocked",
+  "description": "The prompt is blocked: promptFeedback.blockReason and no candidates.",
+  "model": "gemini-3.8-flash",
+  "synthetic": true,
+  "source": "https://ai.google.dev/api/generate-content#BlockReason"
+}

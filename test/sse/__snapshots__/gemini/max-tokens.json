@@ -1,0 +1,37 @@
+[
+  {
+    "type": "text",
+    "index": 0,
+    "text": "The island was called Oakhaven, though no oak had ever set seed upon"
+  },
+  {
+    "type": "usage",
+    "inputTokens": 10,
+    "outputTokens": 16
+  },
+  {
+    "type": "text",
+    "index": 0,
+    "text": " its slate ribs, and there was no haven to be found in the teeth of its eastern shelf."
+  },
+  {
+    "type": "usage",
+    "inputTokens": 10,
+    "outputTokens": 36
+  },
+  {
+    "type": "reasoning_signature",
+    "index": 0,
+    "signature": "EmkKZwFpFH0TuDcsMKTXRrLFcMsHfWZ0ekuh3L5UEANK6ZlDyLs4+h2iWSSX5FJaU6NG/2cGtFMOyK9YpJhDJ5cnMRNxNRaXTqIq/3jNMo1hzpEg6a+WtZENi7CPMp6mEIL04D4forDUpbY="
+  },
+  {
+    "type": "usage",
+    "inputTokens": 10,
+    "outputTokens": 36
+  },
+  {
+    "type": "done",
+    "stopReason": "max_tokens",
+    "rawStopReason": "MAX_TOKENS"
+  }
+]

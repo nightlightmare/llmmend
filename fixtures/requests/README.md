@@ -21,13 +21,15 @@ Cases run in alphabetical order, so `cache-1-write` runs before `cache-2-read`.
 
 ```sh
 # keys in the environment or in .env (git-ignored)
-ANTHROPIC_API_KEY=... OPENAI_API_KEY=... OPENROUTER_API_KEY=... pnpm record
+ANTHROPIC_API_KEY=... OPENAI_API_KEY=... OPENROUTER_API_KEY=... GEMINI_API_KEY=... pnpm record
 pnpm record --list            # show all cases
 pnpm record anthropic         # one provider
 pnpm record openai/text       # one case
 ```
 
 Without an Anthropic key, record the `anthropic` cases through Claude in Amazon Bedrock, which serves the same Messages API and SSE: `ANTHROPIC_VIA=bedrock pnpm record anthropic`. The script takes temporary credentials from the AWS CLI (`aws configure export-credentials`, so `aws login`, SSO or a profile all work), signs with `curl --aws-sigv4`, and marks the fixtures `via: "bedrock"`. `AWS_REGION` defaults to `us-east-1`.
+
+Gemini takes a free Google AI Studio key (`GEMINI_API_KEY`); the free tier does not reproduce implicit caching, so `gemini/cache-read` is synthetic.
 
 Ollama needs no key; it must be running locally with the models named in `ollama/*.json` pulled (`OLLAMA_BASE_URL` overrides `http://localhost:11434`). A provider whose key is missing is skipped.
 

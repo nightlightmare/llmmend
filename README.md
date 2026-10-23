@@ -83,7 +83,7 @@ for await (const ev of streamLlm(res, { provider: 'anthropic' })) {
 }
 ```
 
-Supports Anthropic and OpenAI-compatible Chat Completions APIs (OpenAI, OpenRouter, Groq, Ollama, vLLM, LM Studio). Bring your own format with a 10-line adapter. `done` always arrives exactly once, last; mid-stream provider errors arrive as an `error` event, not an exception.
+Supports Anthropic, Google Gemini and OpenAI-compatible Chat Completions APIs (OpenAI, OpenRouter, Groq, Ollama, vLLM, LM Studio). Bring your own format with a 10-line adapter. `done` always arrives exactly once, last; mid-stream provider errors arrive as an `error` event, not an exception.
 
 > **OpenAI usage:** pass `stream_options: { include_usage: true }` in the request, or OpenAI won't send token usage at all.
 
@@ -103,7 +103,7 @@ Full reference: [docs/api.md](https://github.com/nightlightmare/llmmend/blob/mai
 | Module         | min+brotli                         |
 | -------------- | ---------------------------------- |
 | `llmmend/json` | ~3.5 kB                            |
-| `llmmend/sse`  | ~2.4 kB (`parseSSE` alone ~0.9 kB) |
+| `llmmend/sse`  | ~2.9 kB (`parseSSE` alone ~0.9 kB) |
 
 ## Contributing
 

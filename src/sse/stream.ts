@@ -2,6 +2,7 @@ import { LlmmendError, LlmmendHttpError } from '../shared/errors'
 import type { LlmEvent, LlmUsage, Provider, ProviderAdapter, StopReason } from './events'
 import { parseSSE } from './parse'
 import { anthropic } from './providers/anthropic'
+import { gemini } from './providers/gemini'
 import { openai } from './providers/openai'
 
 /** A `fetch` response, or its body. */
@@ -25,6 +26,7 @@ export interface CollectedText {
 const PROVIDERS = new Map<string, ProviderAdapter>([
   ['anthropic', anthropic],
   ['openai', openai],
+  ['gemini', gemini],
 ])
 
 /**

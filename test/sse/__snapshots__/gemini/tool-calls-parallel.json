@@ -1,0 +1,52 @@
+[
+  {
+    "type": "tool_call_start",
+    "index": 0,
+    "id": "call_170123",
+    "name": "get_weather"
+  },
+  {
+    "type": "tool_call_delta",
+    "index": 0,
+    "argsDelta": "{\"city\":\"Paris\"}"
+  },
+  {
+    "type": "reasoning_signature",
+    "index": 0,
+    "signature": "EsQCCsECAWkUfRNbVlPMOw4Nf2yYmuB2l2B+WaQrdnyx3Rbx5woAjoKt56y47E5J/Bv0LnndllzmgwLQj6J8plLS5zUHtthJjMmbK8D7bIgTGRDf0DkT72yfigb3IXsf4Wp9krlOPjN0UQeRBsAPf+XZLb3XSYhk18oDyYXyOb6B6W8nTVXYcQlMSiICQtjXzjVSrbQ5ziZdQKEYIPDAvWI74HElrLSDawi9m8I+rz8McBvraiRa3XHk+ZFAHeRsfzKXjIZPK/REMdRHRKWRTBZ4IkUjCkq6aCggjpKAh790CXrooiiP+7V6Xr3/wGtUMx3p5MARsdtDj2LjzSb8kKph05Of67SeMSmoCxwZBFrBA7SDEt6YAWTLLaRkARYJyIO4FokrGy37eYLJUGngpqdepnV/DcYrlOMaSDEFOq9DkDIChmcL"
+  },
+  {
+    "type": "usage",
+    "inputTokens": 72,
+    "outputTokens": 58,
+    "reasoningTokens": 42
+  },
+  {
+    "type": "tool_call_start",
+    "index": 1,
+    "id": "call_170129",
+    "name": "get_weather"
+  },
+  {
+    "type": "tool_call_delta",
+    "index": 1,
+    "argsDelta": "{\"city\":\"Tokyo\"}"
+  },
+  {
+    "type": "usage",
+    "inputTokens": 72,
+    "outputTokens": 74,
+    "reasoningTokens": 42
+  },
+  {
+    "type": "usage",
+    "inputTokens": 72,
+    "outputTokens": 74,
+    "reasoningTokens": 42
+  },
+  {
+    "type": "done",
+    "stopReason": "tool_use",
+    "rawStopReason": "STOP"
+  }
+]

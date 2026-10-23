@@ -1,0 +1,22 @@
+[
+  {
+    "type": "text",
+    "index": 0,
+    "text": "Here is how"
+  },
+  {
+    "type": "usage",
+    "inputTokens": 8,
+    "outputTokens": 3
+  },
+  {
+    "type": "usage",
+    "inputTokens": 8,
+    "outputTokens": 3
+  },
+  {
+    "type": "done",
+    "stopReason": "refused",
+    "rawStopReason": "SAFETY"
+  }
+]

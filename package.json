@@ -133,13 +133,13 @@
       "name": "llmmend/sse (import { streamLlm, streamText, collectText })",
       "path": "dist/sse/index.js",
       "import": "{ streamLlm, streamText, collectText }",
-      "limit": "3 kB"
+      "limit": "4 kB"
     },
     {
       "name": "llmmend/sse (import { streamJson })",
       "path": "dist/sse/index.js",
       "import": "{ streamJson }",
-      "limit": "5.5 kB"
+      "limit": "7 kB"
     }
   ],
   "engines": {

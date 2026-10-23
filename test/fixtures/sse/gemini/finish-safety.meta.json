@@ -1,0 +1,8 @@
+{
+  "provider": "gemini",
+  "case": "finish-safety",
+  "description": "The answer stops with finishReason SAFETY after some text.",
+  "model": "gemini-3.8-flash",
+  "synthetic": true,
+  "source": "https://ai.google.dev/api/generate-content#FinishReason"
+}

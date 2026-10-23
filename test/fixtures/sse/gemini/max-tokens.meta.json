@@ -1,0 +1,8 @@
+{
+  "provider": "gemini",
+  "case": "max-tokens",
+  "description": "Cut off by maxOutputTokens.",
+  "model": "gemini-3.8-flash",
+  "recordedAt": "2026-10-23T21:51:38.959Z",
+  "synthetic": false
+}

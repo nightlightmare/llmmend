@@ -83,7 +83,7 @@ for await (const ev of streamLlm(res, { provider: 'anthropic' })) {
 }
 ```
 
-支持 Anthropic 以及兼容 OpenAI Chat Completions 的 API（OpenAI、OpenRouter、Groq、Ollama、vLLM、LM Studio）。其他格式只需一个约 10 行的适配器。`done` 总是恰好出现一次，且在最后；流中途的提供商错误以 `error` 事件送达，而不是抛出异常。
+支持 Anthropic、Google Gemini 以及兼容 OpenAI Chat Completions 的 API（OpenAI、OpenRouter、Groq、Ollama、vLLM、LM Studio）。其他格式只需一个约 10 行的适配器。`done` 总是恰好出现一次，且在最后；流中途的提供商错误以 `error` 事件送达，而不是抛出异常。
 
 > **OpenAI 用量：** 请在请求中传入 `stream_options: { include_usage: true }`，否则 OpenAI 根本不会返回 token 用量。
 
@@ -103,7 +103,7 @@ for await (const ev of streamLlm(res, { provider: 'anthropic' })) {
 | 模块           | min+brotli                         |
 | -------------- | ---------------------------------- |
 | `llmmend/json` | ~3.5 kB                            |
-| `llmmend/sse`  | ~2.4 kB（仅 `parseSSE` 约 0.9 kB） |
+| `llmmend/sse`  | ~2.9 kB（仅 `parseSSE` 约 0.9 kB） |
 
 ## 参与贡献
 
