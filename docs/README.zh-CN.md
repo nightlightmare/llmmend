@@ -136,7 +136,7 @@ Claude 的分词器产生的 token 约为 1.5 倍：用于 Claude 时请把预�
 | 模块            | min+brotli                         |
 | --------------- | ---------------------------------- |
 | `llmmend/json`  | ~3.5 kB                            |
-| `llmmend/sse`   | ~2.9 kB（仅 `parseSSE` 约 0.9 kB） |
+| `llmmend/sse`   | ~3.6 kB（仅 `parseSSE` 约 0.9 kB） |
 | `llmmend/chunk` | ~1.4 kB                            |
 
 ## 参与贡献
