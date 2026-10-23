@@ -1,20 +1,18 @@
-import { readdirSync, readFileSync } from 'node:fs'
 import * as fc from 'fast-check'
 import { describe, expect, it } from 'vitest'
 import { LlmmendJsonError, repairJson } from '../../src/json/index'
+import { fixtureDir } from '../fixtures'
 
-const fixtures = new URL('../fixtures/llm-replies/', import.meta.url)
+const fixtures = fixtureDir('llm-replies')
 
 type Expected = { value: unknown; issues: string[] } | { error: string }
 
-const corpus = readdirSync(fixtures)
+const corpus = [...fixtures.keys()]
   .filter((f) => f.startsWith('repair-') && f.endsWith('.txt'))
   .map((f) => {
     const name = f.slice(0, -'.txt'.length)
-    const text = readFileSync(new URL(f, fixtures), 'utf8')
-    const expected = JSON.parse(
-      readFileSync(new URL(`${name}.expected.json`, fixtures), 'utf8'),
-    ) as Expected
+    const text = fixtures.get(f) ?? ''
+    const expected = JSON.parse(fixtures.get(`${name}.expected.json`) ?? '') as Expected
     return { name, text, expected }
   })
 

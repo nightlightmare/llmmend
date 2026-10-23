@@ -4,3 +4,4 @@ coverage/
 *.tgz
 .env
 .env.*
+drift-report.md

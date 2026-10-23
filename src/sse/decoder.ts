@@ -11,7 +11,6 @@ export interface LineDecoder {
 }
 
 const LF = 0x0a
-const CR = 0x0d
 const BOM = 0xfeff
 
 export function createLineDecoder(): LineDecoder {
@@ -24,21 +23,27 @@ export function createLineDecoder(): LineDecoder {
 
   function take(text: string): string[] {
     const lines: string[] = []
+    if (text === '') return lines
     let start = 0
-    for (let i = 0; i < text.length; i++) {
-      const ch = text.charCodeAt(i)
-      if (skipLF) {
-        skipLF = false
-        if (ch === LF) {
-          start = i + 1
-          continue
-        }
-      }
-      if (ch === LF || ch === CR) {
-        lines.push(buffer + text.slice(start, i))
-        buffer = ''
-        start = i + 1
-        skipLF = ch === CR
+    if (skipLF) {
+      skipLF = false
+      if (text.charCodeAt(0) === LF) start = 1
+    }
+    // `indexOf` is much faster than a loop over every character. Each position is searched
+    // again only once passed, so text without any CR is not rescanned for every line.
+    let lf = text.indexOf('\n', start)
+    let cr = text.indexOf('\r', start)
+    for (;;) {
+      if (lf !== -1 && lf < start) lf = text.indexOf('\n', start)
+      if (cr !== -1 && cr < start) cr = text.indexOf('\r', start)
+      const end = lf === -1 ? cr : cr === -1 ? lf : Math.min(lf, cr)
+      if (end === -1) break
+      lines.push(buffer + text.slice(start, end))
+      buffer = ''
+      start = end + 1
+      if (end === cr) {
+        if (start === text.length) skipLF = true
+        else if (text.charCodeAt(start) === LF) start++
       }
     }
     buffer += text.slice(start)

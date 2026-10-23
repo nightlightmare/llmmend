@@ -44,13 +44,26 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm test
 
+  webkit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps webkit
+      - run: pnpm test:webkit
+
   # Dev tooling needs Node 22+, so older/alternative runtimes run a smoke test against the built dist.
   smoke:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        runtime: [node20, bun, deno]
+        runtime: [node20, bun, deno, workers]
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -74,3 +87,5 @@ jobs:
         uses: denoland/setup-deno@v2
       - if: matrix.runtime == 'deno'
         run: deno run --allow-read scripts/smoke.mjs
+      - if: matrix.runtime == 'workers'
+        run: pnpm smoke:workers
