@@ -73,7 +73,8 @@ export const checks = {
     const geminiBody = new Response(`data: ${JSON.stringify(gemini)}
 
 `)
-    assert.deepEqual(await m.collectText(geminiBody, { provider: 'gemini' }), {
+    // No provider: the format is detected.
+    assert.deepEqual(await m.collectText(geminiBody), {
       text: 'Hi',
       stopReason: 'end',
     })

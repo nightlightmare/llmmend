@@ -63,7 +63,7 @@ const res = await fetch('https://api.anthropic.com/v1/messages', {
   }),
 })
 
-for await (const ev of streamLlm(res, { provider: 'anthropic' })) {
+for await (const ev of streamLlm(res)) {
   switch (ev.type) {
     case 'text':
       process.stdout.write(ev.text)
@@ -83,7 +83,7 @@ for await (const ev of streamLlm(res, { provider: 'anthropic' })) {
 }
 ```
 
-支持 Anthropic、Google Gemini、OpenAI Responses API 以及兼容 OpenAI Chat Completions 的 API（OpenAI、OpenRouter、Groq、Ollama、vLLM、LM Studio）。其他格式只需一个约 10 行的适配器。`done` 总是恰好出现一次，且在最后；流中途的提供商错误以 `error` 事件送达，而不是抛出异常。
+支持 Anthropic、Google Gemini、OpenAI Responses API 以及兼容 OpenAI Chat Completions 的 API（OpenAI、OpenRouter、Groq、Ollama、vLLM、LM Studio）。格式会根据流自动识别；传入 `{ provider }` 可跳过识别。其他格式只需一个约 10 行的适配器。`done` 总是恰好出现一次，且在最后；流中途的提供商错误以 `error` 事件送达，而不是抛出异常。
 
 > **OpenAI 用量：** 请在请求中传入 `stream_options: { include_usage: true }`，否则 OpenAI 根本不会返回 token 用量。
 

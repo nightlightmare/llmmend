@@ -2,6 +2,7 @@ import { LlmmendError, LlmmendHttpError } from '../shared/errors'
 import type { LlmEvent, LlmUsage, Provider, ProviderAdapter, StopReason } from './events'
 import { parseSSE } from './parse'
 import { anthropic } from './providers/anthropic'
+import { auto } from './providers/auto'
 import { gemini } from './providers/gemini'
 import { openai } from './providers/openai'
 import { openaiResponses } from './providers/openai-responses'
@@ -10,8 +11,11 @@ import { openaiResponses } from './providers/openai-responses'
 export type StreamSource = Response | ReadableStream<Uint8Array>
 
 export interface StreamLlmOptions {
-  /** Which Provider produced the stream: a built-in name or a custom adapter. */
-  provider: Provider
+  /**
+   * Which Provider produced the stream: a built-in name or a custom adapter. The default, `'auto'`,
+   * picks the adapter from the first event that shows the format.
+   */
+  provider?: Provider
   /** Aborting cancels the source and makes iteration throw the signal's reason (an `AbortError`). */
   signal?: AbortSignal
 }
@@ -29,6 +33,7 @@ const PROVIDERS = new Map<string, ProviderAdapter>([
   ['openai', openai],
   ['gemini', gemini],
   ['openai-responses', openaiResponses],
+  ['auto', auto],
 ])
 
 /**
@@ -39,9 +44,9 @@ const PROVIDERS = new Map<string, ProviderAdapter>([
  */
 export async function* streamLlm(
   source: StreamSource,
-  options: StreamLlmOptions,
+  options: StreamLlmOptions = {},
 ): AsyncIterable<LlmEvent> {
-  const { provider, signal } = options
+  const { provider = 'auto', signal } = options
   signal?.throwIfAborted()
   const adapter = typeof provider === 'string' ? PROVIDERS.get(provider) : provider
   if (!adapter) throw new LlmmendError('unknown_provider', `Unknown provider: ${String(provider)}`)
@@ -71,7 +76,7 @@ export async function* streamLlm(
 /** Yields only the answer's text. Use `streamLlm` or `collectText` to learn why it stopped. */
 export async function* streamText(
   source: StreamSource,
-  options: StreamLlmOptions,
+  options: StreamLlmOptions = {},
 ): AsyncIterable<string> {
   for await (const event of streamLlm(source, options)) {
     if (event.type === 'text') yield event.text
@@ -81,7 +86,7 @@ export async function* streamText(
 /** Reads the whole stream and returns the answer's text, Stop reason and last usage. */
 export async function collectText(
   source: StreamSource,
-  options: StreamLlmOptions,
+  options: StreamLlmOptions = {},
 ): Promise<CollectedText> {
   const result: CollectedText = { text: '', stopReason: 'unknown' }
   for await (const event of streamLlm(source, options)) {
