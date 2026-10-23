@@ -1,0 +1,9 @@
+{
+  "provider": "anthropic",
+  "case": "text",
+  "description": "Plain text answer with default thinking (omitted display).",
+  "model": "claude-opus-5-5",
+  "via": "bedrock",
+  "recordedAt": "2026-10-23T12:19:57.443Z",
+  "synthetic": false
+}

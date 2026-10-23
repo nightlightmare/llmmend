@@ -1,0 +1,9 @@
+{
+  "provider": "anthropic",
+  "case": "tool-use-parallel",
+  "description": "Two parallel tool calls with eager input streaming; the model chose not to think.",
+  "model": "claude-opus-5-5",
+  "via": "bedrock",
+  "recordedAt": "2026-10-23T12:20:41.428Z",
+  "synthetic": false
+}

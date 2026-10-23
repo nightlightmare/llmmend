@@ -1,5 +1,5 @@
 {
-  "description": "Summarized thinking with signature, parallel tool use with eager input streaming.",
+  "description": "Two parallel tool calls with eager input streaming; the model chose not to think.",
   "body": {
     "model": "claude-opus-5-5",
     "max_tokens": 8192,
@@ -9,7 +9,7 @@
       "display": "summarized"
     },
     "output_config": {
-      "effort": "medium"
+      "effort": "high"
     },
     "tools": [
       {
@@ -32,7 +32,7 @@
     "messages": [
       {
         "role": "user",
-        "content": "What is the weather in Paris and in Tokyo right now? Call the tool for both cities."
+        "content": "I fly to either Paris or Tokyo tomorrow and want the warmer one. Think about which data you need, call the tool for both cities, then tell me which to pick."
       }
     ]
   }
