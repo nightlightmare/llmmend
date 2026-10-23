@@ -8,9 +8,12 @@ on:
 permissions:
   contents: read
 
+# Normal runs take under two minutes; the timeouts stop a hung step (seen once in a
+# Playwright install) long before the 6-hour default.
 jobs:
   check:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6
@@ -31,6 +34,7 @@ jobs:
 
   test-node:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     strategy:
       fail-fast: false
       matrix:
@@ -47,6 +51,7 @@ jobs:
 
   webkit:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6
@@ -61,6 +66,7 @@ jobs:
   # Dev tooling needs Node 22+, so older/alternative runtimes run a smoke test against the built dist.
   smoke:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     strategy:
       fail-fast: false
       matrix:
