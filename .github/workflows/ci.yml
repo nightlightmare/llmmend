@@ -33,6 +33,7 @@ jobs:
         id: badge
         run: echo "json=$(node scripts/coverage-badge.mjs)" >> "$GITHUB_OUTPUT"
       - run: pnpm build
+      - run: pnpm site:build
       - run: pnpm smoke
       - run: pnpm check:publish
       - run: pnpm size

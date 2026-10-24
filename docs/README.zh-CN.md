@@ -1,6 +1,8 @@
 [English](https://github.com/nightlightmare/llmmend/blob/main/README.md) | **简体中文** | [Русский](https://github.com/nightlightmare/llmmend/blob/main/docs/README.ru.md)
 
-# 🩹 llmmend
+<img src="https://raw.githubusercontent.com/nightlightmare/llmmend/main/docs/logo.png" alt="llmmend logo" width="96" align="right">
+
+# llmmend
 
 [![npm](https://img.shields.io/npm/v/llmmend)](https://www.npmjs.com/package/llmmend)
 [![downloads](https://img.shields.io/npm/dm/llmmend)](https://www.npmjs.com/package/llmmend)
@@ -17,6 +19,8 @@
 ```bash
 npm i llmmend
 ```
+
+在浏览器中试用，数据不会离开你的电脑：[在线演示](https://nightlightmare.github.io/llmmend/zh-CN/)，可修复 JSON、解析 SSE 流和分块。
 
 ## 为什么
 

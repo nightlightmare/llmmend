@@ -9,6 +9,8 @@ labels: needs-triage
 **Version:** <!-- e.g. 0.1.0 -->
 **Model:** <!-- e.g. claude-opus-5-5, gpt-5-mini, qwen2.5:3b -->
 
+**Playground link:** <!-- optional: paste the reply at https://nightlightmare.github.io/llmmend/, press Share and paste the link here -->
+
 **Raw reply** (exactly as the model returned it, including the text around the JSON)
 
 ````text

@@ -68,6 +68,9 @@ importers:
       valibot:
         specifier: ^1.5.0
         version: 1.5.0(typescript@7.0.2)
+      vite:
+        specifier: ^8.3.5
+        version: 8.3.5(yaml@2.9.1)
       vitest:
         specifier: ^5.0.5
         version: 5.0.5(@vitest/browser-playwright@5.0.5)(@vitest/coverage-v8@5.0.5)(@vitest/ui@5.0.5)(vite@8.3.5(yaml@2.9.1))
