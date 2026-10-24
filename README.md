@@ -110,15 +110,49 @@ Tokens are estimated without a vocabulary. The estimate minus the real count:
 
 | Text            | `o200k_base` (OpenAI) | Gemini 3.8 Flash | Claude Opus 5.5 |
 | --------------- | --------------------- | ---------------- | --------------- |
-| English         | +2 %                  | −8 %             | −35 %           |
-| Russian         | +4 %                  | −4 %             | −35 %           |
-| Chinese         | −2 %                  | −1 %             | −36 %           |
+| English         | +5 %                  | −5 %             | −33 %           |
+| Russian         | +5 %                  | −2 %             | −34 %           |
+| Chinese         | −1 %                  | +2 %             | −34 %           |
 | Japanese        | −11 %                 | +22 %            | −25 %           |
 | Korean          | −5 %                  | +3 %             | −46 %           |
 | Code            | −2 %                  | −15 %            | −36 %           |
-| Chat with emoji | −7 %                  | −11 %            | −39 %           |
+| Chat with emoji | −5 %                  | −9 %             | −38 %           |
 
 Claude's tokenizer produces about 1.5× as many tokens: for Claude, divide the budget by 1.5 or pass an exact `countTokens`.
+
+## Compared with other packages
+
+|                                                             | llmmend    | jsonrepair | partial-json | best-effort-json-parser | eventsource-parser | ai       | @langchain/textsplitters |
+| ----------------------------------------------------------- | ---------- | ---------- | ------------ | ----------------------- | ------------------ | -------- | ------------------------ |
+| **JSON**                                                    |            |            |              |                         |                    |          |                          |
+| Finds JSON in prose, code fences and `<think>` blocks       | ✅         | ⚠️ ¹       | ❌           | ⚠️ ²                    |                    | ❌       |                          |
+| Repairs quotes, comments, trailing commas, Python constants | ✅         | ✅         | ❌           | ⚠️ ³                    |                    | ❌       |                          |
+| Reads truncated JSON as a partial value                     | ✅         | ✅         | ✅           | ✅                      |                    | ✅       |                          |
+| Reports what was repaired                                   | ✅         | ❌         | ❌           | ❌                      |                    | ⚠️ ⁴     |                          |
+| Validates with Zod, Valibot, ArkType (Standard Schema)      | ✅         | ❌         | ❌           | ❌                      |                    | ⚠️ ⁵     |                          |
+| **Streams**                                                 |            |            |              |                         |                    |          |                          |
+| Parses SSE                                                  | ✅         |            |              |                         | ✅                 | ✅       |                          |
+| One event format for Anthropic, OpenAI, Gemini, any `fetch` | ✅         |            |              |                         | ❌                 | ⚠️ ⁶     |                          |
+| Detects the provider                                        | ✅         |            |              |                         | ❌                 | ❌       |                          |
+| Partial JSON values while the reply streams                 | ✅         |            |              |                         | ❌                 | ⚠️ ⁶     |                          |
+| **Chunks**                                                  |            |            |              |                         |                    |          |                          |
+| Token-sized chunks without downloading a tokenizer          | ✅         |            |              |                         |                    |          | ⚠️ ⁷                     |
+| Keeps code fences and tables whole when they fit            | ✅         |            |              |                         |                    |          | ⚠️ ⁸                     |
+| Overlap between chunks                                      | ✅         |            |              |                         |                    |          | ✅                       |
+| **Package**                                                 |            |            |              |                         |                    |          |                          |
+| Dependencies                                                | 0          | 0          | 0            | 0                       | 0                  | 3        | 1 + `@langchain/core`    |
+| Size of one function, min+brotli                            | 0.9–3.6 kB | 2.7 kB     | 1.4 kB       | 1.7 kB                  | 1.6 kB             | 31–81 kB | 106 kB                   |
+
+1. Only a reply that is all one fence: text around the fence turns the result into an array of strings.
+2. Fenced JSON only: for JSON inside a sentence it returns the first word.
+3. A `//` comment breaks the rest of the object.
+4. `parsePartialJson` says `repaired-parse`, not what changed.
+5. Inside its own model calls (`generateObject`), not for a reply you already have.
+6. Through its own provider packages, only for requests the SDK makes.
+7. `TokenTextSplitter` fetches the tokenizer from `tiktoken.pages.dev` at run time; `RecursiveCharacterTextSplitter` counts characters.
+8. In our test of 42 chunk sizes, its Markdown splitter cut a block that fit in 16.
+
+Checked on 2026-10-24 with jsonrepair 3.15.0, partial-json 0.1.7, best-effort-json-parser 1.5.1, eventsource-parser 4.1.2, ai 7.0.152, @langchain/textsplitters 1.0.2. Sizes: one import bundled with rolldown, minified and brotli-compressed; for llmmend, `parseSSE` to `streamText`, for ai, `parsePartialJson` to `streamText`. An empty cell means the package does not try.
 
 ## API
 
@@ -138,7 +172,7 @@ Full reference: [docs/api.md](https://github.com/nightlightmare/llmmend/blob/mai
 | --------------- | ---------------------------------- |
 | `llmmend/json`  | ~3.5 kB                            |
 | `llmmend/sse`   | ~3.6 kB (`parseSSE` alone ~0.9 kB) |
-| `llmmend/chunk` | ~1.4 kB                            |
+| `llmmend/chunk` | ~1.5 kB                            |
 
 ## Contributing
 

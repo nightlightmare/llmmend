@@ -110,15 +110,49 @@ token 数无需词表即可估算。估算值减去真实值：
 
 | 文本         | `o200k_base`（OpenAI） | Gemini 3.8 Flash | Claude Opus 5.5 |
 | ------------ | ---------------------- | ---------------- | --------------- |
-| 英文         | +2 %                   | −8 %             | −35 %           |
-| 俄文         | +4 %                   | −4 %             | −35 %           |
-| 中文         | −2 %                   | −1 %             | −36 %           |
+| 英文         | +5 %                   | −5 %             | −33 %           |
+| 俄文         | +5 %                   | −2 %             | −34 %           |
+| 中文         | −1 %                   | +2 %             | −34 %           |
 | 日文         | −11 %                  | +22 %            | −25 %           |
 | 韩文         | −5 %                   | +3 %             | −46 %           |
 | 代码         | −2 %                   | −15 %            | −36 %           |
-| 带表情的聊天 | −7 %                   | −11 %            | −39 %           |
+| 带表情的聊天 | −5 %                   | −9 %             | −38 %           |
 
 Claude 的分词器产生的 token 约为 1.5 倍：用于 Claude 时请把预算除以 1.5，或传入精确的 `countTokens`。
+
+## 与其他包对比
+
+|                                                      | llmmend    | jsonrepair | partial-json | best-effort-json-parser | eventsource-parser | ai       | @langchain/textsplitters |
+| ---------------------------------------------------- | ---------- | ---------- | ------------ | ----------------------- | ------------------ | -------- | ------------------------ |
+| **JSON**                                             |            |            |              |                         |                    |          |                          |
+| 在正文、代码块和 `<think>` 块中找到 JSON             | ✅         | ⚠️ ¹       | ❌           | ⚠️ ²                    |                    | ❌       |                          |
+| 修复引号、注释、尾随逗号、Python 常量                | ✅         | ✅         | ❌           | ⚠️ ³                    |                    | ❌       |                          |
+| 把截断的 JSON 读成部分值                             | ✅         | ✅         | ✅           | ✅                      |                    | ✅       |                          |
+| 报告修复了什么                                       | ✅         | ❌         | ❌           | ❌                      |                    | ⚠️ ⁴     |                          |
+| 用 Zod、Valibot、ArkType 校验（Standard Schema）     | ✅         | ❌         | ❌           | ❌                      |                    | ⚠️ ⁵     |                          |
+| **流**                                               |            |            |              |                         |                    |          |                          |
+| 解析 SSE                                             | ✅         |            |              |                         | ✅                 | ✅       |                          |
+| Anthropic、OpenAI、Gemini 统一事件格式，任意 `fetch` | ✅         |            |              |                         | ❌                 | ⚠️ ⁶     |                          |
+| 自动识别提供方                                       | ✅         |            |              |                         | ❌                 | ❌       |                          |
+| 回复流式输出时给出部分 JSON 值                       | ✅         |            |              |                         | ❌                 | ⚠️ ⁶     |                          |
+| **分块**                                             |            |            |              |                         |                    |          |                          |
+| 按 token 分块，无需下载分词器                        | ✅         |            |              |                         |                    |          | ⚠️ ⁷                     |
+| 放得下时保持代码块和表格完整                         | ✅         |            |              |                         |                    |          | ⚠️ ⁸                     |
+| 块之间的重叠                                         | ✅         |            |              |                         |                    |          | ✅                       |
+| **包**                                               |            |            |              |                         |                    |          |                          |
+| 依赖                                                 | 0          | 0          | 0            | 0                       | 0                  | 3        | 1 + `@langchain/core`    |
+| 单个函数大小，min+brotli                             | 0.9–3.6 kB | 2.7 kB     | 1.4 kB       | 1.7 kB                  | 1.6 kB             | 31–81 kB | 106 kB                   |
+
+1. 仅当整个回复就是一个代码块时：代码块周围的文字会让结果变成字符串数组。
+2. 仅限代码块中的 JSON：对句子中的 JSON 返回第一个单词。
+3. `//` 注释会破坏对象的其余部分。
+4. `parsePartialJson` 只返回 `repaired-parse`，不说明改了什么。
+5. 仅在它自己的模型调用（`generateObject`）中，不适用于已有的回复。
+6. 通过它自己的提供方包，仅限 SDK 自己发出的请求。
+7. `TokenTextSplitter` 运行时从 `tiktoken.pages.dev` 下载分词器；`RecursiveCharacterTextSplitter` 按字符计数。
+8. 在我们对 42 种块大小的测试中，它的 Markdown 分割器有 16 次切开了本可放下的块。
+
+于 2026-10-24 检查：jsonrepair 3.15.0、partial-json 0.1.7、best-effort-json-parser 1.5.1、eventsource-parser 4.1.2、ai 7.0.152、@langchain/textsplitters 1.0.2。大小：单个导入用 rolldown 打包、压缩并经 brotli 压缩；llmmend 为 `parseSSE` 到 `streamText`，ai 为 `parsePartialJson` 到 `streamText`。空单元格表示该包不处理此任务。
 
 ## API
 
@@ -138,7 +172,7 @@ Claude 的分词器产生的 token 约为 1.5 倍：用于 Claude 时请把预�
 | --------------- | ---------------------------------- |
 | `llmmend/json`  | ~3.5 kB                            |
 | `llmmend/sse`   | ~3.6 kB（仅 `parseSSE` 约 0.9 kB） |
-| `llmmend/chunk` | ~1.4 kB                            |
+| `llmmend/chunk` | ~1.5 kB                            |
 
 ## 参与贡献
 
