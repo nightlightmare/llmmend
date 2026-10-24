@@ -110,7 +110,8 @@ describe('parsePartialJson: properties', () => {
       }),
       { numRuns: 200 },
     )
-  })
+    // A rare large value under coverage instrumentation has taken over the 5 s default in CI.
+  }, 30_000)
 
   it('never throws', () => {
     fc.assert(
