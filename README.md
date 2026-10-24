@@ -18,6 +18,8 @@
 npm i llmmend
 ```
 
+Try it in the browser, nothing leaves your machine: [playground](https://nightlightmare.github.io/llmmend/) for JSON repair, SSE streams and chunking.
+
 ## Why
 
 Every LLM project ends up writing the same fragile code: regexes to strip ` ```json ` fences, a hand-rolled SSE parser that breaks on a split UTF-8 byte. `llmmend` is that code, done once and tested against a corpus of broken model replies and recorded provider streams.

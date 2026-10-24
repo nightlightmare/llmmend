@@ -64,6 +64,7 @@ index.push(
   `- [Full API reference in one file](${repo}/blob/main/llms-full.txt): the same as docs/api.md, without links to translations`,
   `- [README](${repo}#readme): overview, token estimate accuracy, comparison with other packages`,
   `- [Changelog](${repo}/blob/main/CHANGELOG.md)`,
+  '- [Playground](https://nightlightmare.github.io/llmmend/): try JSON repair, SSE parsing and chunking in the browser',
   '',
 )
 

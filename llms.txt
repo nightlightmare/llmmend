@@ -40,3 +40,4 @@ Install with `npm i llmmend`. Import from `llmmend/json`, `llmmend/sse` or `llmm
 - [Full API reference in one file](https://github.com/nightlightmare/llmmend/blob/main/llms-full.txt): the same as docs/api.md, without links to translations
 - [README](https://github.com/nightlightmare/llmmend#readme): overview, token estimate accuracy, comparison with other packages
 - [Changelog](https://github.com/nightlightmare/llmmend/blob/main/CHANGELOG.md)
+- [Playground](https://nightlightmare.github.io/llmmend/): try JSON repair, SSE parsing and chunking in the browser

@@ -6,3 +6,5 @@ coverage/
 .env.*
 drift-report.md
 .examples/
+site/.pages/
+site/dist/

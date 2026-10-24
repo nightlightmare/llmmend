@@ -18,6 +18,8 @@
 npm i llmmend
 ```
 
+在浏览器中试用，数据不会离开你的电脑：[在线演示](https://nightlightmare.github.io/llmmend/zh-CN/)，可修复 JSON、解析 SSE 流和分块。
+
 ## 为什么
 
 每个 LLM 项目最终都会写出同样脆弱的代码：用正则去掉 ` ```json ` 代码围栏，手写的 SSE 解析器一遇到被拆开的 UTF-8 字节就出错。`llmmend` 把这些代码一次写好，并用一套损坏的模型回复和录制的提供商流进行测试。
