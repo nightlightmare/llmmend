@@ -2,7 +2,7 @@
 
 # API 参考
 
-`llmmend` 有两个模块。可以从模块导入，也可以从根导入：两种方式都支持 tree-shaking。
+`llmmend` 有三个模块。可以从模块导入，也可以从根导入：两种方式都支持 tree-shaking。
 
 ```ts
 import { extractJson } from 'llmmend/json'

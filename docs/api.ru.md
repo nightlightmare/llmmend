@@ -2,7 +2,7 @@
 
 # Справочник API
 
-В `llmmend` два модуля. Импортируйте из модуля или из корня: tree-shaking работает в обоих случаях.
+В `llmmend` три модуля. Импортируйте из модуля или из корня: tree-shaking работает в обоих случаях.
 
 ```ts
 import { extractJson } from 'llmmend/json'
