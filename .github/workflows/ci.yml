@@ -14,6 +14,8 @@ jobs:
   check:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    outputs:
+      badge: ${{ steps.badge.outputs.json }}
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6
@@ -27,6 +29,9 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm check:docs
       - run: pnpm coverage
+      - if: github.event_name == 'push'
+        id: badge
+        run: echo "json=$(node scripts/coverage-badge.mjs)" >> "$GITHUB_OUTPUT"
       - run: pnpm build
       - run: pnpm smoke
       - run: pnpm check:publish
@@ -100,3 +105,27 @@ jobs:
         run: deno run --allow-read scripts/smoke.mjs
       - if: matrix.runtime == 'workers'
         run: pnpm smoke:workers
+
+  # The README coverage badge reads coverage.json from the `badges` branch through shields.io.
+  # Only this job can write, and it runs no repo code: it force-pushes a one-commit branch.
+  coverage-badge:
+    if: github.event_name == 'push'
+    needs: check
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - env:
+          BADGE: ${{ needs.check.outputs.badge }}
+          TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          git init -q -b badges badges
+          cd badges
+          printf '%s\n' "$BADGE" > coverage.json
+          git add coverage.json
+          git -c user.name='github-actions[bot]' \
+            -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
+            commit -qm "Coverage badge for $GITHUB_SHA"
+          git push -qf "https://x-access-token:$TOKEN@github.com/$REPO.git" badges
