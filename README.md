@@ -109,13 +109,13 @@ Tokens are estimated without a vocabulary. The estimate minus the real count:
 
 | Text            | `o200k_base` (OpenAI) | Gemini 3.8 Flash | Claude Opus 5.5 |
 | --------------- | --------------------- | ---------------- | --------------- |
-| English         | +2 %                  | −8 %             | −35 %           |
-| Russian         | +4 %                  | −4 %             | −35 %           |
-| Chinese         | −2 %                  | −1 %             | −36 %           |
+| English         | +5 %                  | −5 %             | −33 %           |
+| Russian         | +5 %                  | −2 %             | −34 %           |
+| Chinese         | −1 %                  | +2 %             | −34 %           |
 | Japanese        | −11 %                 | +22 %            | −25 %           |
 | Korean          | −5 %                  | +3 %             | −46 %           |
 | Code            | −2 %                  | −15 %            | −36 %           |
-| Chat with emoji | −7 %                  | −11 %            | −39 %           |
+| Chat with emoji | −5 %                  | −9 %             | −38 %           |
 
 Claude's tokenizer produces about 1.5× as many tokens: for Claude, divide the budget by 1.5 or pass an exact `countTokens`.
 
@@ -171,7 +171,7 @@ Full reference: [docs/api.md](https://github.com/nightlightmare/llmmend/blob/mai
 | --------------- | ---------------------------------- |
 | `llmmend/json`  | ~3.5 kB                            |
 | `llmmend/sse`   | ~3.6 kB (`parseSSE` alone ~0.9 kB) |
-| `llmmend/chunk` | ~1.4 kB                            |
+| `llmmend/chunk` | ~1.5 kB                            |
 
 ## Contributing
 
