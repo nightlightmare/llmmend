@@ -131,6 +131,8 @@ Everything is also re-exported from the root: `import { extractJson } from 'llmm
 
 Full reference: [docs/api.md](https://github.com/nightlightmare/llmmend/blob/main/docs/api.md)
 
+For AI coding assistants: [llms.txt](https://github.com/nightlightmare/llmmend/blob/main/llms.txt) and [llms-full.txt](https://github.com/nightlightmare/llmmend/blob/main/llms-full.txt), also shipped in the package.
+
 ## Size
 
 | Module          | min+brotli                         |

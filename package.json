@@ -27,7 +27,9 @@
     "url": "git+https://github.com/nightlightmare/llmmend.git"
   },
   "files": [
-    "dist"
+    "dist",
+    "llms.txt",
+    "llms-full.txt"
   ],
   "type": "module",
   "sideEffects": false,
@@ -99,7 +101,7 @@
     "size": "size-limit",
     "check:publish": "publint && attw --pack . --profile node16",
     "changeset": "changeset",
-    "check:docs": "node scripts/check-i18n.mjs && node scripts/check-examples.mjs"
+    "check:docs": "node scripts/check-i18n.mjs && node scripts/check-examples.mjs && node scripts/llms.mjs --check"
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.5",

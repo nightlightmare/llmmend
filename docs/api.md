@@ -2,7 +2,7 @@
 
 # API reference
 
-`llmmend` has two modules. Import from the module, or from the root: both are tree-shakeable.
+`llmmend` has three modules. Import from the module, or from the root: both are tree-shakeable.
 
 ```ts
 import { extractJson } from 'llmmend/json'

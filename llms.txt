@@ -1,0 +1,42 @@
+# llmmend
+
+> Fix what your LLM returns: extract and repair JSON from model replies, turn streaming responses from Anthropic, OpenAI (Chat Completions and Responses), Gemini and OpenAI-compatible servers into one event format, and split text into token-sized chunks. Zero dependencies; Node 20+, Bun, Deno, browsers and edge runtimes.
+
+Install with `npm i llmmend`. Import from `llmmend/json`, `llmmend/sse` or `llmmend/chunk`, or from the root: both are tree-shakeable. `extractJson` never throws on bad input: check `res.ok`, then read `res.value` or `res.error`. Streams take a `fetch` `Response` and detect the Provider by default.
+
+## llmmend/json
+
+- [extractJson](https://github.com/nightlightmare/llmmend/blob/main/docs/api.md#extractjson): `extractJson(text, options?)` finds the JSON in a Reply, repairs it and, given a schema, validates it.
+- [extractJsonAsync](https://github.com/nightlightmare/llmmend/blob/main/docs/api.md#extractjsonasync): The same as `extractJson`, for schemas that validate asynchronously.
+- [extractJsonOrThrow](https://github.com/nightlightmare/llmmend/blob/main/docs/api.md#extractjsonorthrow): Returns the value or throws `LlmmendJsonError`, whose `code` is the `error` above, with `issues` and, for `schema_mismatch`, `schemaIssues`.
+- [extractAllJson](https://github.com/nightlightmare/llmmend/blob/main/docs/api.md#extractalljson): Every Candidate in the Reply, in order.
+- [repairJson](https://github.com/nightlightmare/llmmend/blob/main/docs/api.md#repairjson): Repairs JSON text and returns valid JSON as a string, plus the Issues fixed.
+- [parsePartialJson](https://github.com/nightlightmare/llmmend/blob/main/docs/api.md#parsepartialjson): Reads JSON that is still arriving, for progressive UIs.
+- [Issues](https://github.com/nightlightmare/llmmend/blob/main/docs/api.md#issues): Every result lists what was done to the Reply, in order.
+
+## llmmend/sse
+
+- [parseSSE](https://github.com/nightlightmare/llmmend/blob/main/docs/api.md#parsesse): A [WHATWG-compliant](https://html.spec.whatwg.org/multipage/server-sent-events.html) server-sent events parser.
+- [streamLlm](https://github.com/nightlightmare/llmmend/blob/main/docs/api.md#streamllm): `streamLlm(source, { provider?, signal? })` turns a Provider's stream into one sequence of LLM events.
+- [LLM events](https://github.com/nightlightmare/llmmend/blob/main/docs/api.md#llm-events): `index` is the Block: text, reasoning and each tool call get their own number, the same way for every Provider.
+- [streamText](https://github.com/nightlightmare/llmmend/blob/main/docs/api.md#streamtext): Yields only the answer's text.
+- [collectText](https://github.com/nightlightmare/llmmend/blob/main/docs/api.md#collecttext): Reads the whole stream and returns `{ text, stopReason, usage? }`, with the last usage snapshot.
+- [streamJson](https://github.com/nightlightmare/llmmend/blob/main/docs/api.md#streamjson): Streams a Reply that contains JSON.
+- [Custom Provider adapters](https://github.com/nightlightmare/llmmend/blob/main/docs/api.md#custom-provider-adapters): An adapter turns each parsed SSE event into zero or more LLM events.
+
+## llmmend/chunk
+
+- [chunkText](https://github.com/nightlightmare/llmmend/blob/main/docs/api.md#chunktext): `chunkText(text, options)` splits a text into chunks of at most `maxTokens` tokens and returns `{ text, start, end, tokens, index, oversized? }[]`.
+- [estimateTokens](https://github.com/nightlightmare/llmmend/blob/main/docs/api.md#estimatetokens): Estimates tokens without a vocabulary, from the kinds of characters in the text.
+- [truncateToTokens](https://github.com/nightlightmare/llmmend/blob/main/docs/api.md#truncatetotokens): `truncateToTokens(text, max, { from?, ellipsis?, countTokens? })` shortens a text to at most `max` tokens without splitting a grapheme cluster.
+
+## Reference
+
+- [Errors](https://github.com/nightlightmare/llmmend/blob/main/docs/api.md#errors): Every error llmmend throws extends `LlmmendError`, which has a `code`
+- [Versioning](https://github.com/nightlightmare/llmmend/blob/main/docs/api.md#versioning): The unions you `switch` on (`Issue['code']`, `ExtractError`, `StopReason`, `LlmEvent['type']`, `LlmmendError['code']`) are closed, so TypeScript checks your `switch`.
+
+## Optional
+
+- [Full API reference in one file](https://github.com/nightlightmare/llmmend/blob/main/llms-full.txt): the same as docs/api.md, without links to translations
+- [README](https://github.com/nightlightmare/llmmend#readme): overview, token estimate accuracy, comparison with other packages
+- [Changelog](https://github.com/nightlightmare/llmmend/blob/main/CHANGELOG.md)

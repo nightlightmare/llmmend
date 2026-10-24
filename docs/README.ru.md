@@ -131,6 +131,8 @@ truncateToTokens('A title far too long for the card it has to fit on', 8, { elli
 
 Полный справочник: [docs/api.ru.md](https://github.com/nightlightmare/llmmend/blob/main/docs/api.ru.md)
 
+Для ИИ-ассистентов в редакторе: [llms.txt](https://github.com/nightlightmare/llmmend/blob/main/llms.txt) и [llms-full.txt](https://github.com/nightlightmare/llmmend/blob/main/llms-full.txt) (на английском), они есть и в пакете.
+
 ## Размер
 
 | Модуль          | min+brotli                        |

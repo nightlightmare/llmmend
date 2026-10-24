@@ -131,6 +131,8 @@ Claude 的分词器产生的 token 约为 1.5 倍：用于 Claude 时请把预�
 
 完整参考：[docs/api.zh-CN.md](https://github.com/nightlightmare/llmmend/blob/main/docs/api.zh-CN.md)
 
+给 AI 编程助手：[llms.txt](https://github.com/nightlightmare/llmmend/blob/main/llms.txt) 和 [llms-full.txt](https://github.com/nightlightmare/llmmend/blob/main/llms-full.txt)（英文），也随包发布。
+
 ## 体积
 
 | 模块            | min+brotli                         |
