@@ -1,12 +1,13 @@
 // Writes the playground's static pages: one per language and tab, each with its own title,
 // description and links to its translations, so search engines index every tool in every
 // language. vite.config.mjs calls it before building; the output (site/.pages/) is not committed.
-import { mkdirSync, rmSync, writeFileSync } from 'node:fs'
+import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { LANGS, STRINGS, TABS } from './i18n.mjs'
 
 export const ORIGIN = 'https://nightlightmare.github.io'
 export const BASE = '/llmmend/'
 const REPO = 'https://github.com/nightlightmare/llmmend'
+const LOGO = readFileSync(new URL('../docs/logo.svg', import.meta.url), 'utf8')
 
 /** The page's path below BASE: English at the root, tabs other than JSON in subfolders. */
 export const pagePath = (lang, tab) =>
@@ -121,7 +122,9 @@ function page(lang, tab, { version, goatcounter }) {
     <meta property="og:title" content="${escape(t.title[tab])}" />
     <meta property="og:description" content="${escape(t.description[tab])}" />
     <meta property="og:url" content="${url(lang, tab)}" />
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🩹</text></svg>" />
+    <meta property="og:image" content="${ORIGIN}${BASE}logo.png" />
+    <meta name="twitter:card" content="summary" />
+    <link rel="icon" href="data:image/svg+xml,${encodeURIComponent(LOGO)}" />
     <script type="application/ld+json">${jsonLd}</script>
     <script type="application/json" id="strings">${strings}</script>
     <script type="module" src="${up}src/main.ts"></script>${
@@ -132,7 +135,7 @@ function page(lang, tab, { version, goatcounter }) {
   </head>
   <body>
     <header>
-      <a class="brand" href="${BASE}${pagePath(lang, 'json')}">🩹 llmmend</a>
+      <a class="brand" href="${BASE}${pagePath(lang, 'json')}"><img src="${BASE}logo.svg" alt="" width="28" height="29" /> llmmend</a>
       <span class="tagline">${escape(t.tagline)}</span>
       <nav class="langs">${LANGS.map((l) =>
         l === lang

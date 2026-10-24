@@ -33,8 +33,12 @@ export default defineConfig({
       name: 'llmmend-site-files',
       generateBundle() {
         this.emitFile({ type: 'asset', fileName: 'sitemap.xml', source: sitemap() })
-        for (const name of ['llms.txt', 'llms-full.txt'])
-          this.emitFile({ type: 'asset', fileName: name, source: readFileSync(here(`../${name}`)) })
+        for (const name of ['llms.txt', 'llms-full.txt', 'docs/logo.svg', 'docs/logo.png'])
+          this.emitFile({
+            type: 'asset',
+            fileName: name.replace('docs/', ''),
+            source: readFileSync(here(`../${name}`)),
+          })
       },
     },
   ],

@@ -1,6 +1,8 @@
 **English** | [简体中文](https://github.com/nightlightmare/llmmend/blob/main/docs/README.zh-CN.md) | [Русский](https://github.com/nightlightmare/llmmend/blob/main/docs/README.ru.md)
 
-# 🩹 llmmend
+<img src="https://raw.githubusercontent.com/nightlightmare/llmmend/main/docs/logo.png" alt="llmmend logo" width="96" align="right">
+
+# llmmend
 
 [![npm](https://img.shields.io/npm/v/llmmend)](https://www.npmjs.com/package/llmmend)
 [![downloads](https://img.shields.io/npm/dm/llmmend)](https://www.npmjs.com/package/llmmend)
