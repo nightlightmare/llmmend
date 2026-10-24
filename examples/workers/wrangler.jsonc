@@ -1,0 +1,10 @@
+{
+  "name": "llmmend-proxy",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-01",
+  "vars": {
+    // Point at any provider's streaming endpoint; set the key with `wrangler secret put API_KEY`.
+    "UPSTREAM_URL": "https://api.anthropic.com/v1/messages",
+    "AUTH_HEADER": "x-api-key",
+  },
+}

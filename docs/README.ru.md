@@ -20,7 +20,7 @@
 npm i llmmend
 ```
 
-Попробуйте в браузере, данные никуда не уходят: [playground](https://nightlightmare.github.io/llmmend/ru/) для починки JSON, SSE-потоков и разбиения на чанки.
+Попробуйте в браузере, данные никуда не уходят: [playground](https://nightlightmare.github.io/llmmend/ru/) для починки JSON, SSE-потоков и разбиения на чанки. Готовые [примеры](https://github.com/nightlightmare/llmmend/tree/main/examples) для Next.js, Hono, Cloudflare Workers и Deno.
 
 ## Зачем
 

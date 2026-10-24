@@ -1,0 +1,6 @@
+{
+  "imports": {
+    "llmmend/chunk": "../../dist/chunk/index.js",
+    "llmmend/sse": "../../dist/sse/index.js"
+  }
+}

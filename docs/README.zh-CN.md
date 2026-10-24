@@ -20,7 +20,7 @@
 npm i llmmend
 ```
 
-在浏览器中试用，数据不会离开你的电脑：[在线演示](https://nightlightmare.github.io/llmmend/zh-CN/)，可修复 JSON、解析 SSE 流和分块。
+在浏览器中试用，数据不会离开你的电脑：[在线演示](https://nightlightmare.github.io/llmmend/zh-CN/)，可修复 JSON、解析 SSE 流和分块。可直接运行的[示例](https://github.com/nightlightmare/llmmend/tree/main/examples)：Next.js、Hono、Cloudflare Workers 和 Deno。
 
 ## 为什么
 

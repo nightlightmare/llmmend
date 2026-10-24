@@ -34,6 +34,7 @@ jobs:
         run: echo "json=$(node scripts/coverage-badge.mjs)" >> "$GITHUB_OUTPUT"
       - run: pnpm build
       - run: pnpm site:build
+      - run: pnpm examples:check
       - run: pnpm smoke
       - run: pnpm check:publish
       - run: pnpm size
@@ -104,6 +105,12 @@ jobs:
         uses: denoland/setup-deno@v2
       - if: matrix.runtime == 'deno'
         run: deno run --allow-read scripts/smoke.mjs
+      # The Deno example, against this build rather than the published package.
+      - if: matrix.runtime == 'deno'
+        working-directory: examples/deno
+        run: |
+          deno check --import-map=ci.imports.json main.ts check.ts
+          deno run --import-map=ci.imports.json --allow-read --allow-env=GEMINI_API_KEY check.ts
       - if: matrix.runtime == 'workers'
         run: pnpm smoke:workers
 
