@@ -103,7 +103,8 @@
     "changeset": "changeset",
     "check:docs": "node scripts/check-i18n.mjs && node scripts/check-examples.mjs && node scripts/llms.mjs --check",
     "site:dev": "vite --config site/vite.config.mjs",
-    "site:build": "vite build --config site/vite.config.mjs"
+    "site:build": "vite build --config site/vite.config.mjs",
+    "examples:check": "pnpm --filter llmmend-example-* check"
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.5",

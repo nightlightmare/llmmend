@@ -1,0 +1,9 @@
+{
+  "imports": {
+    "llmmend/chunk": "npm:llmmend@^0.2.0/chunk",
+    "llmmend/sse": "npm:llmmend@^0.2.0/sse"
+  },
+  "tasks": {
+    "start": "deno run --allow-net --allow-env main.ts"
+  }
+}
