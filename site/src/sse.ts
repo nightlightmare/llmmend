@@ -1,7 +1,7 @@
 import { streamLlm, type LlmEvent, type Provider } from 'llmmend/sse'
 import anthropicTools from '../../test/fixtures/sse/anthropic/tool-use-parallel.sse?raw'
-import anthropicText from '../../test/fixtures/sse/anthropic/text.sse?raw'
-import geminiText from '../../test/fixtures/sse/gemini/text.sse?raw'
+import anthropicThinking from '../../test/fixtures/sse/anthropic/max-tokens.sse?raw'
+import geminiMaxTokens from '../../test/fixtures/sse/gemini/max-tokens.sse?raw'
 import openaiTools from '../../test/fixtures/sse/ollama/tool-calls.sse?raw'
 import responsesRefusal from '../../test/fixtures/sse/openai-responses/refusal.sse?raw'
 import openrouterReasoning from '../../test/fixtures/sse/openrouter/reasoning.sse?raw'
@@ -12,12 +12,12 @@ const MAX_EVENTS = 300
 
 export const tool: Tool = {
   samples: {
-    'anthropic-text': anthropicText,
+    'anthropic-thinking': anthropicThinking,
     'anthropic-tools': anthropicTools,
     'openai-tools': openaiTools,
     'openrouter-reasoning': openrouterReasoning,
     'responses-refusal': responsesRefusal,
-    'gemini-text': geminiText,
+    'gemini-max-tokens': geminiMaxTokens,
   },
   async render(input, options, t) {
     const events: LlmEvent[] = []

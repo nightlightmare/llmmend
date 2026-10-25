@@ -27,7 +27,7 @@ assert(
   'the code block was cut',
 )
 
-const summary = 'A lighthouse keeper logs the weather 🌊 and the ships every day.'
+const summary = 'A lighthouse keeper logs the weather and the ships every day.'
 const provider = mockProvider(summary)
 globalThis.fetch = provider.fetch
 const summarized = await handler(

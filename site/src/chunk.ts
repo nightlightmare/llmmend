@@ -1,12 +1,11 @@
 import { chunkText, estimateTokens } from 'llmmend/chunk'
 import readme from '../../README.md?raw'
-import chat from '../../test/fixtures/chunk/corpus/chat.txt?raw'
 import ja from '../../test/fixtures/chunk/corpus/ja.txt?raw'
 import { block, h, type Tool } from './dom'
 
 export const tool: Tool = {
   // The README from its first section: the badges above it make a dull first chunk.
-  samples: { readme: readme.slice(readme.indexOf('## Why')), ja, chat },
+  samples: { readme: readme.slice(readme.indexOf('## Why')), ja },
   render(input, options, t) {
     const maxTokens = Math.max(1, Number(options['max-tokens']) || 1)
     const overlap = Math.max(0, Math.min(maxTokens - 1, Number(options.overlap) || 0))

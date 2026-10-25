@@ -1,7 +1,5 @@
 **English** | [简体中文](https://github.com/nightlightmare/llmmend/blob/main/docs/README.zh-CN.md) | [Русский](https://github.com/nightlightmare/llmmend/blob/main/docs/README.ru.md)
 
-<img src="https://raw.githubusercontent.com/nightlightmare/llmmend/main/docs/logo.png" alt="llmmend logo" width="96" align="right">
-
 # llmmend
 
 [![npm](https://img.shields.io/npm/v/llmmend)](https://www.npmjs.com/package/llmmend)
@@ -129,20 +127,20 @@ Claude's tokenizer produces about 1.5× as many tokens: for Claude, divide the b
 |                                                             | llmmend    | jsonrepair | partial-json | best-effort-json-parser | eventsource-parser | ai       | @langchain/textsplitters |
 | ----------------------------------------------------------- | ---------- | ---------- | ------------ | ----------------------- | ------------------ | -------- | ------------------------ |
 | **JSON**                                                    |            |            |              |                         |                    |          |                          |
-| Finds JSON in prose, code fences and `<think>` blocks       | ✅         | ⚠️ ¹       | ❌           | ⚠️ ²                    |                    | ❌       |                          |
-| Repairs quotes, comments, trailing commas, Python constants | ✅         | ✅         | ❌           | ⚠️ ³                    |                    | ❌       |                          |
-| Reads truncated JSON as a partial value                     | ✅         | ✅         | ✅           | ✅                      |                    | ✅       |                          |
-| Reports what was repaired                                   | ✅         | ❌         | ❌           | ❌                      |                    | ⚠️ ⁴     |                          |
-| Validates with Zod, Valibot, ArkType (Standard Schema)      | ✅         | ❌         | ❌           | ❌                      |                    | ⚠️ ⁵     |                          |
+| Finds JSON in prose, code fences and `<think>` blocks       | Yes        | Partly ¹   | No           | Partly ²                |                    | No       |                          |
+| Repairs quotes, comments, trailing commas, Python constants | Yes        | Yes        | No           | Partly ³                |                    | No       |                          |
+| Reads truncated JSON as a partial value                     | Yes        | Yes        | Yes          | Yes                     |                    | Yes      |                          |
+| Reports what was repaired                                   | Yes        | No         | No           | No                      |                    | Partly ⁴ |                          |
+| Validates with Zod, Valibot, ArkType (Standard Schema)      | Yes        | No         | No           | No                      |                    | Partly ⁵ |                          |
 | **Streams**                                                 |            |            |              |                         |                    |          |                          |
-| Parses SSE                                                  | ✅         |            |              |                         | ✅                 | ✅       |                          |
-| One event format for Anthropic, OpenAI, Gemini, any `fetch` | ✅         |            |              |                         | ❌                 | ⚠️ ⁶     |                          |
-| Detects the provider                                        | ✅         |            |              |                         | ❌                 | ❌       |                          |
-| Partial JSON values while the reply streams                 | ✅         |            |              |                         | ❌                 | ⚠️ ⁶     |                          |
+| Parses SSE                                                  | Yes        |            |              |                         | Yes                | Yes      |                          |
+| One event format for Anthropic, OpenAI, Gemini, any `fetch` | Yes        |            |              |                         | No                 | Partly ⁶ |                          |
+| Detects the provider                                        | Yes        |            |              |                         | No                 | No       |                          |
+| Partial JSON values while the reply streams                 | Yes        |            |              |                         | No                 | Partly ⁶ |                          |
 | **Chunks**                                                  |            |            |              |                         |                    |          |                          |
-| Token-sized chunks without downloading a tokenizer          | ✅         |            |              |                         |                    |          | ⚠️ ⁷                     |
-| Keeps code fences and tables whole when they fit            | ✅         |            |              |                         |                    |          | ⚠️ ⁸                     |
-| Overlap between chunks                                      | ✅         |            |              |                         |                    |          | ✅                       |
+| Token-sized chunks without downloading a tokenizer          | Yes        |            |              |                         |                    |          | Partly ⁷                 |
+| Keeps code fences and tables whole when they fit            | Yes        |            |              |                         |                    |          | Partly ⁸                 |
+| Overlap between chunks                                      | Yes        |            |              |                         |                    |          | Yes                      |
 | **Package**                                                 |            |            |              |                         |                    |          |                          |
 | Dependencies                                                | 0          | 0          | 0            | 0                       | 0                  | 3        | 1 + `@langchain/core`    |
 | Size of one function, min+brotli                            | 0.9–3.6 kB | 2.7 kB     | 1.4 kB       | 1.7 kB                  | 1.6 kB             | 31–81 kB | 106 kB                   |

@@ -5,7 +5,7 @@
   --muted: #6b665e;
   --line: #e2ded6;
   --panel: #ffffff;
-  --accent: #1667c9;
+  --accent: #b4462a;
   --ok: #2f7a3e;
   --bad: #b3261e;
   --mark: #fde7a8;
@@ -19,7 +19,7 @@
     --muted: #a39d93;
     --line: #34312c;
     --panel: #1e1c19;
-    --accent: #62b8fc;
+    --accent: #f08a68;
     --ok: #7cc68a;
     --bad: #f28b82;
     --mark: #5a4710;
@@ -56,9 +56,6 @@ header {
 }
 
 .brand {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
   font-weight: 700;
   font-size: 20px;
   color: var(--fg);
