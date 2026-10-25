@@ -3,6 +3,7 @@
 // language. vite.config.mjs calls it before building; the output (site/.pages/) is not committed.
 import { mkdirSync, rmSync, writeFileSync } from 'node:fs'
 import { LANGS, STRINGS, TABS } from './i18n.mjs'
+import { icon, THEMES } from './icons.mjs'
 
 export const ORIGIN = 'https://nightlightmare.github.io'
 export const BASE = '/llmmend/'
@@ -120,6 +121,13 @@ function page(lang, tab, { version, goatcounter }) {
     <meta property="og:title" content="${escape(t.title[tab])}" />
     <meta property="og:description" content="${escape(t.description[tab])}" />
     <meta property="og:url" content="${url(lang, tab)}" />
+    <script>
+      // The saved style, applied before the first paint so the page does not flash another one.
+      try {
+        const theme = localStorage.getItem('llmmend-theme')
+        if (theme) document.documentElement.dataset.theme = theme
+      } catch {}
+    </script>
     <script type="application/ld+json">${jsonLd}</script>
     <script type="application/json" id="strings">${strings}</script>
     <script type="module" src="${up}src/main.ts"></script>${
@@ -132,11 +140,25 @@ function page(lang, tab, { version, goatcounter }) {
     <header>
       <a class="brand" href="${BASE}${pagePath(lang, 'json')}">llmmend</a>
       <span class="tagline">${escape(t.tagline)}</span>
-      <nav class="langs">${LANGS.map((l) =>
-        l === lang
-          ? `<span aria-current="page">${escape(STRINGS[l].langName)}</span>`
-          : `<a href="${BASE}${pagePath(l, tab)}" hreflang="${l}" lang="${l}">${escape(STRINGS[l].langName)}</a>`,
-      ).join(' ')}</nav>
+      <div class="actions">
+        <details class="menu" id="theme-menu">
+          <summary aria-label="${escape(t.style)}" title="${escape(t.style)}">
+            <span class="theme-current">${THEMES.map((th) => icon(th.id, `mark-${th.id}`)).join('')}</span>${icon('chevron', 'chevron')}
+          </summary>
+          <ul role="list">${THEMES.map(
+            (th) =>
+              `<li><button type="button" data-theme-choice="${th.id}">${icon(th.id)}<span>${th.name}</span></button></li>`,
+          ).join('')}</ul>
+        </details>
+        <details class="menu">
+          <summary aria-label="${escape(t.language)}" title="${escape(t.language)}">${icon('globe')}${icon('chevron', 'chevron')}</summary>
+          <ul role="list">${LANGS.map((l) =>
+            l === lang
+              ? `<li><span aria-current="page" lang="${l}">${escape(STRINGS[l].langName)}</span></li>`
+              : `<li><a href="${BASE}${pagePath(l, tab)}" hreflang="${l}" lang="${l}">${escape(STRINGS[l].langName)}</a></li>`,
+          ).join('')}</ul>
+        </details>
+      </div>
     </header>
     <nav class="tabs">${TABS.map((tb) =>
       tb === tab
@@ -151,7 +173,7 @@ function page(lang, tab, { version, goatcounter }) {
         <section>
           <div class="pane-head">
             <h2><label for="input">${escape(t.input)}</label></h2>
-            <button id="share" type="button">${escape(t.share)}</button>
+            <button id="share" class="icon-button" type="button" aria-label="${escape(t.share)}" title="${escape(t.share)}">${icon('share', 'i-share')}${icon('check', 'i-check')}</button>
             <span id="share-status" role="status"></span>
           </div>
           <textarea id="input" rows="18" spellcheck="false"></textarea>

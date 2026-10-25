@@ -8,6 +8,8 @@ export const TABS = ['json', 'sse', 'chunk']
 export const STRINGS = {
   en: {
     langName: 'English',
+    language: 'Language',
+    style: 'Style',
     tagline: 'Fix what your LLM returns. Zero dependencies.',
     tabs: { json: 'JSON', sse: 'SSE stream', chunk: 'Chunks' },
     title: {
@@ -83,6 +85,8 @@ export const STRINGS = {
   },
   ru: {
     langName: 'Русский',
+    language: 'Язык',
+    style: 'Стиль',
     tagline: 'Чинит то, что вернула LLM. Без зависимостей.',
     tabs: { json: 'JSON', sse: 'Поток SSE', chunk: 'Чанки' },
     title: {
@@ -160,6 +164,8 @@ export const STRINGS = {
   },
   'zh-CN': {
     langName: '简体中文',
+    language: '语言',
+    style: '风格',
     tagline: '修复 LLM 返回的内容。零依赖。',
     tabs: { json: 'JSON', sse: 'SSE 流', chunk: '分块' },
     title: {

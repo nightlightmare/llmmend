@@ -6,6 +6,41 @@ import type { Strings, Tool } from './dom'
 import { decodeState, encodeState, type State } from './share'
 
 const t = JSON.parse(document.getElementById('strings')!.textContent!) as Strings
+
+// The style menu: the choice lives on <html> and in this browser only.
+const THEME_KEY = 'llmmend-theme'
+const choices = [...document.querySelectorAll<HTMLButtonElement>('[data-theme-choice]')]
+const showTheme = () => {
+  const current = document.documentElement.dataset.theme ?? 'claude'
+  for (const choice of choices)
+    choice.setAttribute('aria-pressed', String(choice.dataset.themeChoice === current))
+}
+for (const choice of choices)
+  choice.addEventListener('click', () => {
+    document.documentElement.dataset.theme = choice.dataset.themeChoice!
+    try {
+      localStorage.setItem(THEME_KEY, choice.dataset.themeChoice!)
+    } catch {
+      // Storage blocked (private mode): the style still applies to this page.
+    }
+    showTheme()
+    choice.closest('details')!.open = false
+  })
+showTheme()
+
+// Menus close on a click elsewhere and on Escape, like other dropdowns.
+const menus = [...document.querySelectorAll<HTMLDetailsElement>('details.menu')]
+document.addEventListener('click', (event) => {
+  for (const menu of menus) if (!menu.contains(event.target as Node)) menu.open = false
+})
+document.addEventListener('keydown', (event) => {
+  if (event.key !== 'Escape') return
+  for (const menu of menus)
+    if (menu.open) {
+      menu.open = false
+      menu.querySelector('summary')!.focus()
+    }
+})
 const tools: Record<Strings['tab'], () => Promise<{ tool: Tool }>> = {
   json: () => import('./json'),
   sse: () => import('./sse'),
@@ -59,21 +94,32 @@ sample.addEventListener('change', () => {
 })
 
 const status = document.getElementById('share-status')!
-document.getElementById('share')!.addEventListener('click', async () => {
+const share = document.getElementById('share')!
+let shareTimer: ReturnType<typeof setTimeout> | undefined
+share.addEventListener('click', async () => {
   const values = Object.fromEntries(options.map((element) => [element.id, element.value]))
   const hash = await encodeState({ input: input.value, options: values })
   if (!hash) {
+    status.classList.remove('sr-only')
     status.textContent = t.tooLong
     return
   }
   history.replaceState(null, '', `#${hash}`)
   try {
     await navigator.clipboard.writeText(location.href)
-    status.textContent = t.copied
   } catch {
     // No clipboard permission: the link is in the address bar.
-    status.textContent = ''
+    return
   }
+  // A check mark in place of the icon for a moment; screen readers hear the status instead.
+  status.classList.add('sr-only')
+  status.textContent = t.copied
+  share.classList.add('copied')
+  clearTimeout(shareTimer)
+  shareTimer = setTimeout(() => {
+    share.classList.remove('copied')
+    status.textContent = ''
+  }, 2000)
 })
 
 await render()
