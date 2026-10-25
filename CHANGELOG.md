@@ -1,5 +1,13 @@
 # llmmend
 
+## 0.3.0
+
+### Minor Changes
+
+- c242a79: Add `extractTag` and `extractAllTags` to `llmmend/json`, for answers in tags such as `<answer>…</answer>`: attributes are returned, the closing tag may differ in case (new Issue `tag_case_mismatch`), nested tags of the same name match by depth, tags inside fenced code blocks don't count, and a tag cut off after the last closed one is `truncated` with its text so far.
+- d01f260: Add `streamToolCalls` to `llmmend/sse`, for UIs that render a tool call while the model writes it: yields each piece of text and each change of a call's Partial value (an unfinished number never shows; with `tools`, `partial` is typed as a deep partial of the tool schema's input, by name), then one final item with what `collectText` returns.
+- f18797f: `collectText` returns the answer's tool calls in `toolCalls`, in Block order: arguments get syntax Repair and come as `args`, cut-off arguments are reported as `truncated` and never completed, and with `tools` (a Standard Schema per tool name) each call is validated, typed by its name, and a call to an unlisted tool fails with `unknown_tool`. `tool_call_start` carries `custom: true` for OpenAI Responses custom tools, whose free-form input `toolCalls` returns as `input`.
+
 ## 0.2.1
 
 ### Patch Changes
