@@ -51,13 +51,43 @@ export const checks = {
       text: 'Hi',
       stopReason: 'end',
       usage: { outputTokens: 1 },
+      toolCalls: [],
     })
     const chunks = [{ choices: [{ delta: { content: 'Hi' }, finish_reason: 'stop' }] }, '[DONE]']
     const chat = chunks.map((c) => `data: ${typeof c === 'string' ? c : JSON.stringify(c)}\n\n`)
     assert.deepEqual(await m.collectText(new Response(chat.join('')), { provider: 'openai' }), {
       text: 'Hi',
       stopReason: 'end',
+      toolCalls: [],
     })
+    // A tool call whose arguments the model wrote with single quotes and a trailing comma.
+    const call = [
+      {
+        choices: [
+          {
+            delta: {
+              tool_calls: [{ index: 0, id: 'c1', function: { name: 'f', arguments: "{'a':" } }],
+            },
+          },
+        ],
+      },
+      {
+        choices: [
+          {
+            delta: { tool_calls: [{ index: 0, function: { arguments: ' 1,}' } }] },
+            finish_reason: 'tool_calls',
+          },
+        ],
+      },
+      '[DONE]',
+    ].map(
+      (c) => `data: ${typeof c === 'string' ? c : JSON.stringify(c)}
+
+`,
+    )
+    const { toolCalls } = await m.collectText(new Response(call.join('')), { provider: 'openai' })
+    assert.equal(toolCalls.length, 1)
+    assert.deepEqual(toolCalls[0].args, { a: 1 })
     const json = [{ choices: [{ delta: { content: '{"a": [1]}' } }] }, '[DONE]']
     const items = []
     const body2 = json.map(
@@ -77,6 +107,7 @@ export const checks = {
     assert.deepEqual(await m.collectText(geminiBody), {
       text: 'Hi',
       stopReason: 'end',
+      toolCalls: [],
     })
   },
   './chunk': (m) => {

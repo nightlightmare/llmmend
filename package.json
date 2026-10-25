@@ -152,10 +152,16 @@
       "limit": "1 kB"
     },
     {
-      "name": "llmmend/sse (import { streamLlm, streamText, collectText })",
+      "name": "llmmend/sse (import { streamLlm, streamText })",
       "path": "dist/sse/index.js",
-      "import": "{ streamLlm, streamText, collectText }",
+      "import": "{ streamLlm, streamText }",
       "limit": "4 kB"
+    },
+    {
+      "name": "llmmend/sse (import { collectText })",
+      "path": "dist/sse/index.js",
+      "import": "{ collectText }",
+      "limit": "6 kB"
     },
     {
       "name": "llmmend/sse (import { streamJson })",

@@ -56,6 +56,10 @@ _Avoid_: finish reason, end reason
 One part of a single model answer (text, reasoning or a tool call), numbered by its position in that answer. An answer is one sequence of Blocks; alternative answers to the same request are out of scope.
 _Avoid_: content part, choice, segment
 
+**Tool call**:
+A Block in which the model asks the application to run a named tool with arguments: JSON for most tools, free-form text for a custom tool. A tool call is usable only when its arguments are complete and, if the tool has a schema, valid against it.
+_Avoid_: function call, tool use
+
 ### Text for a context window
 
 **Chunk**:

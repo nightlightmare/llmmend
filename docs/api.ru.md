@@ -226,7 +226,7 @@ function show(ev: LlmEvent): string {
 | `text`                | `index`, `text`                                                                              | Кусок текста ответа.                                                                                                                                                                                                          |
 | `reasoning`           | `index`, `text`, `redacted?`                                                                 | Кусок рассуждения. В `redacted` лежат зашифрованные данные `redacted_thinking` от Anthropic; отправляйте их обратно без изменений.                                                                                            |
 | `reasoning_signature` | `index`, `signature`                                                                         | Данные, которые нужно вернуть без изменений вместе с блоком `index`, продолжая разговор: подпись рассуждения от Anthropic или `thoughtSignature` от Gemini, который может оказаться на любой части (часто на вызове функции). |
-| `tool_call_start`     | `index`, `id`, `name`                                                                        | Начало вызова инструмента.                                                                                                                                                                                                    |
+| `tool_call_start`     | `index`, `id`, `name`, `custom?`                                                             | Начало вызова инструмента. `custom: true` — custom tool из OpenAI Responses, его ввод — произвольный текст, а не JSON.                                                                                                        |
 | `tool_call_delta`     | `index`, `argsDelta`                                                                         | Кусок JSON-аргументов вызова; склеивайте по порядку.                                                                                                                                                                          |
 | `usage`               | `inputTokens?`, `outputTokens?`, `cacheReadTokens?`, `cacheWriteTokens?`, `reasoningTokens?` | Расход токенов на текущий момент.                                                                                                                                                                                             |
 | `done`                | `stopReason`, `rawStopReason?`                                                               | Конец стрима.                                                                                                                                                                                                                 |
@@ -295,7 +295,39 @@ const { text, stopReason, usage } = await collectText(res, { provider: 'openai' 
 console.log(text, stopReason, usage?.outputTokens)
 ```
 
-Читает стрим целиком и возвращает `{ text, stopReason, usage? }` с последним снимком расхода токенов.
+Читает стрим целиком и возвращает `{ text, stopReason, usage?, toolCalls }` с последним снимком расхода токенов.
+
+#### Вызовы инструментов
+
+```ts
+import { collectText } from 'llmmend/sse'
+import { z } from 'zod'
+
+const tools = {
+  get_weather: z.object({ city: z.string(), days: z.number().int().default(1) }),
+}
+const res = await fetch('https://api.anthropic.com/v1/messages', { method: 'POST', body: '…' })
+const { toolCalls, stopReason } = await collectText(res, { tools })
+
+for (const call of toolCalls) {
+  if (!call.ok) console.log(call.name, call.error) // отправить модели как tool_result с ошибкой
+  else if (!call.custom && call.name === 'get_weather') console.log(call.args.city, call.args.days) // тип из схемы
+}
+```
+
+`toolCalls` — вызовы инструментов из ответа в порядке блоков. Пригодный вызов — `{ ok: true, index, id, name, args, issues }`: аргументы проходят починку синтаксиса (как при `repair: 'syntax'`), а `issues` перечисляет исправления; пустые аргументы дают `{}`. С опцией `tools` (любая Standard Schema для каждого имени инструмента, асинхронные тоже) `args` — выход схемы, а тип выводится по `name`.
+
+Непригодный вызов — `{ ok: false, index, id, name, error, argsText, issues }`, аргументы в том виде, как их написала модель, лежат в `argsText`:
+
+| `error`           | Значение                                                                                                                  |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `truncated`       | Аргументы обрезаны, обычно при `stopReason: 'max_tokens'`; не достраиваются, потому что выполнять половину вызова опасно. |
+| `unparseable`     | Не JSON даже после починки синтаксиса.                                                                                    |
+| `max_depth`       | Вложенность глубже 512 уровней.                                                                                           |
+| `schema_mismatch` | Схема инструмента отвергла аргументы; причины в `schemaIssues`.                                                           |
+| `unknown_tool`    | Опция `tools` задана, но такого имени в ней нет.                                                                          |
+
+Custom tool из OpenAI Responses принимает произвольный текст вместо JSON: его вызов — `{ ok: true, custom: true, …, input }` с текстом как есть, а схема, если задана, проверяет этот текст.
 
 ### streamJson
 
