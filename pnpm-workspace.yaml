@@ -1,4 +1,6 @@
-# The examples use the package from this repo (`workspace:*`); examples/deno is a Deno project.
+# The package itself (listed so Changesets sees it) and the examples, which use it through
+# `workspace:*`; examples/deno is a Deno project.
 packages:
+  - '.'
   - examples/*
   - '!examples/deno'
