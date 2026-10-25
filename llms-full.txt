@@ -124,6 +124,38 @@ Reads JSON that is still arriving, for progressive UIs. It skips the preamble an
 
 `complete` turns true when the closing bracket arrives. `value` is `undefined` until an object or array starts. It never throws.
 
+### extractTag
+
+```ts
+import { extractTag } from 'llmmend/json'
+
+const reply = 'Format: <answer>X</answer>\n<thinking>…</thinking>\n<answer lang="en">Paris</answer>'
+
+const res = extractTag(reply, 'answer')
+if (res.ok) console.log(res.value, res.attributes.lang) // 'Paris', 'en'
+else if (res.error === 'truncated') console.log(res.partial) // the tag was cut off: its text so far
+else console.log(res.error) // 'not_found'
+```
+
+`extractTag(text, name, { pick? })` finds a tag such as `<answer>…</answer>` in a Reply and returns its text, trimmed at its edges. It never throws. The result is one of:
+
+- `{ ok: true, value, attributes, issues }`: `attributes` of the opening tag (a bare one is `''`); `issues` has `tag_case_mismatch` when the closing tag differs in case (`<Answer>…</answer>`).
+- `{ ok: false, error: 'truncated', partial }`: the tag opened after the last closed one and the Reply ended first, usually at `max_tokens`; `partial` is its text so far. An earlier closed tag is never returned instead.
+- `{ ok: false, error: 'not_found' }`.
+
+`pick` chooses among several closed tags: `'last'` (default, so a format example in the prompt never wins over the answer) or `'first'`. Tags inside fenced code blocks don't count. Nested tags of the same name match by depth, so the outer one wins. The name matches in any case; entities such as `&lt;` are left as they are.
+
+### extractAllTags
+
+```ts
+import { extractAllTags } from 'llmmend/json'
+
+const reply = '<step>Read the file</step>\n<step>Fix the bug</step>\n<answer>Done</answer>'
+console.log(extractAllTags(reply, 'step').map((t) => t.value)) // ['Read the file', 'Fix the bug']
+```
+
+Every closed top-level tag in the Reply, in order, as `{ name, value, attributes, start, end }`; `start` and `end` span the whole tag. With a `name`, only tags of that name (the outermost when they nest). The same rules as `extractTag` apply.
+
 ### Issues
 
 Every result lists what was done to the Reply, in order.
@@ -139,6 +171,7 @@ Every result lists what was done to the Reply, in order.
 | `unescaped_control_char` | `at`        | A raw newline or tab inside a string.                                               |
 | `comment_removed`        | `at`        | A `//` or `/* */` comment.                                                          |
 | `truncated_closed`       | `closed`    | A cut-off value was closed with the brackets in `closed`.                           |
+| `tag_case_mismatch`      | `at`        | `extractTag`: the closing tag differs in case from the opening one.                 |
 
 `at` is the position in the text.
 

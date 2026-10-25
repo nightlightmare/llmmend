@@ -158,11 +158,11 @@ Checked on 2026-10-24 with jsonrepair 3.15.0, partial-json 0.1.7, best-effort-js
 
 ## API
 
-| Import          | Functions                                                                                                   |
-| --------------- | ----------------------------------------------------------------------------------------------------------- |
-| `llmmend/json`  | `extractJson`, `extractJsonAsync`, `extractJsonOrThrow`, `extractAllJson`, `repairJson`, `parsePartialJson` |
-| `llmmend/sse`   | `parseSSE`, `streamLlm`, `streamText`, `collectText`, `streamJson`, `streamToolCalls`                       |
-| `llmmend/chunk` | `chunkText`, `estimateTokens`, `truncateToTokens`                                                           |
+| Import          | Functions                                                                                                                                   |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `llmmend/json`  | `extractJson`, `extractJsonAsync`, `extractJsonOrThrow`, `extractAllJson`, `repairJson`, `parsePartialJson`, `extractTag`, `extractAllTags` |
+| `llmmend/sse`   | `parseSSE`, `streamLlm`, `streamText`, `collectText`, `streamJson`, `streamToolCalls`                                                       |
+| `llmmend/chunk` | `chunkText`, `estimateTokens`, `truncateToTokens`                                                                                           |
 
 Everything is also re-exported from the root: `import { extractJson } from 'llmmend'` stays tree-shakeable.
 
@@ -174,7 +174,7 @@ For AI coding assistants: [llms.txt](https://github.com/nightlightmare/llmmend/b
 
 | Module          | min+brotli                                                                |
 | --------------- | ------------------------------------------------------------------------- |
-| `llmmend/json`  | ~3.5 kB                                                                   |
+| `llmmend/json`  | ~4.2 kB (`extractJson` alone ~3.1 kB, tags alone ~0.9 kB)                 |
 | `llmmend/sse`   | ~3.6 kB (`parseSSE` alone ~0.9 kB; `collectText` with tool calls ~5.9 kB) |
 | `llmmend/chunk` | ~1.5 kB                                                                   |
 

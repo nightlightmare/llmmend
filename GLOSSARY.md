@@ -34,6 +34,10 @@ _Avoid_: draft, preview, incomplete value
 A record of one thing Extraction or Repair did to get from the Reply to the value, so the caller can judge how far the result strays from what the model wrote.
 _Avoid_: warning, fix, diagnostic
 
+**Tag**:
+A named span a model wraps part of its Reply in, like `<answer>…</answer>`, so a program can find that part. Not real XML: no escaping, and the closing tag may differ in case.
+_Avoid_: element, XML node, marker
+
 ### Streams
 
 **Provider**:

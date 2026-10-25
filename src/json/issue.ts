@@ -12,6 +12,8 @@ export type Issue =
   | { code: 'unescaped_control_char'; at: number }
   | { code: 'comment_removed'; at: number }
   | { code: 'truncated_closed'; closed: string }
+  /** `extractTag`: the closing tag differs in case from the opening one (`<Answer>…</answer>`). */
+  | { code: 'tag_case_mismatch'; at: number }
 
 /** Why `extractJson` found no usable value. */
 export type ExtractError =

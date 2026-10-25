@@ -21,6 +21,12 @@ export const checks = {
     assert.ok(new m.LlmmendHttpError(500, new Headers(), '') instanceof m.LlmmendError)
   },
   './json': (m) => {
+    assert.deepEqual(m.extractTag('x <Answer a="1">Hi</answer>', 'answer'), {
+      ok: true,
+      value: 'Hi',
+      attributes: { a: '1' },
+      issues: [{ code: 'tag_case_mismatch', at: 18 }],
+    })
     assert.equal(new m.LlmmendJsonError('truncated', '', []).code, 'truncated')
     assert.equal(m.repairJson("{name: 'Ada', ok: True,").json, '{"name":"Ada","ok":true}')
     assert.deepEqual(m.extractJsonOrThrow('Sure:\n```json\n{"a": [1, 2]}\n```'), { a: [1, 2] })

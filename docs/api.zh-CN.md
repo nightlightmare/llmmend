@@ -126,6 +126,38 @@ parsePartialJson('{"title": "Hello", "count": 42}') // { value: { title: 'Hello'
 
 收到右括号时 `complete` 变为 true。在对象或数组开始之前，`value` 为 `undefined`。从不抛出异常。
 
+### extractTag
+
+```ts
+import { extractTag } from 'llmmend/json'
+
+const reply = 'Format: <answer>X</answer>\n<thinking>…</thinking>\n<answer lang="en">Paris</answer>'
+
+const res = extractTag(reply, 'answer')
+if (res.ok) console.log(res.value, res.attributes.lang) // 'Paris', 'en'
+else if (res.error === 'truncated') console.log(res.partial) // 标签被截断：目前已写出的文本
+else console.log(res.error) // 'not_found'
+```
+
+`extractTag(text, name, { pick? })` 在回复中查找 `<answer>…</answer>` 这样的标签，返回其文本（去掉首尾空白）。从不抛出异常。结果为以下之一：
+
+- `{ ok: true, value, attributes, issues }`：`attributes` 是开始标签的属性（没有值的属性为 `''`）；当结束标签大小写不同（`<Answer>…</answer>`）时，`issues` 中有 `tag_case_mismatch`。
+- `{ ok: false, error: 'truncated', partial }`：标签在最后一个闭合标签之后打开，回复却先结束了，通常是因为 `max_tokens`；`partial` 是目前已写出的文本。不会用更早的闭合标签代替它。
+- `{ ok: false, error: 'not_found' }`。
+
+`pick` 在多个闭合标签中选择：`'last'`（默认，这样提示词中的格式示例不会胜过真正的回答）或 `'first'`。代码块内的标签不计入。同名嵌套标签按深度匹配，外层的胜出。名称匹配不区分大小写；`&lt;` 之类的实体保持原样。
+
+### extractAllTags
+
+```ts
+import { extractAllTags } from 'llmmend/json'
+
+const reply = '<step>Read the file</step>\n<step>Fix the bug</step>\n<answer>Done</answer>'
+console.log(extractAllTags(reply, 'step').map((t) => t.value)) // ['Read the file', 'Fix the bug']
+```
+
+按顺序返回回复中所有闭合的顶层标签，形如 `{ name, value, attributes, start, end }`；`start` 和 `end` 覆盖整个标签。提供 `name` 时只返回该名称的标签（嵌套时取最外层）。规则与 `extractTag` 相同。
+
 ### Issues
 
 每个结果都按顺序列出对回复做了什么。
@@ -141,6 +173,7 @@ parsePartialJson('{"title": "Hello", "count": 42}') // { value: { title: 'Hello'
 | `unescaped_control_char` | `at`     | 字符串中的原始换行符或制表符。                                       |
 | `comment_removed`        | `at`     | `//` 或 `/* */` 注释。                                               |
 | `truncated_closed`       | `closed` | 用 `closed` 中的括号补全了被截断的值。                               |
+| `tag_case_mismatch`      | `at`     | `extractTag`：结束标签与开始标签大小写不同。                         |
 
 `at` 是在文本中的位置。
 

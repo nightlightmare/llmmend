@@ -158,11 +158,11 @@ truncateToTokens('A title far too long for the card it has to fit on', 8, { elli
 
 ## API
 
-| Импорт          | Функции                                                                                                     |
-| --------------- | ----------------------------------------------------------------------------------------------------------- |
-| `llmmend/json`  | `extractJson`, `extractJsonAsync`, `extractJsonOrThrow`, `extractAllJson`, `repairJson`, `parsePartialJson` |
-| `llmmend/sse`   | `parseSSE`, `streamLlm`, `streamText`, `collectText`, `streamJson`, `streamToolCalls`                       |
-| `llmmend/chunk` | `chunkText`, `estimateTokens`, `truncateToTokens`                                                           |
+| Импорт          | Функции                                                                                                                                     |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `llmmend/json`  | `extractJson`, `extractJsonAsync`, `extractJsonOrThrow`, `extractAllJson`, `repairJson`, `parsePartialJson`, `extractTag`, `extractAllTags` |
+| `llmmend/sse`   | `parseSSE`, `streamLlm`, `streamText`, `collectText`, `streamJson`, `streamToolCalls`                                                       |
+| `llmmend/chunk` | `chunkText`, `estimateTokens`, `truncateToTokens`                                                                                           |
 
 Всё также реэкспортируется из корня: `import { extractJson } from 'llmmend'` по-прежнему поддерживает tree-shaking.
 
@@ -174,7 +174,7 @@ truncateToTokens('A title far too long for the card it has to fit on', 8, { elli
 
 | Модуль          | min+brotli                                                                       |
 | --------------- | -------------------------------------------------------------------------------- |
-| `llmmend/json`  | ~3.5 kB                                                                          |
+| `llmmend/json`  | ~4.2 kB (один `extractJson` ~3.1 kB, теги ~0.9 kB)                               |
 | `llmmend/sse`   | ~3.6 kB (один `parseSSE` ~0.9 kB; `collectText` с вызовами инструментов ~5.9 kB) |
 | `llmmend/chunk` | ~1.5 kB                                                                          |
 
