@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import { mockProvider } from '../mock-fetch.ts'
 
 const { default: worker } = await import('./src/index.ts')
-const reply = 'The sea is calm today 🌊, and the lighthouse keeper writes in his diary.'
+const reply = 'The sea is calm today, and the lighthouse keeper writes in his diary.'
 
 for (const [upstream, auth, body] of [
   [

@@ -1,6 +1,6 @@
 [English](https://github.com/nightlightmare/llmmend/blob/main/README.md) | **简体中文** | [Русский](https://github.com/nightlightmare/llmmend/blob/main/docs/README.ru.md)
 
-# 🩹 llmmend
+# llmmend
 
 [![npm](https://img.shields.io/npm/v/llmmend)](https://www.npmjs.com/package/llmmend)
 [![downloads](https://img.shields.io/npm/dm/llmmend)](https://www.npmjs.com/package/llmmend)
@@ -127,20 +127,20 @@ Claude 的分词器产生的 token 约为 1.5 倍：用于 Claude 时请把预�
 |                                                      | llmmend    | jsonrepair | partial-json | best-effort-json-parser | eventsource-parser | ai       | @langchain/textsplitters |
 | ---------------------------------------------------- | ---------- | ---------- | ------------ | ----------------------- | ------------------ | -------- | ------------------------ |
 | **JSON**                                             |            |            |              |                         |                    |          |                          |
-| 在正文、代码块和 `<think>` 块中找到 JSON             | ✅         | ⚠️ ¹       | ❌           | ⚠️ ²                    |                    | ❌       |                          |
-| 修复引号、注释、尾随逗号、Python 常量                | ✅         | ✅         | ❌           | ⚠️ ³                    |                    | ❌       |                          |
-| 把截断的 JSON 读成部分值                             | ✅         | ✅         | ✅           | ✅                      |                    | ✅       |                          |
-| 报告修复了什么                                       | ✅         | ❌         | ❌           | ❌                      |                    | ⚠️ ⁴     |                          |
-| 用 Zod、Valibot、ArkType 校验（Standard Schema）     | ✅         | ❌         | ❌           | ❌                      |                    | ⚠️ ⁵     |                          |
+| 在正文、代码块和 `<think>` 块中找到 JSON             | 是         | 部分 ¹     | 否           | 部分 ²                  |                    | 否       |                          |
+| 修复引号、注释、尾随逗号、Python 常量                | 是         | 是         | 否           | 部分 ³                  |                    | 否       |                          |
+| 把截断的 JSON 读成部分值                             | 是         | 是         | 是           | 是                      |                    | 是       |                          |
+| 报告修复了什么                                       | 是         | 否         | 否           | 否                      |                    | 部分 ⁴   |                          |
+| 用 Zod、Valibot、ArkType 校验（Standard Schema）     | 是         | 否         | 否           | 否                      |                    | 部分 ⁵   |                          |
 | **流**                                               |            |            |              |                         |                    |          |                          |
-| 解析 SSE                                             | ✅         |            |              |                         | ✅                 | ✅       |                          |
-| Anthropic、OpenAI、Gemini 统一事件格式，任意 `fetch` | ✅         |            |              |                         | ❌                 | ⚠️ ⁶     |                          |
-| 自动识别提供方                                       | ✅         |            |              |                         | ❌                 | ❌       |                          |
-| 回复流式输出时给出部分 JSON 值                       | ✅         |            |              |                         | ❌                 | ⚠️ ⁶     |                          |
+| 解析 SSE                                             | 是         |            |              |                         | 是                 | 是       |                          |
+| Anthropic、OpenAI、Gemini 统一事件格式，任意 `fetch` | 是         |            |              |                         | 否                 | 部分 ⁶   |                          |
+| 自动识别提供方                                       | 是         |            |              |                         | 否                 | 否       |                          |
+| 回复流式输出时给出部分 JSON 值                       | 是         |            |              |                         | 否                 | 部分 ⁶   |                          |
 | **分块**                                             |            |            |              |                         |                    |          |                          |
-| 按 token 分块，无需下载分词器                        | ✅         |            |              |                         |                    |          | ⚠️ ⁷                     |
-| 放得下时保持代码块和表格完整                         | ✅         |            |              |                         |                    |          | ⚠️ ⁸                     |
-| 块之间的重叠                                         | ✅         |            |              |                         |                    |          | ✅                       |
+| 按 token 分块，无需下载分词器                        | 是         |            |              |                         |                    |          | 部分 ⁷                   |
+| 放得下时保持代码块和表格完整                         | 是         |            |              |                         |                    |          | 部分 ⁸                   |
+| 块之间的重叠                                         | 是         |            |              |                         |                    |          | 是                       |
 | **包**                                               |            |            |              |                         |                    |          |                          |
 | 依赖                                                 | 0          | 0          | 0            | 0                       | 0                  | 3        | 1 + `@langchain/core`    |
 | 单个函数大小，min+brotli                             | 0.9–3.6 kB | 2.7 kB     | 1.4 kB       | 1.7 kB                  | 1.6 kB             | 31–81 kB | 106 kB                   |

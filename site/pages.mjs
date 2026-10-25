@@ -59,12 +59,12 @@ const tools = {
       </details>`,
   sse: (t) => `
       <div class="controls">${select('sample', t.sample, [
-        ['anthropic-text', 'Anthropic: text'],
+        ['anthropic-thinking', 'Anthropic: thinking, cut off by max_tokens'],
         ['anthropic-tools', 'Anthropic: parallel tool calls'],
         ['openai-tools', 'OpenAI Chat Completions (Ollama): tool calls'],
         ['openrouter-reasoning', 'OpenRouter: reasoning'],
         ['responses-refusal', 'OpenAI Responses: refusal'],
-        ['gemini-text', 'Gemini: text'],
+        ['gemini-max-tokens', 'Gemini: cut off by max tokens'],
       ])}${select('provider', t.sse.provider, [
         ['auto', t.sse.auto],
         ['anthropic', 'anthropic'],
@@ -77,7 +77,6 @@ const tools = {
       <div class="controls">${select('sample', t.sample, [
         ['readme', 'README.md'],
         ['ja', '日本語 (ja.txt)'],
-        ['chat', 'Chat with emoji'],
       ])}${number('max-tokens', t.chunk.maxTokens, 120, 1)}${number(
         'overlap',
         t.chunk.overlap,
@@ -121,7 +120,6 @@ function page(lang, tab, { version, goatcounter }) {
     <meta property="og:title" content="${escape(t.title[tab])}" />
     <meta property="og:description" content="${escape(t.description[tab])}" />
     <meta property="og:url" content="${url(lang, tab)}" />
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🩹</text></svg>" />
     <script type="application/ld+json">${jsonLd}</script>
     <script type="application/json" id="strings">${strings}</script>
     <script type="module" src="${up}src/main.ts"></script>${
@@ -132,7 +130,7 @@ function page(lang, tab, { version, goatcounter }) {
   </head>
   <body>
     <header>
-      <a class="brand" href="${BASE}${pagePath(lang, 'json')}">🩹 llmmend</a>
+      <a class="brand" href="${BASE}${pagePath(lang, 'json')}">llmmend</a>
       <span class="tagline">${escape(t.tagline)}</span>
       <nav class="langs">${LANGS.map((l) =>
         l === lang
