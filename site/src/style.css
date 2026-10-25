@@ -1,28 +1,114 @@
+/* Four styles named after the interfaces whose colours they take; Claude is the default.
+   Each has a light and a dark variant, picked by the system setting. */
 :root {
   color-scheme: light dark;
-  --bg: #fbfaf8;
-  --fg: #1d1b18;
-  --muted: #6b665e;
-  --line: #e2ded6;
-  --panel: #ffffff;
-  --accent: #b4462a;
   --ok: #2f7a3e;
   --bad: #b3261e;
-  --mark: #fde7a8;
   --mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #161513;
-    --fg: #ece9e3;
-    --muted: #a39d93;
-    --line: #34312c;
-    --panel: #1e1c19;
-    --accent: #f08a68;
     --ok: #7cc68a;
     --bad: #f28b82;
-    --mark: #5a4710;
+  }
+}
+
+:root,
+:root[data-theme='claude'] {
+  --bg: #faf9f5;
+  --fg: #141413;
+  --muted: #6b6a63;
+  --line: #e6e3d9;
+  --panel: #ffffff;
+  --accent: #c96442;
+  --mark: #f6dfd3;
+  --radius: 8px;
+  --heading: ui-serif, Georgia, 'Times New Roman', serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root,
+  :root[data-theme='claude'] {
+    --bg: #262624;
+    --fg: #faf9f5;
+    --muted: #a6a39a;
+    --line: #3e3e3a;
+    --panel: #30302e;
+    --accent: #d97757;
+    --mark: #5c3727;
+  }
+}
+
+:root[data-theme='openai'] {
+  --bg: #ffffff;
+  --fg: #0d0d0d;
+  --muted: #5d5d5d;
+  --line: #e5e5e5;
+  --panel: #f9f9f9;
+  --accent: #0d0d0d;
+  --mark: #ececec;
+  --radius: 12px;
+  --heading: inherit;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root[data-theme='openai'] {
+    --bg: #212121;
+    --fg: #ececec;
+    --muted: #b4b4b4;
+    --line: #3a3a3a;
+    --panel: #2f2f2f;
+    --accent: #ffffff;
+    --mark: #424242;
+  }
+}
+
+:root[data-theme='openrouter'] {
+  --bg: #ffffff;
+  --fg: #09090b;
+  --muted: #71717a;
+  --line: #e4e4e7;
+  --panel: #fafafa;
+  --accent: #6467f2;
+  --mark: #e0e1fd;
+  --radius: 6px;
+  --heading: inherit;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root[data-theme='openrouter'] {
+    --bg: #09090b;
+    --fg: #fafafa;
+    --muted: #a1a1aa;
+    --line: #27272a;
+    --panel: #18181b;
+    --accent: #8b8df7;
+    --mark: #2e2f6b;
+  }
+}
+
+:root[data-theme='gemini'] {
+  --bg: #ffffff;
+  --fg: #1f1f1f;
+  --muted: #5f6368;
+  --line: #dde3ea;
+  --panel: #f0f4f9;
+  --accent: #0b57d0;
+  --mark: #d3e3fd;
+  --radius: 16px;
+  --heading: inherit;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root[data-theme='gemini'] {
+    --bg: #131314;
+    --fg: #e3e3e3;
+    --muted: #9aa0a6;
+    --line: #3c4043;
+    --panel: #1e1f20;
+    --accent: #a8c7fa;
+    --mark: #0842a0;
   }
 }
 
@@ -50,7 +136,7 @@ a {
 header {
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
+  align-items: center;
   gap: 4px 16px;
   padding: 16px 0 8px;
 }
@@ -66,10 +152,10 @@ header {
   color: var(--muted);
 }
 
-.langs {
+.actions {
   margin-left: auto;
   display: flex;
-  gap: 12px;
+  gap: 4px;
 }
 
 .tabs {
@@ -92,6 +178,7 @@ header {
 }
 
 h1 {
+  font-family: var(--heading);
   font-size: 28px;
   line-height: 1.2;
   margin: 24px 0 8px;
@@ -136,7 +223,7 @@ button {
   color: var(--fg);
   background: var(--panel);
   border: 1px solid var(--line);
-  border-radius: 6px;
+  border-radius: var(--radius);
 }
 
 select,
@@ -199,7 +286,7 @@ pre {
   overflow-x: auto;
   background: var(--panel);
   border: 1px solid var(--line);
-  border-radius: 6px;
+  border-radius: var(--radius);
   font: 13px/1.5 var(--mono);
   white-space: pre-wrap;
   overflow-wrap: anywhere;
@@ -262,4 +349,134 @@ footer {
   border-top: 1px solid var(--line);
   font-size: 14px;
   color: var(--muted);
+}
+
+/* Icons, the icon buttons and the two header menus. */
+.icon {
+  width: 18px;
+  height: 18px;
+  flex: none;
+}
+
+.icon-button,
+.menu > summary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-width: 36px;
+  height: 36px;
+  padding: 0 8px;
+  color: var(--fg);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+.icon-button:hover,
+.menu > summary:hover,
+.menu[open] > summary {
+  background: var(--panel);
+  border-color: var(--line);
+}
+
+.icon-button:focus-visible,
+.menu > summary:focus-visible,
+.menu button:focus-visible,
+.menu a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.icon-button .i-check,
+.icon-button.copied .i-share {
+  display: none;
+}
+
+.icon-button.copied .i-check {
+  display: block;
+  color: var(--accent);
+}
+
+.menu {
+  position: relative;
+}
+
+.menu > summary {
+  list-style: none;
+}
+
+.menu > summary::-webkit-details-marker {
+  display: none;
+}
+
+.chevron {
+  width: 14px;
+  height: 14px;
+  color: var(--muted);
+}
+
+.menu ul {
+  position: absolute;
+  right: 0;
+  z-index: 10;
+  min-width: 180px;
+  margin: 6px 0 0;
+  padding: 4px;
+  list-style: none;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.12);
+}
+
+.menu li > * {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 10px;
+  font: inherit;
+  font-size: 14px;
+  color: var(--fg);
+  text-align: left;
+  text-decoration: none;
+  background: none;
+  border: 0;
+  border-radius: calc(var(--radius) - 2px);
+  cursor: pointer;
+}
+
+.menu li > :hover,
+.menu li > [aria-current],
+.menu li > [aria-pressed='true'] {
+  background: var(--panel);
+}
+
+.menu li > [aria-current],
+.menu li > [aria-pressed='true'] {
+  font-weight: 600;
+}
+
+/* The style button shows the mark of the style in use. */
+.theme-current .icon {
+  display: none;
+}
+
+:root:not([data-theme]) .mark-claude,
+:root[data-theme='claude'] .mark-claude,
+:root[data-theme='openai'] .mark-openai,
+:root[data-theme='openrouter'] .mark-openrouter,
+:root[data-theme='gemini'] .mark-gemini {
+  display: block;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
