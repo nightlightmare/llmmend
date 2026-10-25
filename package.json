@@ -164,6 +164,12 @@
       "limit": "6 kB"
     },
     {
+      "name": "llmmend/sse (import { streamToolCalls })",
+      "path": "dist/sse/index.js",
+      "import": "{ streamToolCalls }",
+      "limit": "6.5 kB"
+    },
+    {
       "name": "llmmend/sse (import { streamJson })",
       "path": "dist/sse/index.js",
       "import": "{ streamJson }",

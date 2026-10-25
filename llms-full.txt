@@ -361,6 +361,33 @@ Then it yields exactly one final item, `done: true`, with:
 
 Only text counts: reasoning and tool call arguments are ignored, and all text Blocks form one Reply. It throws only what `streamLlm` throws. Each text event re-parses the whole Reply, so the cost grows with the square of its length: fine for typical structured output, slow for hundreds of kilobytes.
 
+### streamToolCalls
+
+```ts
+import { streamToolCalls } from 'llmmend/sse'
+import { z } from 'zod'
+
+const tools = {
+  show_gauge: z.object({ value: z.number(), max: z.number() }),
+}
+const res = await fetch('https://api.anthropic.com/v1/messages', { method: 'POST', body: '…' })
+
+for await (const item of streamToolCalls(res, { tools })) {
+  if (item.done) console.log(item.toolCalls) // what collectText returns
+  else if (item.type === 'text') console.log(item.text) // the answer’s text, piece by piece
+  else if (item.name === 'show_gauge') console.log(item.partial.value, item.partial.max) // number | undefined, never half-written
+}
+```
+
+Streams an answer with tool calls, for UIs that render a call while the model writes it. It yields:
+
+- `{ done: false, type: 'text', text }` for each piece of the answer's text;
+- `{ done: false, type: 'tool_call', index, id, name, custom?, partial }` each time a call's Partial value changes. `partial` is read the way `parsePartialJson` reads JSON, so an unfinished number never shows; a custom tool's `partial` is its text so far.
+
+With `tools`, `partial` is typed as a deep partial of the tool schema's input, narrowed by `name` (defaults and transforms apply only to the final `args`), and a call to a tool not in `tools` yields nothing until it ends as `unknown_tool`.
+
+Then it yields one final item: `{ done: true }` with everything `collectText` returns. Reasoning is not yielded: read it with `streamLlm`. Each argument delta re-parses that call's arguments, which is fine for arguments of a few kilobytes.
+
 ### Custom Provider adapters
 
 ```ts

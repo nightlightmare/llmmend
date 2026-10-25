@@ -88,6 +88,10 @@ export const checks = {
     const { toolCalls } = await m.collectText(new Response(call.join('')), { provider: 'openai' })
     assert.equal(toolCalls.length, 1)
     assert.deepEqual(toolCalls[0].args, { a: 1 })
+    const partials = []
+    for await (const item of m.streamToolCalls(new Response(call.join('')), { provider: 'openai' }))
+      if (!item.done && item.type === 'tool_call') partials.push(item.partial)
+    assert.deepEqual(partials, [{}, { a: 1 }])
     const json = [{ choices: [{ delta: { content: '{"a": [1]}' } }] }, '[DONE]']
     const items = []
     const body2 = json.map(

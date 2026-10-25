@@ -363,6 +363,33 @@ for await (const item of streamJson(res, { provider: 'openai', schema })) {
 
 Учитывается только текст: рассуждения и аргументы вызовов инструментов пропускаются, а все текстовые блоки образуют один ответ. Бросает только то, что бросает `streamLlm`. Каждое текстовое событие заново разбирает весь ответ, поэтому затраты растут с квадратом его длины: для обычного структурированного вывода это незаметно, для сотен килобайт — медленно.
 
+### streamToolCalls
+
+```ts
+import { streamToolCalls } from 'llmmend/sse'
+import { z } from 'zod'
+
+const tools = {
+  show_gauge: z.object({ value: z.number(), max: z.number() }),
+}
+const res = await fetch('https://api.anthropic.com/v1/messages', { method: 'POST', body: '…' })
+
+for await (const item of streamToolCalls(res, { tools })) {
+  if (item.done) console.log(item.toolCalls) // то, что вернул бы collectText
+  else if (item.type === 'text') console.log(item.text) // текст ответа по кусочкам
+  else if (item.name === 'show_gauge') console.log(item.partial.value, item.partial.max) // number | undefined, недописанным не бывает
+}
+```
+
+Стримит ответ с вызовами инструментов — для интерфейсов, которые рисуют вызов, пока модель его пишет. Выдаёт:
+
+- `{ done: false, type: 'text', text }` на каждый кусок текста ответа;
+- `{ done: false, type: 'tool_call', index, id, name, custom?, partial }` каждый раз, когда частичное значение вызова меняется. `partial` читается так же, как JSON в `parsePartialJson`, поэтому недописанное число не показывается; у custom tool `partial` — текст, написанный на данный момент.
+
+С опцией `tools` тип `partial` — глубокий partial от входного типа схемы инструмента с сужением по `name` (дефолты и преобразования применяются только к итоговым `args`), а вызов инструмента не из `tools` ничего не выдаёт, пока не закончится как `unknown_tool`.
+
+В конце приходит один итоговый элемент: `{ done: true }` со всем, что возвращает `collectText`. Рассуждения модели не выдаются: их читает `streamLlm`. Каждая дельта аргументов заново разбирает аргументы своего вызова, для аргументов в несколько килобайт это нормально.
+
 ### Свои адаптеры провайдеров
 
 ```ts
