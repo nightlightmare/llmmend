@@ -459,7 +459,7 @@ chunkText(text, { maxTokens: 10 }).map((c) => c.text)
 // ['One two three. Four five six.\n\n', 'Seven eight nine. Ten eleven twelve.']
 ```
 
-`chunkText(text, options)` 把文本切成每块最多 `maxTokens` 个 token 的块，返回 `{ text, start, end, tokens, index, oversized? }[]`。
+`chunkText(text, options)` 把文本切成每块最多 `maxTokens` 个 token 的块，返回 `{ text, start, end, tokens, index, oversized?, headings? }[]`。
 
 | 选项          | 默认值           | 含义                                                            |
 | ------------- | ---------------- | --------------------------------------------------------------- |
@@ -477,6 +477,36 @@ chunkText(text, { maxTokens: 10 }).map((c) => c.text)
 - `tokens <= maxTokens`，除非块被标记为 `oversized`：没有任何分隔符能把它切得更小（使用默认分隔符时，即单个字素簇）。
 - 块按顺序排列且没有空隙；没有重叠时，每块都从上一块结束处开始，拼接起来即还原原文。有重叠时，块从上一块内部开始，位于在 `overlap` 和 `maxTokens` 两个预算内重叠最长的分隔符处。
 - 字素簇（带修饰符的表情、带重音的字母）永远不会被切开。
+
+#### 标题路径
+
+```ts
+import { chunkText } from 'llmmend/chunk'
+
+const doc = '# Install\n\nPick your system.\n\n## Linux\n\nRun the script.'
+for (const chunk of chunkText(doc, { maxTokens: 8, mode: 'markdown' })) {
+  const context = chunk.headings?.join(' › ') // 先是 'Install'，然后是 'Install › Linux'
+  console.log(`${context}\n\n${chunk.text}`)
+}
+```
+
+在 `markdown` 模式下，每个块都有 `headings`：在其自身文本开始处生效的标题，从外到内。以标题开头的块包含该标题；包含多个小节的块取第一个小节的路径；块开头的重叠部分不计入。所有级别的 ATX 标题（`#` 到 `######`，包括比分隔符更细的级别）和 setext 标题（文本下方一行 `===` 或 `---`）都会计入；代码块中的标题不计入。只去掉标记，行内 Markdown 保持原样。若要把这个上下文提供给嵌入模型，像上面那样把路径放在块文本之前：块本身、偏移量和 token 数都不变。
+
+### chunkDocuments
+
+```ts
+import { chunkDocuments } from 'llmmend/chunk'
+
+const pages = [
+  { text: 'First page…', metadata: { source: 'guide.pdf', page: 1 } },
+  { text: 'Second page…', metadata: { source: 'guide.pdf', page: 2 } },
+]
+for (const chunk of chunkDocuments(pages, { maxTokens: 500 })) {
+  console.log(chunk.doc, chunk.index, chunk.metadata.page) // 0 0 1，然后 1 0 2
+}
+```
+
+`chunkDocuments(docs, options)` 用 `chunkText` 切分多个文档，并把所有块放在一个数组中返回。每个块还带有 `doc`（文档在 `docs` 中的位置）和 `metadata`（原样传递，类型由输入推断）。`index` 在每个文档内计数，`start` 和 `end` 是在该文档中的偏移量，选项作用于每个文档（包括 `headings`）。块不会跨文档重叠：如果句子可能跨页，请在切分前把各页拼接起来。
 
 ### estimateTokens
 
