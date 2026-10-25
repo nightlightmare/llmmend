@@ -1,5 +1,13 @@
 # llmmend
 
+## 0.2.1
+
+### Patch Changes
+
+- 79ef68d: The package `homepage` is now the playground, https://nightlightmare.github.io/llmmend/, where you can try JSON repair, SSE parsing and chunking in the browser.
+- c6c9721: Ship `llms.txt` and `llms-full.txt` in the package, so AI coding assistants can read the API reference from `node_modules`.
+- 3b7970c: `estimateTokens` counts symbols, arrows, box drawing and emoji at about 1.2 tokens each and a Markdown table's `|` as a whole token, instead of undercounting them; tables full of check marks and warning signs were up to 17 % low against `o200k_base`.
+
 ## 0.2.0
 
 ### Minor Changes
