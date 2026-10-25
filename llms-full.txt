@@ -224,7 +224,7 @@ function show(ev: LlmEvent): string {
 | `text`                | `index`, `text`                                                                              | A piece of the answer's text.                                                                                                                                                                         |
 | `reasoning`           | `index`, `text`, `redacted?`                                                                 | A piece of reasoning. `redacted` holds Anthropic's encrypted `redacted_thinking` data; send it back unchanged.                                                                                        |
 | `reasoning_signature` | `index`, `signature`                                                                         | Data to send back unchanged with Block `index` when you continue the conversation: Anthropic’s thinking signature, or Gemini’s `thoughtSignature`, which can sit on any part (often a function call). |
-| `tool_call_start`     | `index`, `id`, `name`                                                                        | A tool call begins.                                                                                                                                                                                   |
+| `tool_call_start`     | `index`, `id`, `name`, `custom?`                                                             | A tool call begins. `custom: true`: an OpenAI Responses custom tool, whose input is free-form text, not JSON.                                                                                         |
 | `tool_call_delta`     | `index`, `argsDelta`                                                                         | A piece of the tool call's JSON arguments; join them in order.                                                                                                                                        |
 | `usage`               | `inputTokens?`, `outputTokens?`, `cacheReadTokens?`, `cacheWriteTokens?`, `reasoningTokens?` | Token counts so far.                                                                                                                                                                                  |
 | `done`                | `stopReason`, `rawStopReason?`                                                               | The end of the stream.                                                                                                                                                                                |
@@ -293,7 +293,39 @@ const { text, stopReason, usage } = await collectText(res, { provider: 'openai' 
 console.log(text, stopReason, usage?.outputTokens)
 ```
 
-Reads the whole stream and returns `{ text, stopReason, usage? }`, with the last usage snapshot.
+Reads the whole stream and returns `{ text, stopReason, usage?, toolCalls }`, with the last usage snapshot.
+
+#### Tool calls
+
+```ts
+import { collectText } from 'llmmend/sse'
+import { z } from 'zod'
+
+const tools = {
+  get_weather: z.object({ city: z.string(), days: z.number().int().default(1) }),
+}
+const res = await fetch('https://api.anthropic.com/v1/messages', { method: 'POST', body: '…' })
+const { toolCalls, stopReason } = await collectText(res, { tools })
+
+for (const call of toolCalls) {
+  if (!call.ok) console.log(call.name, call.error) // send back as an error tool_result
+  else if (!call.custom && call.name === 'get_weather') console.log(call.args.city, call.args.days) // typed by the schema
+}
+```
+
+`toolCalls` lists the answer's tool calls in Block order. A usable call is `{ ok: true, index, id, name, args, issues }`: the arguments get syntax Repair (as with `repair: 'syntax'`) and `issues` lists what was fixed; empty arguments are `{}`. With `tools` (any Standard Schema per tool name, async ones too), `args` is the schema's output, typed by `name`.
+
+A call that cannot be used is `{ ok: false, index, id, name, error, argsText, issues }`, with the arguments as the model wrote them in `argsText`:
+
+| `error`           | Meaning                                                                                                                 |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `truncated`       | The arguments were cut off, usually at `stopReason: 'max_tokens'`; never completed, since half a call is unsafe to run. |
+| `unparseable`     | Not JSON even after syntax Repair.                                                                                      |
+| `max_depth`       | Nested deeper than 512 levels.                                                                                          |
+| `schema_mismatch` | The tool's schema rejected the arguments; `schemaIssues` say why.                                                       |
+| `unknown_tool`    | `tools` was given and does not list this name.                                                                          |
+
+An OpenAI Responses custom tool takes free-form text instead of JSON: its call is `{ ok: true, custom: true, …, input }` with the text as written, and its schema, if any, validates that text.
 
 ### streamJson
 

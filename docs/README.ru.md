@@ -172,11 +172,11 @@ truncateToTokens('A title far too long for the card it has to fit on', 8, { elli
 
 ## Размер
 
-| Модуль          | min+brotli                        |
-| --------------- | --------------------------------- |
-| `llmmend/json`  | ~3.5 kB                           |
-| `llmmend/sse`   | ~3.6 kB (один `parseSSE` ~0.9 kB) |
-| `llmmend/chunk` | ~1.5 kB                           |
+| Модуль          | min+brotli                                                                       |
+| --------------- | -------------------------------------------------------------------------------- |
+| `llmmend/json`  | ~3.5 kB                                                                          |
+| `llmmend/sse`   | ~3.6 kB (один `parseSSE` ~0.9 kB; `collectText` с вызовами инструментов ~5.9 kB) |
+| `llmmend/chunk` | ~1.5 kB                                                                          |
 
 ## Участие
 

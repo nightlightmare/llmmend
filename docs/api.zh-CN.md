@@ -226,7 +226,7 @@ function show(ev: LlmEvent): string {
 | `text`                | `index`, `text`                                                                              | 回答文本的一个片段。                                                                                                                       |
 | `reasoning`           | `index`, `text`, `redacted?`                                                                 | 推理的一个片段。`redacted` 保存 Anthropic 加密的 `redacted_thinking` 数据；请原样发回。                                                    |
 | `reasoning_signature` | `index`, `signature`                                                                         | 继续对话时需要随块 `index` 原样发回的数据：Anthropic 的推理签名，或 Gemini 的 `thoughtSignature`（可能出现在任何部分上，通常是函数调用）。 |
-| `tool_call_start`     | `index`, `id`, `name`                                                                        | 一次工具调用开始。                                                                                                                         |
+| `tool_call_start`     | `index`, `id`, `name`, `custom?`                                                             | 一次工具调用开始。`custom: true`：OpenAI Responses 的 custom tool，其输入是自由文本而不是 JSON。                                           |
 | `tool_call_delta`     | `index`, `argsDelta`                                                                         | 工具调用 JSON 参数的一个片段；按顺序拼接。                                                                                                 |
 | `usage`               | `inputTokens?`, `outputTokens?`, `cacheReadTokens?`, `cacheWriteTokens?`, `reasoningTokens?` | 截至目前的 token 用量。                                                                                                                    |
 | `done`                | `stopReason`, `rawStopReason?`                                                               | 流结束。                                                                                                                                   |
@@ -295,7 +295,39 @@ const { text, stopReason, usage } = await collectText(res, { provider: 'openai' 
 console.log(text, stopReason, usage?.outputTokens)
 ```
 
-读取整个流，返回 `{ text, stopReason, usage? }`，其中是最后一次用量快照。
+读取整个流，返回 `{ text, stopReason, usage?, toolCalls }`，其中是最后一次用量快照。
+
+#### 工具调用
+
+```ts
+import { collectText } from 'llmmend/sse'
+import { z } from 'zod'
+
+const tools = {
+  get_weather: z.object({ city: z.string(), days: z.number().int().default(1) }),
+}
+const res = await fetch('https://api.anthropic.com/v1/messages', { method: 'POST', body: '…' })
+const { toolCalls, stopReason } = await collectText(res, { tools })
+
+for (const call of toolCalls) {
+  if (!call.ok) console.log(call.name, call.error) // 作为错误的 tool_result 发回模型
+  else if (!call.custom && call.name === 'get_weather') console.log(call.args.city, call.args.days) // 类型来自 schema
+}
+```
+
+`toolCalls` 按 Block 顺序列出回复中的工具调用。可用的调用为 `{ ok: true, index, id, name, args, issues }`：参数经过语法修复（与 `repair: 'syntax'` 相同），`issues` 列出修复了什么；空参数为 `{}`。提供 `tools`（每个工具名对应任意 Standard Schema，异步的也可以）时，`args` 是 schema 的输出，类型按 `name` 推断。
+
+不可用的调用为 `{ ok: false, index, id, name, error, argsText, issues }`，模型写出的原始参数在 `argsText` 中：
+
+| `error`           | 含义                                                                                     |
+| ----------------- | ---------------------------------------------------------------------------------------- |
+| `truncated`       | 参数被截断，通常发生在 `stopReason: 'max_tokens'` 时；不会补全，因为执行半个调用不安全。 |
+| `unparseable`     | 即使修复语法后也不是 JSON。                                                              |
+| `max_depth`       | 嵌套超过 512 层。                                                                        |
+| `schema_mismatch` | 工具的 schema 拒绝了参数；原因见 `schemaIssues`。                                        |
+| `unknown_tool`    | 提供了 `tools`，但其中没有这个名字。                                                     |
+
+OpenAI Responses 的 custom tool 接收自由文本而不是 JSON：其调用为 `{ ok: true, custom: true, …, input }`，文本保持原样；若提供了 schema，则用它校验该文本。
 
 ### streamJson
 

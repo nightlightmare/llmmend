@@ -81,7 +81,11 @@ function create(): (event: SSEEvent) => LlmEvent[] {
         const item = raw.item
         if (item?.type === 'function_call' || item?.type === 'custom_tool_call') {
           tools.add(index)
-          return [{ type: 'tool_call_start', index, id: item.call_id ?? '', name: item.name ?? '' }]
+          const id = item.call_id ?? ''
+          const name = item.name ?? ''
+          return item.type === 'custom_tool_call'
+            ? [{ type: 'tool_call_start', index, id, name, custom: true }]
+            : [{ type: 'tool_call_start', index, id, name }]
         }
         return item?.type === 'message' || item?.type === 'reasoning' ? [] : other
       }

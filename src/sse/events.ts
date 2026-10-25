@@ -33,7 +33,8 @@ export type LlmEvent =
   /** `redacted` carries the opaque data of an Anthropic `redacted_thinking` Block. */
   | { type: 'reasoning'; index: number; text: string; redacted?: string }
   | { type: 'reasoning_signature'; index: number; signature: string }
-  | { type: 'tool_call_start'; index: number; id: string; name: string }
+  /** `custom` marks a tool whose input is free-form text, not JSON (OpenAI Responses custom tools). */
+  | { type: 'tool_call_start'; index: number; id: string; name: string; custom?: true }
   | { type: 'tool_call_delta'; index: number; argsDelta: string }
   | ({ type: 'usage' } & LlmUsage)
   /** Arrives exactly once, always last. */

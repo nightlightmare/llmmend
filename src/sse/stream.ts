@@ -6,6 +6,12 @@ import { auto } from './providers/auto'
 import { gemini } from './providers/gemini'
 import { openai } from './providers/openai'
 import { openaiResponses } from './providers/openai-responses'
+import {
+  finishToolCalls,
+  type PendingToolCall,
+  type ToolCall,
+  type ToolSchemas,
+} from './tool-calls'
 
 /** A `fetch` response, or its body. */
 export type StreamSource = Response | ReadableStream<Uint8Array>
@@ -20,12 +26,24 @@ export interface StreamLlmOptions {
   signal?: AbortSignal
 }
 
+export interface CollectTextOptions<
+  Tools extends ToolSchemas = ToolSchemas,
+> extends StreamLlmOptions {
+  /**
+   * Schemas for the tools the model may call, by name. Each call's arguments are validated
+   * against its tool's schema; a call to a tool not listed fails with `unknown_tool`.
+   */
+  tools?: Tools
+}
+
 /** What `collectText` returns. */
-export interface CollectedText {
+export interface CollectedText<Tools extends ToolSchemas = Record<never, never>> {
   text: string
   stopReason: StopReason
   /** The last usage snapshot, if the Provider sent one. */
   usage?: LlmUsage
+  /** The answer's tool calls in Block order, each usable (`ok: true`) or with the reason it is not. */
+  toolCalls: ToolCall<Tools>[]
 }
 
 const PROVIDERS = new Map<string, ProviderAdapter>([
@@ -83,19 +101,30 @@ export async function* streamText(
   }
 }
 
-/** Reads the whole stream and returns the answer's text, Stop reason and last usage. */
-export async function collectText(
+/**
+ * Reads the whole stream and returns the answer's text, Stop reason, last usage and tool calls.
+ * Tool call arguments get syntax Repair; cut-off arguments are reported, never completed.
+ */
+export async function collectText<Tools extends ToolSchemas = Record<never, never>>(
   source: StreamSource,
-  options: StreamLlmOptions = {},
-): Promise<CollectedText> {
-  const result: CollectedText = { text: '', stopReason: 'unknown' }
-  for await (const event of streamLlm(source, options)) {
+  options: CollectTextOptions<Tools> = {},
+): Promise<CollectedText<Tools>> {
+  const { tools, ...streamOptions } = options
+  const result: Omit<CollectedText<Tools>, 'toolCalls'> = { text: '', stopReason: 'unknown' }
+  const calls = new Map<number, PendingToolCall>()
+  for await (const event of streamLlm(source, streamOptions)) {
     if (event.type === 'text') result.text += event.text
-    else if (event.type === 'done') result.stopReason = event.stopReason
+    else if (event.type === 'tool_call_start')
+      calls.set(event.index, { ...event, argsText: '', custom: event.custom === true })
+    else if (event.type === 'tool_call_delta') {
+      const call = calls.get(event.index)
+      if (call) call.argsText += event.argsDelta
+    } else if (event.type === 'done') result.stopReason = event.stopReason
     else if (event.type === 'usage') {
       const { type: _, ...usage } = event
       result.usage = usage
     }
   }
-  return result
+  const toolCalls = (await finishToolCalls(calls.values(), tools)) as ToolCall<Tools>[]
+  return { ...result, toolCalls }
 }

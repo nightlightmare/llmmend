@@ -124,13 +124,14 @@ describe('openai-responses adapter: fixtures', () => {
     expect(events.at(-1)).toMatchObject({ stopReason: 'end' })
   })
 
-  it('streams a custom tool’s free-form input as argument deltas', async () => {
+  it('streams a custom tool’s free-form input as argument deltas, marked custom', async () => {
     const events = await run('openai-responses/custom-tool')
     expect(events[0]).toEqual({
       type: 'tool_call_start',
       index: 0,
       id: 'call_custom1',
       name: 'run_sql',
+      custom: true,
     })
     expect(args(events, 0)).toBe('SELECT count(*) FROM users')
     expect(events.at(-1)).toMatchObject({ stopReason: 'tool_use' })

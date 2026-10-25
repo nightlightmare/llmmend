@@ -188,6 +188,7 @@ describe('streamText and collectText', () => {
         cacheWriteTokens: 0,
         reasoningTokens: 0,
       },
+      toolCalls: [],
     })
   })
 
@@ -195,6 +196,7 @@ describe('streamText and collectText', () => {
     expect(await collectText(new Response(null), { provider: 'anthropic' })).toEqual({
       text: '',
       stopReason: 'unknown',
+      toolCalls: [],
     })
   })
 })
