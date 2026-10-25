@@ -363,6 +363,33 @@ for await (const item of streamJson(res, { provider: 'openai', schema })) {
 
 只计算文本：推理和工具调用参数会被忽略，所有文本块组成同一个回复。它只抛出 `streamLlm` 会抛出的异常。每个文本事件都会重新解析整个回复，因此开销随回复长度的平方增长：对常见的结构化输出没有影响，对数百 KB 的内容则会变慢。
 
+### streamToolCalls
+
+```ts
+import { streamToolCalls } from 'llmmend/sse'
+import { z } from 'zod'
+
+const tools = {
+  show_gauge: z.object({ value: z.number(), max: z.number() }),
+}
+const res = await fetch('https://api.anthropic.com/v1/messages', { method: 'POST', body: '…' })
+
+for await (const item of streamToolCalls(res, { tools })) {
+  if (item.done) console.log(item.toolCalls) // 即 collectText 的返回值
+  else if (item.type === 'text') console.log(item.text) // 回复文本，逐段输出
+  else if (item.name === 'show_gauge') console.log(item.partial.value, item.partial.max) // number | undefined，绝不会是写了一半的数字
+}
+```
+
+以流的方式输出带工具调用的回复，适用于在模型编写调用时就渲染它的界面。它会输出：
+
+- `{ done: false, type: 'text', text }`：回复文本的每一段；
+- `{ done: false, type: 'tool_call', index, id, name, custom?, partial }`：每当某个调用的部分值发生变化时输出。`partial` 的读取方式与 `parsePartialJson` 读取 JSON 相同，因此不会显示未写完的数字；custom tool 的 `partial` 是目前已写出的文本。
+
+提供 `tools` 时，`partial` 的类型是工具 schema 输入类型的深层 partial，并按 `name` 收窄（默认值和转换只作用于最终的 `args`）；调用 `tools` 中没有的工具不会输出任何内容，直到它以 `unknown_tool` 结束。
+
+最后输出一个最终项：`{ done: true }`，包含 `collectText` 返回的全部内容。推理内容不会输出：请用 `streamLlm` 读取。每个参数增量都会重新解析该调用的参数，对于几 KB 的参数没有问题。
+
 ### 自定义提供商适配器
 
 ```ts

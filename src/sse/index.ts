@@ -11,4 +11,10 @@ export {
 } from './stream'
 export { streamJson, type StreamJsonItem, type StreamJsonOptions } from './stream-json'
 export type { ToolCall, ToolCallError, ToolSchemas } from './tool-calls'
+export {
+  type DeepPartial,
+  type PartialToolCall,
+  streamToolCalls,
+  type StreamToolCallsItem,
+} from './stream-tool-calls'
 export { LlmmendError, LlmmendHttpError, type LlmmendErrorCode } from '../shared/errors'
