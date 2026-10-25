@@ -12,6 +12,8 @@ Install with `npm i llmmend`. Import from `llmmend/json`, `llmmend/sse` or `llmm
 - [extractAllJson](https://github.com/nightlightmare/llmmend/blob/main/docs/api.md#extractalljson): Every Candidate in the Reply, in order.
 - [repairJson](https://github.com/nightlightmare/llmmend/blob/main/docs/api.md#repairjson): Repairs JSON text and returns valid JSON as a string, plus the Issues fixed.
 - [parsePartialJson](https://github.com/nightlightmare/llmmend/blob/main/docs/api.md#parsepartialjson): Reads JSON that is still arriving, for progressive UIs.
+- [extractTag](https://github.com/nightlightmare/llmmend/blob/main/docs/api.md#extracttag): `extractTag(text, name, { pick? })` finds a tag such as `<answer>…</answer>` in a Reply and returns its text, trimmed at its edges.
+- [extractAllTags](https://github.com/nightlightmare/llmmend/blob/main/docs/api.md#extractalltags): Every closed top-level tag in the Reply, in order, as `{ name, value, attributes, start, end }`; `start` and `end` span the whole tag.
 - [Issues](https://github.com/nightlightmare/llmmend/blob/main/docs/api.md#issues): Every result lists what was done to the Reply, in order.
 
 ## llmmend/sse

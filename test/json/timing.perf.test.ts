@@ -1,7 +1,7 @@
 // Time budgets: 100 kB of pathological input within 50 ms. Kept out of coverage runs (see
 // vitest.config.ts), where instrumentation makes timings meaningless; `pnpm test` runs them.
 import { describe, expect, it } from 'vitest'
-import { extractJson } from '../../src/json/index'
+import { extractAllTags, extractJson, extractTag } from '../../src/json/index'
 import { parseJson, type Repair } from '../../src/json/parser'
 
 /** Best of several runs after a warm-up: the budget is for the code, not for JIT tiers. */
@@ -53,5 +53,20 @@ describe('extractJson', () => {
 
   it.each(Object.entries(replies))('handles 100 kB of %s within 50 ms', (_, text) => {
     expect(bestOf(() => extractJson(text))).toBeLessThan(50)
+  })
+})
+
+describe('extractTag and extractAllTags', () => {
+  const replies: Record<string, string> = {
+    'an unclosed tag with many attributes': '<answer' + ' a=1'.repeat(size / 4),
+    'many opening tags': '<answer>'.repeat(size / 8),
+    'many closed tags': '<a>x</a>'.repeat(size / 8),
+    'many code fences': '```\n<a>x</a>\n```\n'.repeat(size / 18),
+    'angle brackets in prose': 'a < b and c<d '.repeat(size / 14),
+  }
+
+  it.each(Object.entries(replies))('handles 100 kB of %s within 50 ms', (_, text) => {
+    expect(bestOf(() => extractTag(text, 'answer'))).toBeLessThan(50)
+    expect(bestOf(() => extractAllTags(text))).toBeLessThan(50)
   })
 })

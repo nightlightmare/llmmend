@@ -126,6 +126,38 @@ parsePartialJson('{"title": "Hello", "count": 42}') // { value: { title: 'Hello'
 
 `complete` становится true, когда приходит закрывающая скобка. `value` равно `undefined`, пока не начался объект или массив. Никогда не бросает исключений.
 
+### extractTag
+
+```ts
+import { extractTag } from 'llmmend/json'
+
+const reply = 'Format: <answer>X</answer>\n<thinking>…</thinking>\n<answer lang="en">Paris</answer>'
+
+const res = extractTag(reply, 'answer')
+if (res.ok) console.log(res.value, res.attributes.lang) // 'Paris', 'en'
+else if (res.error === 'truncated') console.log(res.partial) // тег обрезан: его текст на данный момент
+else console.log(res.error) // 'not_found'
+```
+
+`extractTag(text, name, { pick? })` находит в ответе тег вроде `<answer>…</answer>` и возвращает его текст без пробельных краёв. Никогда не бросает исключений. Результат — одно из:
+
+- `{ ok: true, value, attributes, issues }`: `attributes` — атрибуты открывающего тега (атрибут без значения даёт `''`); в `issues` будет `tag_case_mismatch`, если закрывающий тег отличается регистром (`<Answer>…</answer>`).
+- `{ ok: false, error: 'truncated', partial }`: тег открылся после последнего закрытого, а ответ закончился раньше, обычно на `max_tokens`; `partial` — его текст на данный момент. Более ранний закрытый тег вместо него не возвращается.
+- `{ ok: false, error: 'not_found' }`.
+
+`pick` выбирает среди нескольких закрытых тегов: `'last'` (по умолчанию, чтобы пример формата из промпта не победил ответ) или `'first'`. Теги внутри блоков кода не считаются. Вложенные теги с тем же именем сопоставляются по глубине, побеждает внешний. Имя сравнивается без учёта регистра; сущности вроде `&lt;` остаются как есть.
+
+### extractAllTags
+
+```ts
+import { extractAllTags } from 'llmmend/json'
+
+const reply = '<step>Read the file</step>\n<step>Fix the bug</step>\n<answer>Done</answer>'
+console.log(extractAllTags(reply, 'step').map((t) => t.value)) // ['Read the file', 'Fix the bug']
+```
+
+Все закрытые теги верхнего уровня в ответе по порядку, как `{ name, value, attributes, start, end }`; `start` и `end` охватывают тег целиком. С `name` — только теги с этим именем (при вложении — внешние). Правила те же, что у `extractTag`.
+
 ### Issues
 
 Каждый результат перечисляет по порядку, что было сделано с ответом.
@@ -141,6 +173,7 @@ parsePartialJson('{"title": "Hello", "count": 42}') // { value: { title: 'Hello'
 | `unescaped_control_char` | `at`      | Сырой перевод строки или табуляция внутри строки.                                     |
 | `comment_removed`        | `at`      | Комментарий `//` или `/* */`.                                                         |
 | `truncated_closed`       | `closed`  | Обрезанное значение закрыто скобками из `closed`.                                     |
+| `tag_case_mismatch`      | `at`      | `extractTag`: закрывающий тег отличается регистром от открывающего.                   |
 
 `at` — позиция в тексте.
 
