@@ -158,6 +158,26 @@ console.log(extractAllTags(reply, 'step').map((t) => t.value)) // ['Read the fil
 
 Все закрытые теги верхнего уровня в ответе по порядку, как `{ name, value, attributes, start, end }`; `start` и `end` охватывают тег целиком. С `name` — только теги с этим именем (при вложении — внешние). Правила те же, что у `extractTag`.
 
+### extractCodeBlocks
+
+````ts
+import { extractCodeBlocks } from 'llmmend/json'
+
+const reply =
+  'Install:\n```bash\nnpm i llmmend\n```\nThen:\n```typescript title="app.ts"\nextractJson(reply)\n```'
+
+extractCodeBlocks(reply).map((b) => b.lang) // ['bash', 'typescript']
+extractCodeBlocks(reply, { lang: 'ts' })[0]?.code // 'extractJson(reply)'
+````
+
+`extractCodeBlocks(text, { lang? })` возвращает все блоки кода из ответа по порядку, как `{ lang, info, code, start, end, complete }`:
+
+- `lang` — первое слово info-строки в нижнем регистре (`''`, если его нет), `info` — вся строка (`typescript title="app.ts"`).
+- `code` — содержимое как есть, без переводов строки рядом с ограничителями; `start` и `end` охватывают блок от строки открывающего ограничителя до закрывающего.
+- `complete: false` — блок, на котором ответ оборвался, обычно на `max_tokens`: решите, нужна ли вам половина файла.
+
+Фильтр `lang` не учитывает регистр и знает синонимы: `ts`/`typescript`, `js`/`javascript`, `py`/`python`, `sh`/`bash`/`shell`/`zsh`, `yml`/`yaml`, `md`/`markdown`. Ограничители — ` ``` ` или `~~~`, закрываются только тем же символом не короче открывающего, поэтому внутри более длинного ограничителя можно показать другой блок. Блоки с отступом и ` ```inline``` ` в одну строку не считаются. `extractTag` по тем же правилам пропускает теги внутри кода.
+
 ### Issues
 
 Каждый результат перечисляет по порядку, что было сделано с ответом.

@@ -158,6 +158,26 @@ console.log(extractAllTags(reply, 'step').map((t) => t.value)) // ['Read the fil
 
 按顺序返回回复中所有闭合的顶层标签，形如 `{ name, value, attributes, start, end }`；`start` 和 `end` 覆盖整个标签。提供 `name` 时只返回该名称的标签（嵌套时取最外层）。规则与 `extractTag` 相同。
 
+### extractCodeBlocks
+
+````ts
+import { extractCodeBlocks } from 'llmmend/json'
+
+const reply =
+  'Install:\n```bash\nnpm i llmmend\n```\nThen:\n```typescript title="app.ts"\nextractJson(reply)\n```'
+
+extractCodeBlocks(reply).map((b) => b.lang) // ['bash', 'typescript']
+extractCodeBlocks(reply, { lang: 'ts' })[0]?.code // 'extractJson(reply)'
+````
+
+`extractCodeBlocks(text, { lang? })` 按顺序返回回复中的所有围栏代码块，形如 `{ lang, info, code, start, end, complete }`：
+
+- `lang` 是 info 字符串的第一个词（小写，没有时为 `''`），`info` 是整个字符串（`typescript title="app.ts"`）。
+- `code` 是原样的内容，不含紧挨围栏的换行；`start` 和 `end` 覆盖从开始围栏行到结束围栏行的整个代码块。
+- `complete: false` 表示回复在该代码块中途结束，通常是因为 `max_tokens`：请自行判断半个文件是否有用。
+
+`lang` 过滤不区分大小写，并识别常见别名：`ts`/`typescript`、`js`/`javascript`、`py`/`python`、`sh`/`bash`/`shell`/`zsh`、`yml`/`yaml`、`md`/`markdown`。围栏为 ` ``` ` 或 `~~~`，只能由相同字符且长度不短于开始围栏的围栏关闭，因此可以在更长的围栏中展示另一个代码块。缩进代码块和写在一行里的 ` ```inline``` ` 不计入。`extractTag` 按同样的规则跳过代码中的标签。
+
 ### Issues
 
 每个结果都按顺序列出对回复做了什么。

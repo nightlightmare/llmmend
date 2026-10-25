@@ -1,4 +1,5 @@
 export type { ExtractError, Issue } from './issue'
+export { type CodeBlock, extractCodeBlocks, type ExtractCodeBlocksOptions } from './code-blocks'
 export {
   extractAllJson,
   extractJson,

@@ -21,6 +21,10 @@ export const checks = {
     assert.ok(new m.LlmmendHttpError(500, new Headers(), '') instanceof m.LlmmendError)
   },
   './json': (m) => {
+    assert.deepEqual(
+      m.extractCodeBlocks('```TypeScript\nlet a\n```\n```py\nb', { lang: 'ts' }).map((b) => b.code),
+      ['let a'],
+    )
     assert.deepEqual(m.extractTag('x <Answer a="1">Hi</answer>', 'answer'), {
       ok: true,
       value: 'Hi',

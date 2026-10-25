@@ -143,13 +143,19 @@
     {
       "name": "llmmend/json",
       "path": "dist/json/index.js",
-      "limit": "4.5 kB"
+      "limit": "5 kB"
     },
     {
       "name": "llmmend/json (import { extractTag, extractAllTags })",
       "path": "dist/json/index.js",
       "import": "{ extractTag, extractAllTags }",
       "limit": "1.5 kB"
+    },
+    {
+      "name": "llmmend/json (import { extractCodeBlocks })",
+      "path": "dist/json/index.js",
+      "import": "{ extractCodeBlocks }",
+      "limit": "1 kB"
     },
     {
       "name": "llmmend/sse (import { parseSSE })",
