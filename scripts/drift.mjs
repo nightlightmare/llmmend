@@ -1,7 +1,8 @@
 // Format drift check: replays the streaming Ollama cases against a running Ollama and compares
 // the fresh streams with the recorded fixtures. See fixtures/requests/README.md.
 import { readdir, readFile, writeFile } from 'node:fs/promises'
-import { parseSSE, streamLlm } from '../dist/sse/index.js'
+import { streamLlm } from '../dist/sse/index.js'
+import { knownFields, newFields, payloadPaths } from './drift-fields.mjs'
 
 const root = new URL('../', import.meta.url)
 // Each Ollama API the fixtures were recorded from, and the adapter that reads it.
@@ -10,30 +11,6 @@ const suites = [
   { dir: 'ollama-responses', path: '/v1/responses', provider: 'openai-responses' },
 ]
 const baseUrl = process.env.OLLAMA_BASE_URL ?? 'http://localhost:11434'
-
-/** The key paths of a JSON value, with array items as `[]`: `choices[].delta.content`. */
-function paths(value, prefix = '', out = new Set()) {
-  if (Array.isArray(value)) for (const item of value) paths(item, `${prefix}[]`, out)
-  else if (value && typeof value === 'object') {
-    for (const [key, item] of Object.entries(value)) {
-      const path = prefix ? `${prefix}.${key}` : key
-      out.add(path)
-      paths(item, path, out)
-    }
-  }
-  return out
-}
-
-async function payloadPaths(stream, out = new Set()) {
-  for await (const event of parseSSE(stream)) {
-    try {
-      paths(JSON.parse(event.data), '', out)
-    } catch {
-      // `[DONE]` and other non-JSON data have no fields.
-    }
-  }
-  return out
-}
 
 function check(events, expectEvents) {
   const problems = []
@@ -55,7 +32,10 @@ function check(events, expectEvents) {
   return problems
 }
 
-async function run({ suite, name, request }) {
+// Per API: the fields of all its recorded fixtures, read once.
+const knownBySuite = {}
+
+async function run({ suite, request }) {
   const response = await fetch(`${baseUrl}${suite.path}`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
@@ -69,9 +49,9 @@ async function run({ suite, name, request }) {
   for await (const event of streamLlm(forEvents, { provider: suite.provider })) events.push(event)
   const problems = check(events, request.expectEvents)
 
-  const recorded = await readFile(new URL(`test/fixtures/sse/${suite.dir}/${name}.sse`, root))
-  const known = await payloadPaths(new Response(recorded).body)
-  for (const path of await fresh) if (!known.has(path)) problems.push(`new field \`${path}\``)
+  knownBySuite[suite.dir] ??= knownFields(new URL(`test/fixtures/sse/${suite.dir}/`, root))
+  const known = await knownBySuite[suite.dir]
+  for (const path of newFields(await fresh, known)) problems.push(`new field \`${path}\``)
   return problems
 }
 
