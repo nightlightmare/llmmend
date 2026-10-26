@@ -459,7 +459,7 @@ chunkText(text, { maxTokens: 10 }).map((c) => c.text)
 // ['One two three. Four five six.\n\n', 'Seven eight nine. Ten eleven twelve.']
 ```
 
-`chunkText(text, options)` режет текст на чанки не больше `maxTokens` токенов и возвращает `{ text, start, end, tokens, index, oversized? }[]`.
+`chunkText(text, options)` режет текст на чанки не больше `maxTokens` токенов и возвращает `{ text, start, end, tokens, index, oversized?, headings? }[]`.
 
 | Опция         | По умолчанию     | Смысл                                                                                               |
 | ------------- | ---------------- | --------------------------------------------------------------------------------------------------- |
@@ -477,6 +477,36 @@ chunkText(text, { maxTokens: 10 }).map((c) => c.text)
 - `tokens <= maxTokens`, если только чанк не `oversized`: никакой разделитель не смог разрезать его мельче (с разделителями по умолчанию это один кластер графем).
 - Чанки идут по порядку без пропусков; без перекрытия каждый начинается там, где кончился предыдущий, и склейка даёт исходный текст. С перекрытием чанк начинается внутри предыдущего, на разделителе, который даёт самое длинное перекрытие в пределах и `overlap`, и `maxTokens`.
 - Кластер графем (эмодзи с модификаторами, буква с диакритикой) никогда не разрезается.
+
+#### Пути заголовков
+
+```ts
+import { chunkText } from 'llmmend/chunk'
+
+const doc = '# Install\n\nPick your system.\n\n## Linux\n\nRun the script.'
+for (const chunk of chunkText(doc, { maxTokens: 8, mode: 'markdown' })) {
+  const context = chunk.headings?.join(' › ') // сначала 'Install', затем 'Install › Linux'
+  console.log(`${context}\n\n${chunk.text}`)
+}
+```
+
+В режиме `markdown` у каждого чанка есть `headings`: заголовки, действующие там, где начинается его собственный текст, от внешнего к внутреннему. Чанк, который начинается с заголовка, включает его; чанк из нескольких маленьких разделов получает путь первого; перекрытие в начале чанка не учитывается. Учитываются ATX-заголовки всех уровней (от `#` до `######`, в том числе мельче разделителей) и setext-заголовки (строка `===` или `---` под текстом); заголовки внутри блоков кода — нет. Снимаются только маркеры, inline-разметка остаётся как есть. Чтобы дать этот контекст модели эмбеддингов, поставьте путь перед текстом чанка, как выше: сам чанк, его позиции и число токенов не меняются.
+
+### chunkDocuments
+
+```ts
+import { chunkDocuments } from 'llmmend/chunk'
+
+const pages = [
+  { text: 'First page…', metadata: { source: 'guide.pdf', page: 1 } },
+  { text: 'Second page…', metadata: { source: 'guide.pdf', page: 2 } },
+]
+for (const chunk of chunkDocuments(pages, { maxTokens: 500 })) {
+  console.log(chunk.doc, chunk.index, chunk.metadata.page) // 0 0 1, затем 1 0 2
+}
+```
+
+`chunkDocuments(docs, options)` разбивает несколько документов через `chunkText` и возвращает все их чанки одним массивом. У каждого чанка ещё есть `doc` — позиция документа в `docs` — и `metadata`, переданные как есть и типизированные по входу. `index` нумеруется внутри каждого документа, `start` и `end` — позиции в этом документе, опции применяются к каждому документу (включая `headings`). Перекрытия между документами нет: если предложение может переходить со страницы на страницу, склейте страницы до разбиения.
 
 ### estimateTokens
 

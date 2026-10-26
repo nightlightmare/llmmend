@@ -12,6 +12,11 @@ export interface Chunk {
    * a single grapheme cluster.
    */
   oversized?: true
+  /**
+   * `markdown` mode: the headings in effect where the chunk's own text starts (after the
+   * Overlap), outermost first, e.g. `['Installation', 'Linux']`. Only their markers are removed.
+   */
+  headings?: string[]
 }
 
 export interface ChunkOptions {
@@ -79,6 +84,44 @@ function protectedBlocks(text: string): [number, number][] {
   return blocks
 }
 
+interface Heading {
+  /** Where the heading's line starts (for a setext heading, its text line). */
+  at: number
+  level: number
+  text: string
+}
+
+// ATX: up to three spaces, 1–6 `#`, then the text; a closing run of `#` after a space is dropped.
+const ATX = /^ {0,3}(#{1,6})(?:[ \t]+(.*?))?(?:[ \t]+#+)?[ \t]*$/
+// Setext: a line of `=` (level 1) or `-` (level 2) under a line of text.
+const SETEXT = /^ {0,3}(=+|-+)[ \t]*$/
+
+/** The ATX and setext headings outside fenced code blocks, in order. */
+function headingsOf(text: string, blocks: [number, number][]): Heading[] {
+  const found: Heading[] = []
+  let block = 0
+  let at = 0
+  let previous: { at: number; line: string } | undefined
+  for (const raw of text.split('\n')) {
+    const line = raw.endsWith('\r') ? raw.slice(0, -1) : raw
+    // Lines and protected blocks both come in text order: one pass over each.
+    while (block < blocks.length && blocks[block]![1] <= at) block++
+    const fenced = block < blocks.length && blocks[block]![0] <= at
+    const atx = fenced ? null : ATX.exec(line)
+    const setext = fenced ? null : SETEXT.exec(line)
+    if (atx) found.push({ at, level: atx[1]!.length, text: atx[2] ?? '' })
+    else if (setext && previous && previous.line.trim() && !ATX.test(previous.line))
+      found.push({
+        at: previous.at,
+        level: setext[1]![0] === '=' ? 1 : 2,
+        text: previous.line.trim(),
+      })
+    previous = fenced ? undefined : { at, line }
+    at += raw.length + 1
+  }
+  return found
+}
+
 /** Splits `text` into chunks of at most `maxTokens` tokens, at the coarsest separators that fit. */
 export function chunkText(text: string, options: ChunkOptions): Chunk[] {
   const { maxTokens, overlap = 0, countTokens = estimateTokens, mode = 'text' } = options
@@ -112,6 +155,10 @@ export function chunkText(text: string, options: ChunkOptions): Chunk[] {
   }
   if (text) split(0, text.length, separators, blocks.length > 0)
 
+  const headings = mode === 'markdown' ? headingsOf(text, blocks) : undefined
+  // The heading path, kept by level while chunks advance through the text.
+  const path: string[] = []
+  let nextHeading = 0
   const chunks: Chunk[] = []
   for (let first = 0; first < starts.length;) {
     // Merge greedily by summed counts, then check the real count of the merged text.
@@ -143,9 +190,23 @@ export function chunkText(text: string, options: ChunkOptions): Chunk[] {
         }
       }
     }
+    const ownStart = start
     start = overlapStart
     const chunk: Chunk = { text: text.slice(start, end), start, end, tokens, index: chunks.length }
     if (tokens > maxTokens) chunk.oversized = true
+    if (headings) {
+      // Every heading up to where the chunk's own text starts, including one it starts with.
+      for (
+        ;
+        nextHeading < headings.length && headings[nextHeading]!.at <= ownStart;
+        nextHeading++
+      ) {
+        const { level, text: heading } = headings[nextHeading]!
+        path.length = level - 1
+        path[level - 1] = heading
+      }
+      chunk.headings = path.filter((h) => h !== undefined)
+    }
     chunks.push(chunk)
     first = last + 1
   }
