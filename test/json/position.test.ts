@@ -110,5 +110,6 @@ describe('positions in JSON errors', () => {
     expect(error.message).toBe('Cannot extract JSON: not_found')
     expect(error).not.toHaveProperty('at')
     expect(error).not.toHaveProperty('line')
+    expect(error).not.toHaveProperty('column')
   })
 })

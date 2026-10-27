@@ -52,6 +52,10 @@ export class LlmmendJsonError extends LlmmendError {
       this.at = options.at
       this.line = options.line!
       this.column = options.column!
+    } else {
+      // JavaScriptCore gives every Error its own `line` and `column`: where it was thrown.
+      Reflect.deleteProperty(this, 'line')
+      Reflect.deleteProperty(this, 'column')
     }
   }
 }
