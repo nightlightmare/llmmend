@@ -85,15 +85,27 @@ describe('scanString', () => {
   })
 
   it.each([
-    ['"unterminated', 'unterminated'],
-    ['"ab\\', 'ab'],
-    ['"ab\\u12', 'ab'],
-    ['"ab\\u', 'ab'],
-    ['"a\\nb', 'a\nb'],
-  ])('returns what %j holds when cut off', (text, value) => {
+    ['"unterminated', 'unterminated', 13],
+    ['"ab\\', 'ab', 3],
+    ['"ab\\u12', 'ab', 3],
+    ['"ab\\u', 'ab', 3],
+    ['"a\\nb', 'a\nb', 5],
+  ])('returns what %j holds when cut off, and where to go on', (text, value, resumeAt) => {
     const c = at(text)
-    expect(scanString(c)).toEqual({ value, terminated: false, controlAt: -1 })
+    expect(scanString(c)).toEqual({ value, terminated: false, controlAt: -1, resumeAt })
     expect(c.pos).toBe(text.length)
+  })
+
+  it.each([
+    ['"ab\\', 'ab\\ncd"', 'ab\ncd'],
+    ['"ab\\u12', 'ab\\u1234"', 'abሴ'],
+    ['"ab', 'abcd\\"e"', 'abcd"e'],
+  ])('goes on with %j cut off', (cut, full, value) => {
+    const first = scanString(at(cut))!
+    const c = at(`"${full}`)
+    const from = { value: first.value, resumeAt: first.resumeAt!, controlAt: first.controlAt }
+    expect(scanString(c, 0x22, false, from)).toEqual({ value, terminated: true, controlAt: -1 })
+    expect(c.pos).toBe(full.length + 1)
   })
 
   it('accepts DEL and other non-control characters raw', () => {

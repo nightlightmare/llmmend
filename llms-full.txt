@@ -412,7 +412,7 @@ Then it yields exactly one final item, `done: true`, with:
 - `text`: the whole Reply;
 - `stopReason`, `rawStopReason?`, `usage?`, and `error?` with the message of a mid-stream Provider error.
 
-Only text counts: reasoning and tool call arguments are ignored, and all text Blocks form one Reply. It throws only what `streamLlm` throws. Each text event re-parses the whole Reply, so the cost grows with the square of its length: fine for typical structured output, slow for hundreds of kilobytes.
+Only text counts: reasoning and tool call arguments are ignored, and all text Blocks form one Reply. It throws only what `streamLlm` throws. Parsing is incremental: a text event costs about its own length, plus a shallow copy of the open arrays and objects when the value changes, so even hundreds of kilobytes stream quickly. Successive `partial` values share the parts that ended; treat them as read-only.
 
 ### streamToolCalls
 
