@@ -1,7 +1,8 @@
-import { LlmmendError, LlmmendJsonError } from '../shared/errors'
+import { LlmmendError } from '../shared/errors'
 import type { ExtractError, Issue } from './issue'
 import { type Candidate, locate } from './locate'
 import { type PartialCandidate, PartialScan } from './partial-scan'
+import { jsonError } from './position'
 import type { StandardSchemaV1 } from './schema'
 
 export interface ExtractOptions<T> {
@@ -27,7 +28,13 @@ export type ExtractResult<T> =
       schemaIssues: readonly StandardSchemaV1.Issue[]
       value: unknown
     }
-  | { ok: false; error: Exclude<ExtractError, 'schema_mismatch'>; issues: Issue[] }
+  | {
+      ok: false
+      error: Exclude<ExtractError, 'schema_mismatch'>
+      issues: Issue[]
+      /** Where parsing failed in the Reply, for `unparseable` and `truncated`. */
+      at?: number
+    }
 
 type Failure = Extract<ExtractResult<never>, { ok: false }>
 type Selected = { ok: true; candidate: Candidate; issues: Issue[]; raw: string }
@@ -126,10 +133,12 @@ function select(text: string, opts: ExtractOptions<unknown>): Selected | Failure
   // A value the Reply cuts off after the last Candidate is the real answer, cut short: never
   // fall back to an earlier Candidate (often a format example from the preamble).
   if (failure?.error === 'truncated')
-    return { ok: false, error: 'truncated', issues: failure.issues }
+    return { ok: false, error: 'truncated', issues: failure.issues, at: failure.at }
   const wanted = candidates.filter((c) => matches(c.value, opts.expect))
   if (!wanted.length) {
-    if (!candidates.length && failure)
+    if (failure?.error === 'unparseable' && !candidates.length)
+      return { ok: false, error: 'unparseable', issues: failure.issues, at: failure.at }
+    if (failure && !candidates.length)
       return { ok: false, error: failure.error, issues: failure.issues }
     return { ok: false, error: 'not_found', issues: [] }
   }
@@ -200,13 +209,23 @@ export async function extractJsonAsync<T = unknown>(
   return finish(selected, await opts.schema['~standard'].validate(selected.candidate.value))
 }
 
+const CANNOT_EXTRACT = 'Cannot extract JSON'
+
 /** `extractJson` that returns the value or throws `LlmmendJsonError` (its `code` says why). */
 export function extractJsonOrThrow<T = unknown>(text: string, opts: ExtractOptions<T> = {}): T {
   const result = extractJson(text, opts)
   if (result.ok) return result.value
-  const schemaIssues = result.error === 'schema_mismatch' ? result.schemaIssues : undefined
-  const message = `Cannot extract JSON: ${result.error}`
-  throw new LlmmendJsonError(result.error, message, result.issues, schemaIssues)
+  if (result.error === 'schema_mismatch') {
+    throw jsonError(
+      result.error,
+      CANNOT_EXTRACT,
+      text,
+      result.issues,
+      undefined,
+      result.schemaIssues,
+    )
+  }
+  throw jsonError(result.error, CANNOT_EXTRACT, text, result.issues, result.at)
 }
 
 /**

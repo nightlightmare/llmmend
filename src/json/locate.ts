@@ -14,7 +14,7 @@ export interface Candidate {
 export interface Located {
   candidates: Candidate[]
   /** Why the most informative failed start failed; `truncated` and `max_depth` end the scan. */
-  failure?: { error: ParseError; issues: Issue[] }
+  failure?: { error: ParseError; at: number; issues: Issue[] }
 }
 
 /**

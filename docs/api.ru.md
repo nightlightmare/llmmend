@@ -44,7 +44,7 @@ else console.log(res.error)
 
 - `{ ok: true, value, repaired, issues, raw }`: `repaired` равно true, если исправлено что-то кроме срезания окружающего текста; `raw` — текст кандидата.
 - `{ ok: false, error: 'schema_mismatch', issues, schemaIssues, value }`: JSON разобран, но схема его отвергла. `schemaIssues` приходят от схемы, их можно отправить обратно модели.
-- `{ ok: false, error, issues }`, где `error` — одно из `not_found`, `unparseable`, `truncated`, `max_depth`.
+- `{ ok: false, error, issues, at? }`, где `error` — одно из `not_found`, `unparseable`, `truncated`, `max_depth`; для `unparseable` и `truncated` `at` — место в ответе, где разбор не удался.
 
 Если ответ обрывает объект или массив после последнего полного кандидата, настоящий ответ — именно обрезанный: с `repair: 'syntax'` результат будет `truncated`, а не более ранний кандидат (часто это пример формата из промпта).
 
@@ -84,7 +84,13 @@ try {
 }
 ```
 
-Возвращает значение или бросает `LlmmendJsonError`, у которого `code` — это `error` из описания выше, плюс `issues` и, для `schema_mismatch`, `schemaIssues`.
+Возвращает значение или бросает `LlmmendJsonError`, у которого `code` — это `error` из описания выше, плюс `issues` и, для `schema_mismatch`, `schemaIssues`. Если в результате есть `at`, он есть и у ошибки, вместе с `line` и `column` (с 1, в символах), а сообщение показывает это место: переводы строк во фрагменте показаны как `⏎`, так что он остаётся одной строкой, а под ним стоит `^`.
+
+```text
+Cannot extract JSON: unparseable at line 5, column 8
+…⏎{⏎  "a": 1,⏎  "b": x⏎}
+                     ^
+```
 
 ### extractAllJson
 
@@ -566,11 +572,11 @@ function describe(error: unknown): string {
 
 Все ошибки, которые бросает llmmend, наследуют `LlmmendError` с полем `code`:
 
-| Класс              | `code`                                                                  | Доп. поля                   |
-| ------------------ | ----------------------------------------------------------------------- | --------------------------- |
-| `LlmmendJsonError` | `not_found`, `unparseable`, `truncated`, `schema_mismatch`, `max_depth` | `issues`, `schemaIssues?`   |
-| `LlmmendHttpError` | `http_error`                                                            | `status`, `headers`, `body` |
-| `LlmmendError`     | `async_schema`, `unknown_provider`                                      |                             |
+| Класс              | `code`                                                                  | Доп. поля                                            |
+| ------------------ | ----------------------------------------------------------------------- | ---------------------------------------------------- |
+| `LlmmendJsonError` | `not_found`, `unparseable`, `truncated`, `schema_mismatch`, `max_depth` | `issues`, `schemaIssues?`, `at?`, `line?`, `column?` |
+| `LlmmendHttpError` | `http_error`                                                            | `status`, `headers`, `body`                          |
+| `LlmmendError`     | `async_schema`, `unknown_provider`                                      |                                                      |
 
 У каждого класса свой `name`, поэтому ошибки можно различить и без `instanceof`, когда загружены две копии пакета.
 
