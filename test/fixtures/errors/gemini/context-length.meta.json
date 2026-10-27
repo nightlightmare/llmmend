@@ -1,0 +1,7 @@
+{
+  "provider": "gemini",
+  "case": "context-length",
+  "description": "A 400 for a prompt over the context window (paid tier).",
+  "synthetic": true,
+  "source": "https://ai.google.dev/gemini-api/docs/troubleshooting"
+}

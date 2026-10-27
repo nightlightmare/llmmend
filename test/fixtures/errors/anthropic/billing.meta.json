@@ -1,0 +1,7 @@
+{
+  "provider": "anthropic",
+  "case": "billing",
+  "description": "A 402 billing_error.",
+  "synthetic": true,
+  "source": "https://docs.claude.com/en/api/errors"
+}

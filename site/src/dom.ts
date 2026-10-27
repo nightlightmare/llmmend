@@ -1,7 +1,7 @@
 /** The strings a page embeds for its own language (site/i18n.mjs), as far as the scripts use them. */
 export interface Strings {
   lang: string
-  tab: 'json' | 'sse' | 'chunk' | 'prompt' | 'cost'
+  tab: 'json' | 'sse' | 'chunk' | 'prompt' | 'cost' | 'retry'
   copied: string
   tooLong: string
   json: Record<
@@ -14,6 +14,10 @@ export interface Strings {
   cost: Record<'invalid' | 'total' | 'missing' | 'breakdown' | 'note', string> & {
     parts: Record<'input' | 'cacheRead' | 'cacheWrite' | 'output', string>
   }
+  retry: Record<
+    'invalid' | 'retry' | 'dontRetry' | 'after' | 'result' | 'httpNote' | 'streamNote',
+    string
+  >
 }
 
 /** One playground tab: its examples and how it turns the input and options into the result. */

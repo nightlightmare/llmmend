@@ -1,0 +1,7 @@
+{
+  "status": 404,
+  "headers": {
+    "content-type": "application/json"
+  },
+  "body": "{\"type\":\"error\",\"request_id\":\"req_pvaoj3fon5cpo3ewq2oja5azsqjywuyrrjnfxabosfwzgzxy6xaq\",\"error\":{\"type\":\"not_found_error\",\"message\":\"The model 'anthropic.claude-nonexistent-0' does not exist\"}}"
+}

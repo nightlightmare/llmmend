@@ -1,0 +1,7 @@
+{
+  "provider": "gemini",
+  "case": "timeout",
+  "description": "A 504 DEADLINE_EXCEEDED.",
+  "synthetic": true,
+  "source": "https://ai.google.dev/gemini-api/docs/troubleshooting"
+}

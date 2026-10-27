@@ -18,7 +18,7 @@
 npm i llmmend
 ```
 
-Try it in the browser, nothing leaves your machine: [playground](https://nightlightmare.github.io/llmmend/) for JSON repair, SSE streams, chunking, prompt escaping and call cost. Ready-to-run [examples](https://github.com/nightlightmare/llmmend/tree/main/examples) for Next.js, Hono, Cloudflare Workers and Deno.
+Try it in the browser, nothing leaves your machine: [playground](https://nightlightmare.github.io/llmmend/) for JSON repair, SSE streams, chunking, prompt escaping, call cost and errors worth retrying. Ready-to-run [examples](https://github.com/nightlightmare/llmmend/tree/main/examples) for Next.js, Hono, Cloudflare Workers and Deno.
 
 ## Why
 
@@ -160,6 +160,33 @@ estimateCost(usage, { input: 3, output: 15, cacheRead: 0.3, cacheWrite: 3.75 })
 
 `estimateCost` prices a call’s usage with the prices you pass, per million tokens: input, cache reads and writes, output, and higher tiers for long requests. It returns the cost by part, and lists in `missing` any count the usage lacked. `toUsage` reads the raw `usage` of a reply without streaming; Anthropic’s, which leaves cached tokens out of `input_tokens`, included. No price table ships: prices change too often.
 
+## Errors worth retrying
+
+```ts
+import { classifyError } from 'llmmend/retry'
+import { collectText } from 'llmmend/sse'
+
+async function withRetry<T>(call: () => Promise<T>, attempts = 4): Promise<T> {
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return await call()
+    } catch (error) {
+      const c = classifyError(error)
+      // out of credit, a prompt over the context, a bad key: retrying won't help
+      if (!c.retryable || attempt === attempts) throw error
+      const backoff = 500 * 2 ** attempt * (0.5 + Math.random())
+      await new Promise((resolve) => setTimeout(resolve, c.retryAfter ?? backoff))
+    }
+  }
+}
+
+const { text } = await withRetry(async () =>
+  collectText(await fetch('https://api.anthropic.com/v1/messages', { method: 'POST' })),
+)
+```
+
+`classifyError` turns a failed call into one of eleven kinds, with `retryable` and the Provider’s `retryAfter` in milliseconds. It reads what a status code alone misses: a 429 that means out of credit, a 400 that means the prompt is too long, Gemini’s retry delay inside the body. It takes `LlmmendHttpError`, stream `error` events, `fetch` errors and the official SDKs’ errors.
+
 ## Compared with other packages
 
 |                                                             | llmmend    | jsonrepair | partial-json | best-effort-json-parser | eventsource-parser | ai       | @langchain/textsplitters |
@@ -203,6 +230,7 @@ Checked on 2026-10-24 with jsonrepair 3.15.0, partial-json 0.1.7, best-effort-js
 | `llmmend/chunk`  | `chunkText`, `chunkDocuments`, `estimateTokens`, `truncateToTokens`                                                                                              |
 | `llmmend/prompt` | `safePrompt`, `trusted`, `escapeTags`                                                                                                                            |
 | `llmmend/cost`   | `estimateCost`, `toUsage`                                                                                                                                        |
+| `llmmend/retry`  | `classifyError`                                                                                                                                                  |
 
 Everything is also re-exported from the root: `import { extractJson } from 'llmmend'` stays tree-shakeable.
 
@@ -219,6 +247,7 @@ For AI coding assistants: [llms.txt](https://github.com/nightlightmare/llmmend/b
 | `llmmend/chunk`  | ~2 kB                                                                     |
 | `llmmend/prompt` | ~0.6 kB                                                                   |
 | `llmmend/cost`   | ~0.7 kB                                                                   |
+| `llmmend/retry`  | ~1.4 kB                                                                   |
 
 ## Contributing
 

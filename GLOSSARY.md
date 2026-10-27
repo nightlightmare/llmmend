@@ -95,3 +95,9 @@ _Avoid_: reserved tag, delimiter
 **Escaping**:
 Making an Own tag in untrusted input harmless by writing its `<` as `&lt;`. Nothing reads it back: the model sees the text with that one character changed.
 _Avoid_: sanitizing, encoding
+
+### Failures
+
+**Error kind**:
+What went wrong with a model call, in provider-neutral terms: a rate limit, an exhausted quota, overload, a server error, a timeout, a network failure, a prompt over the context window, bad credentials, an invalid request, an abort, or unknown. It decides whether the same request may succeed later.
+_Avoid_: error code (Providers' own codes), error type

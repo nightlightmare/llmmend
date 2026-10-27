@@ -2,7 +2,7 @@
 
 # API reference
 
-`llmmend` has five modules. Import from the module, or from the root: both are tree-shakeable.
+`llmmend` has six modules. Import from the module, or from the root: both are tree-shakeable.
 
 ```ts
 import { extractJson } from 'llmmend/json'
@@ -686,6 +686,60 @@ estimateCost(usage, { input: 3, output: 15, cacheRead: 0.3, cacheWrite: 3.75 })
 ```
 
 `toUsage(raw)` turns a Provider’s raw `usage` into `LlmUsage` with the same rules as the streams, recognising it by its fields: Anthropic (cached tokens added to `input_tokens`), OpenAI Chat Completions and compatible APIs (`prompt_tokens`), OpenAI Responses (`input_tokens_details`) and Gemini (`usageMetadata`: thoughts count as output). Anything else, `null` included, gives `{}`, so `estimateCost` reports both counts `missing`. It never throws.
+
+## llmmend/retry
+
+### classifyError
+
+```ts
+import { classifyError } from 'llmmend/retry'
+import { collectText } from 'llmmend/sse'
+
+async function withRetry<T>(call: () => Promise<T>, attempts = 4): Promise<T> {
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return await call()
+    } catch (error) {
+      const c = classifyError(error)
+      // out of credit, a prompt over the context, a bad key: retrying won't help
+      if (!c.retryable || attempt === attempts) throw error
+      const backoff = 500 * 2 ** attempt * (0.5 + Math.random())
+      await new Promise((resolve) => setTimeout(resolve, c.retryAfter ?? backoff))
+    }
+  }
+}
+
+const { text } = await withRetry(async () =>
+  collectText(await fetch('https://api.anthropic.com/v1/messages', { method: 'POST' })),
+)
+```
+
+`classifyError(error)` returns `{ kind, retryable, retryAfter?, status?, message }` for a failed model call. It never throws. It reads:
+
+- `LlmmendHttpError` (a non-2xx response to `streamLlm` and its wrappers);
+- an `error` event from a stream, which has no `status`;
+- `fetch` errors: a `TypeError` is `network`, `AbortError` is `aborted`, `TimeoutError` is `timeout`;
+- the API errors of the official SDKs (`@anthropic-ai/sdk`, `openai`, `@google/genai`), recognised by shape: no SDK is imported.
+
+The Provider's error body decides where the status alone can't: a 429 with `insufficient_quota` is `quota`, not `rate_limit`; a 400 about the prompt length is `context_length`; Gemini's 400 `API_KEY_INVALID` is `auth`; Gemini's `RESOURCE_EXHAUSTED` is `quota` for a daily quota and `rate_limit` otherwise.
+
+| `kind`            | When                                                                                         | `retryable` |
+| ----------------- | -------------------------------------------------------------------------------------------- | ----------- |
+| `rate_limit`      | 429; Anthropic `rate_limit_error`; OpenAI `rate_limit_exceeded`; Gemini `RESOURCE_EXHAUSTED` | yes         |
+| `quota`           | OpenAI `insufficient_quota`; Anthropic 402 `billing_error`; Gemini’s daily quota             | no          |
+| `overloaded`      | 529, 503; Anthropic `overloaded_error`; Gemini `UNAVAILABLE`                                 | yes         |
+| `server`          | other 5xx; Anthropic `api_error`; OpenAI `server_error`; Gemini `INTERNAL`                   | yes         |
+| `timeout`         | 408, 504; Gemini `DEADLINE_EXCEEDED`; a `TimeoutError`                                       | yes         |
+| `network`         | the connection failed: `fetch` threw a `TypeError`                                           | yes         |
+| `context_length`  | the prompt is over the context window, or 413                                                | no          |
+| `auth`            | 401, 403; a bad key                                                                          | no          |
+| `invalid_request` | other 4xx: an unknown model, bad parameters                                                  | no          |
+| `aborted`         | an `AbortError` from your `signal`                                                           | no          |
+| `unknown`         | anything else                                                                                | no          |
+
+`retryAfter` is in milliseconds, from `retry-after-ms`, else `retry-after` (seconds or an HTTP date), else Gemini's `RetryInfo.retryDelay` in the body. It is set only for retryable kinds, and only when the Provider gave a hint; otherwise back off on your own. `message` is the Provider's own (`Overloaded`, `prompt is too long: 1125057 tokens > 1000000 maximum`), not `HTTP 529`.
+
+With `p-retry` or `promisepilot`, pass `classifyError(error).retryable` as the retry condition and `retryAfter` as the delay.
 
 ## Errors
 

@@ -1,0 +1,7 @@
+{
+  "provider": "openai",
+  "case": "auth",
+  "description": "A 401 invalid_api_key.",
+  "synthetic": true,
+  "source": "https://platform.openai.com/docs/guides/error-codes"
+}

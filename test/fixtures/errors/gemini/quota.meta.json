@@ -1,0 +1,7 @@
+{
+  "provider": "gemini",
+  "case": "quota",
+  "description": "A 429 for the daily quota: no RetryInfo, a PerDay quota id.",
+  "synthetic": true,
+  "source": "https://ai.google.dev/gemini-api/docs/troubleshooting"
+}

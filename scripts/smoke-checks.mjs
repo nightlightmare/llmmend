@@ -157,4 +157,21 @@ export const checks = {
     assert.deepEqual(usage, { inputTokens: 2e6, outputTokens: 0, cacheReadTokens: 1e6 })
     assert.equal(m.estimateCost(usage, { input: 3, output: 15, cacheRead: 0.3 }).total, 3.3)
   },
+  './retry': (m) => {
+    const raw = {
+      error: {
+        code: 429,
+        status: 'RESOURCE_EXHAUSTED',
+        message: 'Slow down',
+        details: [{ '@type': 'type.googleapis.com/google.rpc.RetryInfo', retryDelay: '8s' }],
+      },
+    }
+    assert.deepEqual(m.classifyError({ type: 'error', message: 'Slow down', raw }), {
+      kind: 'rate_limit',
+      retryable: true,
+      message: 'Slow down',
+      retryAfter: 8000,
+    })
+    assert.equal(m.classifyError(new TypeError('fetch failed')).kind, 'network')
+  },
 }

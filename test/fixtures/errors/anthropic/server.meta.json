@@ -1,0 +1,7 @@
+{
+  "provider": "anthropic",
+  "case": "server",
+  "description": "A 500 api_error.",
+  "synthetic": true,
+  "source": "https://docs.claude.com/en/api/errors"
+}

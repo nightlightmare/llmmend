@@ -1,0 +1,9 @@
+{
+  "provider": "anthropic",
+  "case": "unknown-model",
+  "description": "A model that does not exist.",
+  "model": "claude-nonexistent-0",
+  "via": "bedrock",
+  "recordedAt": "2026-10-27T21:16:12.983Z",
+  "synthetic": false
+}

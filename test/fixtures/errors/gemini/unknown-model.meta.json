@@ -1,0 +1,8 @@
+{
+  "provider": "gemini",
+  "case": "unknown-model",
+  "description": "A model that does not exist.",
+  "model": "gemini-0-nonexistent",
+  "recordedAt": "2026-10-27T21:16:09.668Z",
+  "synthetic": false
+}

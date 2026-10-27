@@ -22,7 +22,10 @@ export default defineConfig({
   base: BASE,
   resolve: {
     alias: [
-      { find: /^llmmend\/(json|sse|chunk|prompt|cost)$/, replacement: here('../src/$1/index.ts') },
+      {
+        find: /^llmmend\/(json|sse|chunk|prompt|cost|retry)$/,
+        replacement: here('../src/$1/index.ts'),
+      },
     ],
   },
   build: {

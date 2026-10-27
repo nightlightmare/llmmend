@@ -18,7 +18,7 @@
 npm i llmmend
 ```
 
-Попробуйте в браузере, данные никуда не уходят: [playground](https://nightlightmare.github.io/llmmend/ru/) для починки JSON, SSE-потоков, разбиения на чанки, экранирования промптов и стоимости вызова. Готовые [примеры](https://github.com/nightlightmare/llmmend/tree/main/examples) для Next.js, Hono, Cloudflare Workers и Deno.
+Попробуйте в браузере, данные никуда не уходят: [playground](https://nightlightmare.github.io/llmmend/ru/) для починки JSON, SSE-потоков, разбиения на чанки, экранирования промптов, стоимости вызова и ошибок, которые стоит повторять. Готовые [примеры](https://github.com/nightlightmare/llmmend/tree/main/examples) для Next.js, Hono, Cloudflare Workers и Deno.
 
 ## Зачем
 
@@ -160,6 +160,33 @@ estimateCost(usage, { input: 3, output: 15, cacheRead: 0.3, cacheWrite: 3.75 })
 
 `estimateCost` считает стоимость вызова по его usage и ценам, которые вы передаёте за миллион токенов: ввод, чтение и запись кэша, вывод и более дорогие ступени для длинных запросов. Возвращает стоимость по частям и перечисляет в `missing` счётчики, которых в usage не было. `toUsage` читает сырой `usage` ответа без стрима, в том числе у Anthropic, где `input_tokens` не включает кэшированные токены. Таблицы цен в пакете нет: цены меняются слишком часто.
 
+## Какие ошибки стоит повторять
+
+```ts
+import { classifyError } from 'llmmend/retry'
+import { collectText } from 'llmmend/sse'
+
+async function withRetry<T>(call: () => Promise<T>, attempts = 4): Promise<T> {
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return await call()
+    } catch (error) {
+      const c = classifyError(error)
+      // кончились деньги, промпт длиннее контекста, неверный ключ: повтор не поможет
+      if (!c.retryable || attempt === attempts) throw error
+      const backoff = 500 * 2 ** attempt * (0.5 + Math.random())
+      await new Promise((resolve) => setTimeout(resolve, c.retryAfter ?? backoff))
+    }
+  }
+}
+
+const { text } = await withRetry(async () =>
+  collectText(await fetch('https://api.anthropic.com/v1/messages', { method: 'POST' })),
+)
+```
+
+`classifyError` относит неудачный вызов к одному из одиннадцати видов, с `retryable` и `retryAfter` провайдера в миллисекундах. Читает то, чего не видно по одному статусу: 429, который значит «кончились деньги», 400, который значит «промпт слишком длинный», задержку Gemini внутри тела ответа. Принимает `LlmmendHttpError`, события `error` из стрима, ошибки `fetch` и ошибки официальных SDK.
+
 ## Сравнение с другими пакетами
 
 |                                                                  | llmmend    | jsonrepair | partial-json | best-effort-json-parser | eventsource-parser | ai         | @langchain/textsplitters |
@@ -203,6 +230,7 @@ estimateCost(usage, { input: 3, output: 15, cacheRead: 0.3, cacheWrite: 3.75 })
 | `llmmend/chunk`  | `chunkText`, `chunkDocuments`, `estimateTokens`, `truncateToTokens`                                                                                              |
 | `llmmend/prompt` | `safePrompt`, `trusted`, `escapeTags`                                                                                                                            |
 | `llmmend/cost`   | `estimateCost`, `toUsage`                                                                                                                                        |
+| `llmmend/retry`  | `classifyError`                                                                                                                                                  |
 
 Всё также реэкспортируется из корня: `import { extractJson } from 'llmmend'` по-прежнему поддерживает tree-shaking.
 
@@ -219,6 +247,7 @@ estimateCost(usage, { input: 3, output: 15, cacheRead: 0.3, cacheWrite: 3.75 })
 | `llmmend/chunk`  | ~2 kB                                                                            |
 | `llmmend/prompt` | ~0.6 kB                                                                          |
 | `llmmend/cost`   | ~0.7 kB                                                                          |
+| `llmmend/retry`  | ~1.4 kB                                                                          |
 
 ## Участие
 

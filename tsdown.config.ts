@@ -8,6 +8,7 @@ export default defineConfig({
     'chunk/index': 'src/chunk/index.ts',
     'prompt/index': 'src/prompt/index.ts',
     'cost/index': 'src/cost/index.ts',
+    'retry/index': 'src/retry/index.ts',
   },
   format: ['esm', 'cjs'],
   dts: true,

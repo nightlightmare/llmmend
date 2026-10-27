@@ -2,7 +2,7 @@
 
 # API 参考
 
-`llmmend` 有五个模块。可以从模块导入，也可以从根导入：两种方式都支持 tree-shaking。
+`llmmend` 有六个模块。可以从模块导入，也可以从根导入：两种方式都支持 tree-shaking。
 
 ```ts
 import { extractJson } from 'llmmend/json'
@@ -686,6 +686,60 @@ estimateCost(usage, { input: 3, output: 15, cacheRead: 0.3, cacheWrite: 3.75 })
 ```
 
 `toUsage(raw)` 按与流相同的规则把提供商原始的 `usage` 转成 `LlmUsage`，并根据字段识别格式：Anthropic（缓存 token 会加到 `input_tokens` 上）、OpenAI Chat Completions 及兼容 API（`prompt_tokens`）、OpenAI Responses（`input_tokens_details`）和 Gemini（`usageMetadata`：思考 token 计入输出）。其他任何值，包括 `null`，都返回 `{}`，于是 `estimateCost` 会把两个计数都标为 `missing`。它从不抛出异常。
+
+## llmmend/retry
+
+### classifyError
+
+```ts
+import { classifyError } from 'llmmend/retry'
+import { collectText } from 'llmmend/sse'
+
+async function withRetry<T>(call: () => Promise<T>, attempts = 4): Promise<T> {
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return await call()
+    } catch (error) {
+      const c = classifyError(error)
+      // 余额不足、提示词超出上下文、密钥错误：重试也没用
+      if (!c.retryable || attempt === attempts) throw error
+      const backoff = 500 * 2 ** attempt * (0.5 + Math.random())
+      await new Promise((resolve) => setTimeout(resolve, c.retryAfter ?? backoff))
+    }
+  }
+}
+
+const { text } = await withRetry(async () =>
+  collectText(await fetch('https://api.anthropic.com/v1/messages', { method: 'POST' })),
+)
+```
+
+`classifyError(error)` 为一次失败的模型调用返回 `{ kind, retryable, retryAfter?, status?, message }`。它从不抛出异常。它可以读取：
+
+- `LlmmendHttpError`（`streamLlm` 及其封装收到的非 2xx 响应）；
+- 流中的 `error` 事件，它没有 `status`；
+- `fetch` 错误：`TypeError` 是 `network`，`AbortError` 是 `aborted`，`TimeoutError` 是 `timeout`；
+- 官方 SDK（`@anthropic-ai/sdk`、`openai`、`@google/genai`）的 API 错误，按对象形状识别：不导入任何 SDK。
+
+仅凭状态码无法判断时，由提供商的错误正文决定：带 `insufficient_quota` 的 429 是 `quota` 而不是 `rate_limit`；关于提示词长度的 400 是 `context_length`；Gemini 的 400 `API_KEY_INVALID` 是 `auth`；Gemini 的 `RESOURCE_EXHAUSTED` 在每日配额时是 `quota`，其他情况是 `rate_limit`。
+
+| `kind`            | 何时                                                                                         | `retryable` |
+| ----------------- | -------------------------------------------------------------------------------------------- | ----------- |
+| `rate_limit`      | 429；Anthropic `rate_limit_error`；OpenAI `rate_limit_exceeded`；Gemini `RESOURCE_EXHAUSTED` | 是          |
+| `quota`           | OpenAI `insufficient_quota`；Anthropic 402 `billing_error`；Gemini 每日配额                  | 否          |
+| `overloaded`      | 529、503；Anthropic `overloaded_error`；Gemini `UNAVAILABLE`                                 | 是          |
+| `server`          | 其他 5xx；Anthropic `api_error`；OpenAI `server_error`；Gemini `INTERNAL`                    | 是          |
+| `timeout`         | 408、504；Gemini `DEADLINE_EXCEEDED`；`TimeoutError`                                         | 是          |
+| `network`         | 连接失败：`fetch` 抛出 `TypeError`                                                           | 是          |
+| `context_length`  | 提示词超出上下文窗口，或 413                                                                 | 否          |
+| `auth`            | 401、403；密钥错误                                                                           | 否          |
+| `invalid_request` | 其他 4xx：未知模型、参数错误                                                                 | 否          |
+| `aborted`         | 来自你的 `signal` 的 `AbortError`                                                            | 否          |
+| `unknown`         | 其他任何情况                                                                                 | 否          |
+
+`retryAfter` 以毫秒为单位，依次取自 `retry-after-ms`、`retry-after`（秒数或 HTTP 日期）、Gemini 正文中的 `RetryInfo.retryDelay`。只有可重试的类型、且提供商给出提示时才会设置；否则请自行退避。`message` 是提供商自己的文字（`Overloaded`、`prompt is too long: 1125057 tokens > 1000000 maximum`），而不是 `HTTP 529`。
+
+使用 `p-retry` 或 `promisepilot` 时，把 `classifyError(error).retryable` 作为重试条件，把 `retryAfter` 作为延迟。
 
 ## 错误
 
