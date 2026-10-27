@@ -23,19 +23,30 @@ export interface Located {
  */
 export const FAILED_SCAN_BUDGET = 8
 
-const OPEN_BRACE = 0x7b
-const OPEN_BRACKET = 0x5b
+export const OPEN_BRACE = 0x7b
+export const OPEN_BRACKET = 0x5b
+
+/** What the start check says: a value may start, cannot, or may only because the text ends. */
+export const MAY = 1
+export const CANNOT = 2
+export const AT_END = 3
+type Start = typeof MAY | typeof CANNOT | typeof AT_END
 
 /**
  * A cheap look at what follows a `{` or `[`, to skip most prose without running the parser:
  * an object needs a key or `}`, an array a value or `]`. The end of the text always passes,
  * so a cut-off start is still reported.
  */
-function mayStart(text: string, i: number, lenient: boolean): boolean {
+function mayStart(text: string, i: number, lenient: boolean): Start {
   const j = nextSignificant(text, i)
   const ch = text.charCodeAt(j)
-  if (j >= text.length || (lenient && (ch === 0x2f || ch === 0x27))) return true // end, `/`, `'`
-  if (text.charCodeAt(i) === OPEN_BRACE) {
+  if (j >= text.length) return AT_END
+  if (lenient && (ch === 0x2f || ch === 0x27)) return MAY // `/`, `'`
+  return looksLikeValue(text.charCodeAt(i), ch, lenient) ? MAY : CANNOT
+}
+
+function looksLikeValue(opener: number, ch: number, lenient: boolean): boolean {
+  if (opener === OPEN_BRACE) {
     return ch === 0x22 || ch === 0x7d || (lenient && isKeyChar(ch)) // `"`, `}`, bare key
   }
   return (
@@ -67,15 +78,15 @@ const isOpener = (ch: number): boolean => ch === OPEN_BRACE || ch === OPEN_BRACK
  * start only if that container can, so a run like `[[[[{{` is settled by one walk along it
  * instead of a parse attempt per bracket.
  */
-function createStartCheck(text: string, lenient: boolean): (i: number) => boolean {
-  const memo = new Uint8Array(text.length) // 0 unknown, 1 may start, 2 cannot
+export function createStartCheck(text: string, lenient: boolean): (i: number) => Start {
+  const memo = new Uint8Array(text.length) // 0 unknown, else a Start
   return (i) => {
     const chain: number[] = []
     let j = i
-    let result: boolean
+    let result: Start
     for (;;) {
       if (memo[j]) {
-        result = memo[j] === 1
+        result = memo[j] as Start
         break
       }
       chain.push(j)
@@ -87,7 +98,7 @@ function createStartCheck(text: string, lenient: boolean): (i: number) => boolea
       result = mayStart(text, j, lenient)
       break
     }
-    for (const k of chain) memo[k] = result ? 1 : 2
+    for (const k of chain) memo[k] = result
     return result
   }
 }
@@ -105,7 +116,7 @@ export function locate(text: string, repair: Repair, first = false): Located {
   let i = 0
   while (i < text.length && budget > 0) {
     const ch = text.charCodeAt(i)
-    if ((ch !== OPEN_BRACE && ch !== OPEN_BRACKET) || doomed.has(i) || !mayStartAt(i)) {
+    if ((ch !== OPEN_BRACE && ch !== OPEN_BRACKET) || doomed.has(i) || mayStartAt(i) === CANNOT) {
       i++
       continue
     }

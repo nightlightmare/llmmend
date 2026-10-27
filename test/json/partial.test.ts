@@ -22,6 +22,8 @@ describe('parsePartialJson', () => {
     ['[', []],
     ['{', {}],
     ["{'a': True", {}],
+    ['{"a": -Inf', {}],
+    ['[-I', []],
     ["{'a': True,", { a: true }],
     ['{name: "Ada", tags: ["x"', { name: 'Ada', tags: ['x'] }],
   ])('reads %j as %j', (text, value) => {

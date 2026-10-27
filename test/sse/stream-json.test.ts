@@ -8,6 +8,7 @@ import {
   type StreamJsonOptions,
   streamJson,
 } from '../../src/sse/index'
+import { partialByLocate, type PickOptions, pickOptions, replyPieces } from '../json/replies'
 import { byteStream } from './fixtures'
 
 const encoder = new TextEncoder()
@@ -233,5 +234,41 @@ describe('streamJson', () => {
       }),
       { numRuns: 50 },
     )
+  })
+})
+
+describe('streamJson, parsing incrementally', () => {
+  /** What streamJson yielded before #73: the whole text parsed again after every piece. */
+  function itemsByLocate(pieces: string[], opts: PickOptions) {
+    const items: { done: false; partial: unknown; complete: boolean }[] = []
+    let text = ''
+    let shown: string | undefined
+    for (const piece of pieces) {
+      text += piece
+      const current = partialByLocate(text, opts)
+      if (!current) continue
+      const key = `${current.complete} ${JSON.stringify(current.value)}`
+      if (key === shown) continue
+      shown = key
+      items.push({ done: false, partial: current.value, complete: current.complete })
+    }
+    return items
+  }
+
+  it('yields what parsing the whole Reply again for every piece yielded', async () => {
+    await fc.assert(
+      fc.asyncProperty(replyPieces, pickOptions, async (pieces, opts) => {
+        const items = await collect(reply(...pieces), opts)
+        expect(items.slice(0, -1)).toEqual(itemsByLocate(pieces, opts))
+        expect(last(items).text).toBe(pieces.join(''))
+      }),
+      { numRuns: 500 },
+    )
+  })
+
+  it('shares the parts of the value that ended between Partial values', async () => {
+    const items = await collect(reply('{"done": {"a": 1}, "list": [1', ', 2', ', 3'))
+    const [first, second] = partials(items) as { done: unknown }[]
+    expect(second!.done).toBe(first!.done)
   })
 })

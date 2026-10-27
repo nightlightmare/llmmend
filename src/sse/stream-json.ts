@@ -2,7 +2,7 @@ import {
   type ExtractOptions,
   type ExtractResult,
   extractJsonAsync,
-  partialCandidate,
+  followPartial,
 } from '../json/extract'
 import type { LlmUsage, StopReason } from './events'
 import { type StreamLlmOptions, type StreamSource, streamLlm } from './stream'
@@ -29,24 +29,51 @@ export type StreamJsonItem<T> =
     }
 
 /**
+ * Whether two parsed JSON values would serialize the same. An unchanged Partial value is the
+ * same object, and a changed one shares every part that ended, so this is usually quick.
+ */
+function sameJson(a: unknown, b: unknown): boolean {
+  if (a === b) return true
+  if (typeof a !== 'object' || typeof b !== 'object' || a === null || b === null) return false
+  if (Array.isArray(a)) {
+    if (!Array.isArray(b) || a.length !== b.length) return false
+    // From the end: an array grows there.
+    for (let k = a.length - 1; k >= 0; k--) if (!sameJson(a[k], b[k])) return false
+    return true
+  }
+  if (Array.isArray(b)) return false
+  const keys = Object.keys(a)
+  const other = Object.keys(b)
+  if (keys.length !== other.length) return false
+  for (let k = 0; k < keys.length; k++) {
+    const key = keys[k]!
+    if (key !== other[k]) return false
+    if (!sameJson((a as Record<string, unknown>)[key], (b as Record<string, unknown>)[key]))
+      return false
+  }
+  return true
+}
+
+/**
  * Streams a Reply that contains JSON. While it arrives, yields the Candidate `pick` would choose
  * from the text so far as a Partial value (see `parsePartialJson`), each time it changes; then
  * one item with `done: true` and the full Extraction in `result`. Only text counts; reasoning and
  * tool calls are ignored. Throws only what `streamLlm` throws.
  *
- * Every text event re-parses the whole Reply, so the cost grows with the square of its length:
- * fine for typical structured output, slow for hundreds of kilobytes.
+ * Parsing is incremental: a text event costs about its own length, plus a shallow copy of the
+ * open arrays and objects when the value changes. Successive Partial values share the parts
+ * that ended: treat them as read-only.
  */
 export async function* streamJson<T = unknown>(
   source: StreamSource,
   options: StreamJsonOptions<T> = {},
 ): AsyncIterable<StreamJsonItem<T>> {
   const { provider, signal, ...extract } = options
+  const follow = followPartial(extract)
   let text = ''
   let partial: unknown
   let complete = false
-  // What was last yielded, serialized, so an unchanged Partial value is not yielded again.
-  let shown: string | undefined
+  let shown = false
   let stopReason: StopReason = 'unknown'
   let rawStopReason: string | undefined
   let usage: LlmUsage | undefined
@@ -58,11 +85,10 @@ export async function* streamJson<T = unknown>(
   for await (const event of streamLlm(source, llmOptions)) {
     if (event.type === 'text') {
       text += event.text
-      const current = partialCandidate(text, extract)
+      const current = follow(event.text)
       if (!current) continue
-      const key = `${current.complete} ${JSON.stringify(current.value)}`
-      if (key === shown) continue
-      shown = key
+      if (shown && current.complete === complete && sameJson(current.value, partial)) continue
+      shown = true
       ;({ value: partial, complete } = current)
       yield { done: false, partial, complete }
     } else if (event.type === 'usage') {

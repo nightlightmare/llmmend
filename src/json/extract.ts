@@ -1,6 +1,7 @@
 import { LlmmendError, LlmmendJsonError } from '../shared/errors'
 import type { ExtractError, Issue } from './issue'
 import { type Candidate, locate } from './locate'
+import { type PartialCandidate, PartialScan } from './partial-scan'
 import type { StandardSchemaV1 } from './schema'
 
 export interface ExtractOptions<T> {
@@ -75,7 +76,10 @@ function matches(value: unknown, expect: ExtractOptions<unknown>['expect']): boo
 }
 
 /** The Candidate `pick` chooses; `wanted` must not be empty. */
-function choose(wanted: Candidate[], pick: ExtractOptions<unknown>['pick'] = 'last'): Candidate {
+function choose<C extends { start: number; end: number }>(
+  wanted: C[],
+  pick: ExtractOptions<unknown>['pick'] = 'last',
+): C {
   let candidate = pick === 'first' ? wanted[0]! : wanted[wanted.length - 1]!
   if (pick === 'largest') {
     for (const c of wanted) if (c.end - c.start > candidate.end - candidate.start) candidate = c
@@ -83,20 +87,38 @@ function choose(wanted: Candidate[], pick: ExtractOptions<unknown>['pick'] = 'la
   return candidate
 }
 
+const size = (c: PartialCandidate): number => c.end - c.start
+
 /**
- * The Candidate `pick` would choose from text that may still be arriving, parsed the way
- * `parsePartialJson` parses; `undefined` while no object or array (of the `expect`ed kind) has
- * started. `streamJson` shows it as `partial`.
+ * Follows a Reply that arrives in pieces. After each piece, returns the Candidate `pick` would
+ * choose from the text so far, parsed the way `parsePartialJson` parses; `undefined` while no
+ * object or array (of the `expect`ed kind) has started. `streamJson` shows it as `partial`.
  */
-export function partialCandidate(
-  text: string,
+export function followPartial(
   opts: Pick<ExtractOptions<unknown>, 'pick' | 'expect'>,
-): { value: unknown; complete: boolean } | undefined {
-  const wanted = locate(text, 'partial').candidates.filter((c) => matches(c.value, opts.expect))
-  if (!wanted.length) return undefined
-  const candidate = choose(wanted, opts.pick)
-  const complete = !candidate.issues.some((i) => i.code === 'truncated_closed')
-  return { value: candidate.value, complete }
+): (piece: string) => PartialCandidate | undefined {
+  const scan = new PartialScan()
+  let seen = 0
+  // Among the complete Candidates that match, the ones some `pick` chooses: `choose` over these
+  // and the open Candidate gives what it would give over all of them.
+  let first: PartialCandidate | undefined
+  let largest: PartialCandidate | undefined
+  let last: PartialCandidate | undefined
+  return (piece) => {
+    scan.push(piece)
+    for (; seen < scan.complete.length; seen++) {
+      const c = scan.complete[seen]!
+      if (!matches(c.value, opts.expect)) continue
+      first ??= c
+      if (!largest || size(c) > size(largest)) largest = c
+      last = c
+    }
+    const open = scan.open && matches(scan.open.value, opts.expect) ? scan.open : undefined
+    const wanted = [first, largest, last, open].filter(
+      (c, k, all): c is PartialCandidate => c !== undefined && all.indexOf(c) === k,
+    )
+    return wanted.length ? choose(wanted, opts.pick) : undefined
+  }
 }
 
 function select(text: string, opts: ExtractOptions<unknown>): Selected | Failure {

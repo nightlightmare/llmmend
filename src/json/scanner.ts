@@ -97,6 +97,18 @@ export interface ScannedString {
   terminated: boolean
   /** Position of the first raw control character (lenient only), or -1. */
   controlAt: number
+  /**
+   * Only when cut off: where scanning goes on once more text arrives (for a cut-off escape, its
+   * backslash). `value` is the string up to there.
+   */
+  resumeAt?: number
+}
+
+/** A cut-off string to go on with: what it holds up to `resumeAt`. */
+export interface StringProgress {
+  value: string
+  resumeAt: number
+  controlAt: number
 }
 
 /** True if every character from `i` to the end of the text is a hex digit. */
@@ -110,18 +122,21 @@ function hexToEnd(text: string, i: number): boolean {
  * `undefined` with the cursor at the offending position on an invalid escape, or on a raw
  * control character unless `lenient`. A string the text cuts off (even mid-escape) comes back
  * with `terminated: false` and the cursor at the end. `\'` is a valid escape inside `'…'`.
+ * With `from`, goes on with a string an earlier scan of a shorter text cut off.
  */
 export function scanString(
   c: Cursor,
   quote: number = QUOTE,
   lenient = false,
+  from?: StringProgress,
 ): ScannedString | undefined {
   const { text } = c
   const end = text.length
-  let i = c.pos + 1
+  let i = from ? from.resumeAt : c.pos + 1
   let chunk = i
-  let out = ''
-  let controlAt = -1
+  let out = from ? from.value : ''
+  let controlAt = from ? from.controlAt : -1
+  let resumeAt = end
   while (i < end) {
     const ch = text.charCodeAt(i)
     if (ch === quote) {
@@ -142,6 +157,7 @@ export function scanString(
             c.pos = i
             return undefined
           }
+          resumeAt = i
           i = end // cut off inside \uXXXX: drop the partial escape
         } else {
           // Lone surrogates are kept as-is, like JSON.parse does.
@@ -149,6 +165,7 @@ export function scanString(
           i += 6
         }
       } else if (i + 1 >= end) {
+        resumeAt = i
         i = end // cut off right after the backslash
       } else {
         c.pos = i
@@ -167,7 +184,7 @@ export function scanString(
     i++
   }
   c.pos = end
-  return { value: out + text.slice(chunk, end), terminated: false, controlAt }
+  return { value: out + text.slice(chunk, end), terminated: false, controlAt, resumeAt }
 }
 
 /**

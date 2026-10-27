@@ -9,6 +9,7 @@ import {
   scanWord,
   skipComment,
   skipWhitespace,
+  type StringProgress,
 } from './scanner'
 
 /**
@@ -20,8 +21,37 @@ export type Repair = 'none' | 'syntax' | 'full' | 'partial'
 
 export type ParseError = 'unparseable' | 'truncated' | 'max_depth'
 
+/**
+ * Where a partial parse the end of the text cut off can go on once more text arrives: one per
+ * container or string still open there. Everything before `resumeAt` is final: values that
+ * ended are never parsed again. A container in phase `value` reads no text of its own; its open
+ * member is the next Checkpoint.
+ */
+export type Checkpoint =
+  | ({ kind: 'string'; start: number; quote: number } & StringProgress)
+  | {
+      kind: 'object' | 'array'
+      start: number
+      /** The container as it was returned; resuming copies it before changing it. */
+      value: Record<string, unknown> | unknown[]
+      /** `member`: before a member, `value`: inside its value, `after`: after its value. */
+      phase: 'member' | 'value' | 'after'
+      resumeAt: number
+      first: boolean
+      commaAt: number
+      /** The key (an array's index) of the member whose value is open, in phase `value`. */
+      key: string | number
+    }
+
 export type ParseResult =
-  | { ok: true; value: unknown; end: number; issues: Issue[] }
+  | {
+      ok: true
+      value: unknown
+      end: number
+      issues: Issue[]
+      /** Partial mode only, when the end of the text cut the value off: outermost first. */
+      checkpoints?: Checkpoint[]
+    }
   | {
       ok: false
       error: ParseError
@@ -36,6 +66,12 @@ export interface ParseOptions {
   repair?: Repair
   /** Maximum nesting of objects and arrays. Deeper input fails with `max_depth`. */
   maxDepth?: number
+  /**
+   * Partial mode: go on from the Checkpoints of a parse of a shorter text that this text extends,
+   * instead of parsing from the start. The result is the same, but `issues` only holds what the
+   * text after the Checkpoints adds.
+   */
+  resume?: Checkpoint[]
 }
 
 /** Far beyond real data, and shallow enough for the call stack of every supported runtime. */
@@ -76,6 +112,11 @@ interface State extends Cursor {
   truncated: boolean
   /** Starts of the containers being parsed, outermost first. */
   readonly open: number[]
+  /** Partial mode: where to go on later, innermost first (pushed as a Truncation unwinds). */
+  readonly checkpoints: Checkpoint[] | undefined
+  /** What `resume` still has to go on from. */
+  readonly resume: Checkpoint[]
+  resumed: number
 }
 
 const WORDS = ['true', 'false', 'null']
@@ -107,6 +148,12 @@ function close<T>(s: State, value: T, closer: string): T {
   return value
 }
 
+/** `close` for a container, noting where a partial parse goes on from. */
+function cut<T>(s: State, value: T, closer: string, checkpoint: Checkpoint): T {
+  s.checkpoints?.push(checkpoint)
+  return close(s, value, closer)
+}
+
 /** Skips whitespace and, when lenient, comments. */
 function skip(s: State): void {
   skipWhitespace(s)
@@ -131,7 +178,7 @@ function parseValue(s: State, depth: number): unknown {
     if (depth >= s.maxDepth) throw new Failure('max_depth', s.pos)
     // Not popped when parsing throws, so a failure knows which containers it is inside.
     s.open.push(s.pos)
-    const value = ch === OPEN_BRACE ? parseObject(s, depth + 1) : parseArray(s, depth + 1)
+    const value = parseContainer(s, depth + 1, ch === OPEN_BRACE)
     s.open.pop()
     return value
   }
@@ -141,6 +188,16 @@ function parseValue(s: State, depth: number): unknown {
     truncate(s)
     return MISSING
   }
+  return value
+}
+
+/** `parseValue` for the open value of the next Checkpoint; reads no text before its `resumeAt`. */
+function resumeValue(s: State, depth: number): unknown {
+  const from = s.resume[s.resumed++]!
+  if (from.kind === 'string') return parseString(s, from)
+  s.open.push(from.start)
+  const value = parseContainer(s, depth + 1, from.kind === 'object', from)
+  s.open.pop()
   return value
 }
 
@@ -162,17 +219,18 @@ function parseScalar(s: State, ch: number): unknown {
       }
     }
   }
-  if (ch === MINUS || (ch >= 0x30 && ch <= 0x39)) return parseNumber(s)
-  if (scanWord(s, 'true')) return true
-  if (scanWord(s, 'false')) return false
-  if (scanWord(s, 'null')) return null
-  // A literal the text cuts off (`tru`) is a Truncation, not a syntax error.
+  // A literal the text cuts off (`tru`, `-Inf`) is a Truncation, not a syntax error. Checked
+  // before numbers, so that `-Inf` does not fail as one.
   const rest = s.text.length - s.pos < 10 ? s.text.slice(s.pos) : ''
   const words = s.lenient ? LENIENT_WORDS : WORDS
   if (rest && words.some((w) => w.length > rest.length && w.startsWith(rest))) {
     truncate(s)
     return MISSING
   }
+  if (ch === MINUS || (ch >= 0x30 && ch <= 0x39)) return parseNumber(s)
+  if (scanWord(s, 'true')) return true
+  if (scanWord(s, 'false')) return false
+  if (scanWord(s, 'null')) return null
   return fail(s)
 }
 
@@ -188,15 +246,17 @@ function parseNumber(s: State): number | typeof MISSING {
   return end === start ? MISSING : Number(s.text.slice(start, end))
 }
 
-function parseString(s: State): string {
-  const at = s.pos
-  const quote = code(s)
-  if (quote === APOS) s.issues.push({ code: 'single_quotes', at })
-  const scanned = scanString(s, quote, s.lenient)
+function parseString(s: State, from?: StringCheckpoint): string {
+  const at = from ? from.start : s.pos
+  const quote = from ? from.quote : code(s)
+  if (quote === APOS && !from) s.issues.push({ code: 'single_quotes', at })
+  const scanned = scanString(s, quote, s.lenient, from)
   if (!scanned) return fail(s)
-  if (scanned.controlAt >= 0)
+  if (scanned.controlAt >= 0 && !(from && from.controlAt >= 0))
     s.issues.push({ code: 'unescaped_control_char', at: scanned.controlAt })
   if (!scanned.terminated) {
+    const { value, resumeAt = s.pos, controlAt } = scanned
+    s.checkpoints?.push({ kind: 'string', start: at, quote, value, resumeAt, controlAt })
     truncate(s)
     s.closed += '"'
   }
@@ -239,12 +299,22 @@ function parseKey(s: State): string | typeof MISSING {
   return fail(s)
 }
 
-function setKey(obj: Record<string, unknown>, key: string, value: unknown): void {
+/** An object or array, indexed by key or index. */
+type Container = Record<string | number, unknown>
+
+const copyArray = (array: Container): Container => (array as unknown as unknown[]).slice() as never
+
+function setKey(container: Container, key: string | number, value: unknown): void {
   // An own `__proto__` property, as JSON.parse creates; plain assignment would set the prototype.
   if (key === '__proto__') {
-    Object.defineProperty(obj, key, { value, writable: true, enumerable: true, configurable: true })
+    Object.defineProperty(container, key, {
+      value,
+      writable: true,
+      enumerable: true,
+      configurable: true,
+    })
   } else {
-    obj[key] = value
+    container[key] = value
   }
 }
 
@@ -257,68 +327,98 @@ function trailingComma(s: State, closer: number, commaAt: number): boolean {
   return true
 }
 
-function parseObject(s: State, depth: number): Record<string, unknown> {
-  const obj: Record<string, unknown> = {}
-  s.pos++
-  skip(s)
-  if (atEnd(s)) return close(s, obj, '}')
-  if (code(s) === CLOSE_BRACE) {
-    s.pos++
-    return obj
-  }
-  for (;;) {
-    const key = parseKey(s)
-    if (key === MISSING) return close(s, obj, '}')
-    skip(s)
-    if (atEnd(s)) return close(s, obj, '}')
-    if (code(s) !== COLON) fail(s)
-    s.pos++
-    const value = parseValue(s, depth)
-    if (value === MISSING) return close(s, obj, '}')
-    setKey(obj, key, value)
-    skip(s)
-    if (atEnd(s)) return close(s, obj, '}')
-    const next = code(s)
-    if (next === CLOSE_BRACE) {
-      s.pos++
-      return obj
-    }
-    if (next !== COMMA) fail(s)
-    const commaAt = s.pos
-    s.pos++
-    skip(s)
-    if (atEnd(s)) return close(s, obj, '}')
-    if (trailingComma(s, CLOSE_BRACE, commaAt)) return obj
-  }
-}
+type StringCheckpoint = Extract<Checkpoint, { kind: 'string' }>
+type ContainerCheckpoint = Exclude<Checkpoint, StringCheckpoint>
 
-function parseArray(s: State, depth: number): unknown[] {
-  const arr: unknown[] = []
-  s.pos++
-  skip(s)
-  if (atEnd(s)) return close(s, arr, ']')
-  if (code(s) === CLOSE_BRACKET) {
-    s.pos++
-    return arr
-  }
+/** Where a container is in its loop. */
+type Progress = Pick<ContainerCheckpoint, 'phase' | 'first' | 'commaAt' | 'key'>
+
+/** A new container: before its first member. */
+const FRESH: Progress = { phase: 'member', first: true, commaAt: -1, key: '' }
+
+/**
+ * An object or array. The loop goes through three phases: `member` (just after the opening
+ * bracket or a comma), `value` and `after` (after a value); an array's key is the index. The
+ * end of the text breaks out of the loop into one `cut`, and resuming from a Checkpoint
+ * re-enters the loop at its phase. A resumed container is copied before its first change and
+ * returned as it was if nothing changed, so values returned earlier never change and an
+ * unchanged value is cheap to recognise.
+ */
+function parseContainer(
+  s: State,
+  depth: number,
+  object: boolean,
+  from?: ContainerCheckpoint,
+): Container {
+  const closer = object ? CLOSE_BRACE : CLOSE_BRACKET
+  const start = from ? from.start : s.pos
+  let container = (from ? from.value : object ? {} : []) as Container
+  let owned = !from
+  let { phase, first, commaAt, key }: Progress = from ?? FRESH
+  s.pos = from ? from.resumeAt : s.pos + 1
+  let resumeAt: number
   for (;;) {
-    const value = parseValue(s, depth)
-    if (value === MISSING) return close(s, arr, ']')
-    arr.push(value)
+    resumeAt = s.pos
+    if (phase === 'member') {
+      skip(s)
+      if (atEnd(s)) break
+      if (first && code(s) === closer) {
+        s.pos++
+        return container
+      }
+      if (!first && trailingComma(s, closer, commaAt)) return container
+      if (object) {
+        const parsed = parseKey(s)
+        if (parsed === MISSING) break
+        key = parsed
+        skip(s)
+        if (atEnd(s)) break
+        if (code(s) !== COLON) fail(s)
+        s.pos++
+      } else {
+        key = (container as unknown as unknown[]).length
+      }
+    }
+    if (phase !== 'after') {
+      const value = phase === 'value' ? resumeValue(s, depth) : parseValue(s, depth)
+      if (value === MISSING) break
+      if (owned || container[key] !== value) {
+        if (!owned) container = object ? { ...container } : copyArray(container)
+        owned = true
+        setKey(container, key, value)
+      }
+      if (s.truncated) {
+        phase = 'value'
+        break
+      }
+      resumeAt = s.pos
+    }
+    phase = 'after'
     skip(s)
-    if (atEnd(s)) return close(s, arr, ']')
+    if (atEnd(s)) break
     const next = code(s)
-    if (next === CLOSE_BRACKET) {
+    if (next === closer) {
       s.pos++
-      return arr
+      return container
     }
     if (next !== COMMA) fail(s)
-    const commaAt = s.pos
+    commaAt = s.pos
     s.pos++
-    skip(s)
-    if (atEnd(s)) return close(s, arr, ']')
-    if (trailingComma(s, CLOSE_BRACKET, commaAt)) return arr
+    first = false
+    phase = 'member'
   }
+  const kind = object ? 'object' : 'array'
+  const checkpoint = {
+    kind,
+    start,
+    value: container,
+    phase,
+    resumeAt,
+    first,
+    commaAt,
+    key,
+  } as const
+  return cut(s, container, object ? '}' : ']', checkpoint)
 }
 
 function run(text: string, start: number, options: ParseOptions, whole: boolean): ParseResult {
@@ -334,9 +434,12 @@ function run(text: string, start: number, options: ParseOptions, whole: boolean)
     closed: '',
     truncated: false,
     open: [],
+    checkpoints: repair === 'partial' ? [] : undefined,
+    resume: options.resume ?? [],
+    resumed: 0,
   }
   try {
-    const value = parseValue(s, 0)
+    const value = options.resume ? resumeValue(s, 0) : parseValue(s, 0)
     if (value === MISSING) {
       return { ok: false, error: 'truncated', at: s.pos, issues: s.issues, open: [] }
     }
@@ -346,6 +449,9 @@ function run(text: string, start: number, options: ParseOptions, whole: boolean)
       skip(s)
       if (!atEnd(s))
         return { ok: false, error: 'unparseable', at: s.pos, issues: s.issues, open: [] }
+    }
+    if (s.truncated && s.checkpoints) {
+      return { ok: true, value, end, issues: s.issues, checkpoints: s.checkpoints.reverse() }
     }
     return { ok: true, value, end, issues: s.issues }
   } catch (error) {
