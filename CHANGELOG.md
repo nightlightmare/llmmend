@@ -1,5 +1,15 @@
 # llmmend
 
+## 0.5.0
+
+### Minor Changes
+
+- cafb849: New option `coerce` on `extractJson`, `extractJsonAsync`, `extractAllJson` and `streamJson`, and for tool arguments on `collectText` and `streamToolCalls`: when the schema rejects a value, it tries the type slips models make (`"42"` ↔ `42`, `"true"` ↔ `true`, `"null"` → `null`) at the paths the schema's issues name, and keeps a change only when the issue at that path goes away. Each change is a new Issue `coerced` with the path and the types before and after. It works the same with Zod, Valibot and ArkType: only the issues' paths are read, never their messages.
+- 9456c5e: JSON errors say where: `LlmmendJsonError` gains `at`, `line` and `column` (from 1, counting characters, so an emoji is one), and its message gives the line, the column and a one-line snippet of about 40 characters with a `^` under the place, newlines shown as `⏎`. `extractJson` failures `unparseable` and `truncated` gain `at`.
+- db983f6: `done` carries `responseId`, the Provider's id of the response (Anthropic `msg_…`, Chat Completions `chatcmpl-…`, Responses `resp_…` for `previous_response_id`, Gemini `responseId`), and `collectText` and `streamToolCalls` return it. In OpenAI Responses streams, `tool_call_start` and `reasoning_signature` carry `itemId` (`fc_…`, `rs_…`), so a client that keeps the history itself can send those items back.
+- f8612f8: Add `sseResponse` and `createSSEStream` to `llmmend/sse`, for serving server-sent events: an async iterable of events (`{ data, event?, id?, retry? }`) or plain values (sent as JSON) becomes a `text/event-stream` `Response` or byte stream, with optional keep-alive comments. A client that goes away calls `return()` on the source, so `sseResponse(streamLlm(upstream))` also stops the upstream request.
+- 6de73df: New option `tokenizer` on `estimateTokens`, `chunkText`, `chunkDocuments` and `truncateToTokens`: `'o200k'` (the default, unchanged), `'claude'` or `'gemini'`. Each preset has its own weights per kind of character, fitted to exact Claude and Gemini counts of the calibration corpus, and is within ±15 % on every 1,000-character window of it, like `'o200k'`. This replaces the advice to divide the budget by 1.5 for Claude.
+
 ## 0.4.0
 
 ### Minor Changes
