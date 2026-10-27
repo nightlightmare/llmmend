@@ -2,7 +2,7 @@
 
 # Справочник API
 
-В `llmmend` четыре модуля. Импортируйте из модуля или из корня: tree-shaking работает в обоих случаях.
+В `llmmend` пять модулей. Импортируйте из модуля или из корня: tree-shaking работает в обоих случаях.
 
 ```ts
 import { extractJson } from 'llmmend/json'
@@ -640,6 +640,52 @@ escapeTags('a < b </document> <system>', ['document']) // 'a < b &lt;/document> 
 ```
 
 `escapeTags(text, names)` — то же экранирование, что применяет `safePrompt`, для промптов, собранных без него. Экранируются открывающие, закрывающие и самозакрывающиеся теги из `names` в любом регистре, с атрибутами, а также тег, оборванный до `>` (`</document` в конце): модель может прочитать и его как тег. Более длинное имя — другой тег: `<documents>` остаётся как есть.
+
+## llmmend/cost
+
+### estimateCost
+
+```ts
+import { collectText } from 'llmmend/sse'
+import { estimateCost, type Prices } from 'llmmend/cost'
+
+// доллары за миллион токенов, со страницы цен провайдера
+const prices: Prices = { input: 3, output: 15, cacheRead: 0.3, cacheWrite: 3.75 }
+
+const res = await fetch('https://api.anthropic.com/v1/messages', { method: 'POST' })
+const { usage } = await collectText(res)
+const cost = estimateCost(usage ?? {}, prices)
+console.log(cost.total.toFixed(4), cost.missing) // missing — ['output'], если стрим оборвался
+```
+
+`estimateCost(usage, prices)` возвращает `{ total, input, cacheRead, cacheWrite, output, missing? }`: сколько стоила каждая часть вызова, без округления, в единицах цен. Никогда не бросает исключений.
+
+- **Цены** задаются за миллион токенов, как их публикуют провайдеры: `{ input, output, cacheRead?, cacheWrite?, tiers? }`. Без `cacheRead` или `cacheWrite` эти токены стоят как `input`: для чтения из кэша это дороже реального, для записи в кэш у Anthropic (1.25× `input`) — дешевле.
+- **Usage** — это `LlmUsage` из стрима или из `toUsage`. `input` — это `inputTokens` без кэшированных токенов; `outputTokens` уже включает рассуждения.
+- **`missing`** перечисляет `'input'` или `'output'`, если в usage нет этого счётчика; тогда он стоит 0. Так бывает, когда стрим оборвался до итогового usage или когда Chat Completions вызван без `stream_options: { include_usage: true }`. Если всё на месте, поля нет. Отсутствие счётчиков кэша означает, что кэша не было.
+- **`tiers`** задают цены для длинных запросов: `tiers: [{ above: 200_000, input: 2.5, output: 15 }]`. Ко всему вызову применяется ступень с наибольшим `above`, меньшим `inputTokens`; цены, которых в ступени нет, берутся из базовых.
+
+Пакетные скидки, приоритетные тарифы и запись в кэш на 5 минут или на час в usage не видны: передайте те цены, которые действуют.
+
+### toUsage
+
+```ts
+import { estimateCost, toUsage } from 'llmmend/cost'
+
+// ответ Messages API без стрима: `input_tokens` не включает кэшированные токены
+const usage = toUsage({
+  input_tokens: 1_200,
+  cache_read_input_tokens: 40_000,
+  cache_creation_input_tokens: 0,
+  output_tokens: 800,
+})
+// { inputTokens: 41_200, outputTokens: 800, cacheReadTokens: 40_000, cacheWriteTokens: 0 }
+
+estimateCost(usage, { input: 3, output: 15, cacheRead: 0.3, cacheWrite: 3.75 })
+// { total: 0.0276, input: 0.0036, cacheRead: 0.012, cacheWrite: 0, output: 0.012 }
+```
+
+`toUsage(raw)` переводит сырой `usage` провайдера в `LlmUsage` по тем же правилам, что и стримы, и распознаёт его по полям: Anthropic (кэшированные токены прибавляются к `input_tokens`), OpenAI Chat Completions и совместимые API (`prompt_tokens`), OpenAI Responses (`input_tokens_details`) и Gemini (`usageMetadata`: рассуждения считаются выводом). Всё остальное, включая `null`, даёт `{}`, и `estimateCost` помечает оба счётчика как `missing`. Никогда не бросает исключений.
 
 ## Ошибки
 

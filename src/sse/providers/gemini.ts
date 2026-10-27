@@ -1,4 +1,5 @@
-import type { LlmEvent, LlmUsage, ProviderAdapter, StopReason } from '../events'
+import { fromGemini, type GeminiUsage } from '../../shared/usage'
+import type { LlmEvent, ProviderAdapter, StopReason } from '../events'
 import type { SSEEvent } from '../parse'
 import { done, parseObject } from './shared'
 
@@ -14,12 +15,7 @@ interface RawChunk {
   responseId?: string
   candidates?: { content?: { parts?: RawPart[] }; finishReason?: string }[]
   promptFeedback?: { blockReason?: string }
-  usageMetadata?: {
-    promptTokenCount?: number
-    candidatesTokenCount?: number
-    cachedContentTokenCount?: number
-    thoughtsTokenCount?: number
-  }
+  usageMetadata?: GeminiUsage
   error?: { message?: string }
 }
 
@@ -104,20 +100,7 @@ function create(): (event: SSEEvent) => LlmEvent[] {
     }
     if (unknownPart) events.push({ type: 'other', raw: sse })
 
-    const usage = raw.usageMetadata
-    if (usage) {
-      const event: { type: 'usage' } & LlmUsage = { type: 'usage' }
-      // `promptTokenCount` already includes cached tokens; output includes thoughts, as for the
-      // other Providers.
-      if (usage.promptTokenCount !== undefined) event.inputTokens = usage.promptTokenCount
-      if (usage.candidatesTokenCount !== undefined || usage.thoughtsTokenCount !== undefined) {
-        event.outputTokens = (usage.candidatesTokenCount ?? 0) + (usage.thoughtsTokenCount ?? 0)
-      }
-      if (usage.cachedContentTokenCount !== undefined)
-        event.cacheReadTokens = usage.cachedContentTokenCount
-      if (usage.thoughtsTokenCount !== undefined) event.reasoningTokens = usage.thoughtsTokenCount
-      events.push(event)
-    }
+    if (raw.usageMetadata) events.push({ type: 'usage', ...fromGemini(raw.usageMetadata) })
 
     // The stream has no final event: the chunk with the finish reason is the last one.
     const blocked = raw.promptFeedback?.blockReason

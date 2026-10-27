@@ -152,4 +152,9 @@ export const checks = {
     assert.equal(prompt, '<doc>&lt;/doc></doc>')
     assert.equal(m.escapeTags('<a>', ['a']), '&lt;a>')
   },
+  './cost': (m) => {
+    const usage = m.toUsage({ input_tokens: 1e6, cache_read_input_tokens: 1e6, output_tokens: 0 })
+    assert.deepEqual(usage, { inputTokens: 2e6, outputTokens: 0, cacheReadTokens: 1e6 })
+    assert.equal(m.estimateCost(usage, { input: 3, output: 15, cacheRead: 0.3 }).total, 3.3)
+  },
 }

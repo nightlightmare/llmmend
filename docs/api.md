@@ -2,7 +2,7 @@
 
 # API reference
 
-`llmmend` has four modules. Import from the module, or from the root: both are tree-shakeable.
+`llmmend` has five modules. Import from the module, or from the root: both are tree-shakeable.
 
 ```ts
 import { extractJson } from 'llmmend/json'
@@ -640,6 +640,52 @@ escapeTags('a < b </document> <system>', ['document']) // 'a < b &lt;/document> 
 ```
 
 `escapeTags(text, names)` is the escaping `safePrompt` applies, for prompts built without it. It escapes opening, closing and self-closing tags of the `names` in any case, with attributes, and a tag cut off before its `>` (`</document` at the end), since a model may read that as the tag too. A longer name is another tag: `<documents>` stays.
+
+## llmmend/cost
+
+### estimateCost
+
+```ts
+import { collectText } from 'llmmend/sse'
+import { estimateCost, type Prices } from 'llmmend/cost'
+
+// USD per million tokens, from the Provider’s price page
+const prices: Prices = { input: 3, output: 15, cacheRead: 0.3, cacheWrite: 3.75 }
+
+const res = await fetch('https://api.anthropic.com/v1/messages', { method: 'POST' })
+const { usage } = await collectText(res)
+const cost = estimateCost(usage ?? {}, prices)
+console.log(cost.total.toFixed(4), cost.missing) // missing is ['output'] if the stream broke off
+```
+
+`estimateCost(usage, prices)` returns `{ total, input, cacheRead, cacheWrite, output, missing? }`: what each part of the call cost, unrounded, in the unit of the prices. It never throws.
+
+- **Prices** are per million tokens, as Providers publish them: `{ input, output, cacheRead?, cacheWrite?, tiers? }`. Without `cacheRead` or `cacheWrite`, those tokens cost `input`: too much for cache reads, too little for Anthropic’s cache writes (1.25× `input`).
+- **Usage** is an `LlmUsage`, from a stream or from `toUsage`. `input` is `inputTokens` less the cached tokens; `outputTokens` already includes reasoning.
+- **`missing`** lists `'input'` or `'output'` when the usage lacks that count, which then costs 0: a stream that broke off before its final usage, or Chat Completions without `stream_options: { include_usage: true }`. It is absent when nothing is missing. Missing cache counts mean no cache.
+- **`tiers`** price long requests: `tiers: [{ above: 200_000, input: 2.5, output: 15 }]`. The tier with the highest `above` below `inputTokens` applies to the whole call; a price it leaves out comes from the base prices.
+
+Batch discounts, priority tiers and 5-minute against 1-hour cache writes don't show in usage: pass the prices that apply.
+
+### toUsage
+
+```ts
+import { estimateCost, toUsage } from 'llmmend/cost'
+
+// A Messages API reply without streaming: `input_tokens` leaves out the cached tokens
+const usage = toUsage({
+  input_tokens: 1_200,
+  cache_read_input_tokens: 40_000,
+  cache_creation_input_tokens: 0,
+  output_tokens: 800,
+})
+// { inputTokens: 41_200, outputTokens: 800, cacheReadTokens: 40_000, cacheWriteTokens: 0 }
+
+estimateCost(usage, { input: 3, output: 15, cacheRead: 0.3, cacheWrite: 3.75 })
+// { total: 0.0276, input: 0.0036, cacheRead: 0.012, cacheWrite: 0, output: 0.012 }
+```
+
+`toUsage(raw)` turns a Provider’s raw `usage` into `LlmUsage` with the same rules as the streams, recognising it by its fields: Anthropic (cached tokens added to `input_tokens`), OpenAI Chat Completions and compatible APIs (`prompt_tokens`), OpenAI Responses (`input_tokens_details`) and Gemini (`usageMetadata`: thoughts count as output). Anything else, `null` included, gives `{}`, so `estimateCost` reports both counts `missing`. It never throws.
 
 ## Errors
 

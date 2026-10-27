@@ -1,4 +1,5 @@
-import type { LlmEvent, LlmUsage, ProviderAdapter, StopReason } from '../events'
+import { type ChatUsage, fromChat } from '../../shared/usage'
+import type { LlmEvent, ProviderAdapter, StopReason } from '../events'
 import type { SSEEvent } from '../parse'
 import { done, mapStop, parseObject } from './shared'
 
@@ -21,12 +22,7 @@ interface RawChunk {
     }
     finish_reason?: string | null
   }[]
-  usage?: {
-    prompt_tokens?: number
-    completion_tokens?: number
-    prompt_tokens_details?: { cached_tokens?: number } | null
-    completion_tokens_details?: { reasoning_tokens?: number } | null
-  } | null
+  usage?: ChatUsage | null
   error?: { message?: string }
 }
 
@@ -92,18 +88,7 @@ function create(): (event: SSEEvent) => LlmEvent[] {
     }
     rawStopReason = choice?.finish_reason ?? rawStopReason
 
-    const usage = raw.usage
-    if (usage) {
-      const event: { type: 'usage' } & LlmUsage = { type: 'usage' }
-      // `prompt_tokens` already includes cached tokens.
-      if (usage.prompt_tokens !== undefined) event.inputTokens = usage.prompt_tokens
-      if (usage.completion_tokens !== undefined) event.outputTokens = usage.completion_tokens
-      const cached = usage.prompt_tokens_details?.cached_tokens
-      if (cached !== undefined) event.cacheReadTokens = cached
-      const reasoningTokens = usage.completion_tokens_details?.reasoning_tokens
-      if (reasoningTokens !== undefined) event.reasoningTokens = reasoningTokens
-      events.push(event)
-    }
+    if (raw.usage) events.push({ type: 'usage', ...fromChat(raw.usage) })
     return events
   }
 }

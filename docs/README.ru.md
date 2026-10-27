@@ -140,6 +140,26 @@ const prompt = safePrompt`
 
 `safePrompt` экранирует каждую подстановку для тегов, которые использует сам шаблон, поэтому документ не закроет `<document>` и не подсунет свои `<instructions>`. Всё остальное доходит до модели как написано: код, `a < b` и теги, которых нет в шаблоне. Объекты вставляются как JSON, общий отступ шаблона убирается.
 
+## Сколько стоил вызов
+
+```ts
+import { estimateCost, toUsage } from 'llmmend/cost'
+
+// ответ Messages API без стрима: `input_tokens` не включает кэшированные токены
+const usage = toUsage({
+  input_tokens: 1_200,
+  cache_read_input_tokens: 40_000,
+  cache_creation_input_tokens: 0,
+  output_tokens: 800,
+})
+// { inputTokens: 41_200, outputTokens: 800, cacheReadTokens: 40_000, cacheWriteTokens: 0 }
+
+estimateCost(usage, { input: 3, output: 15, cacheRead: 0.3, cacheWrite: 3.75 })
+// { total: 0.0276, input: 0.0036, cacheRead: 0.012, cacheWrite: 0, output: 0.012 }
+```
+
+`estimateCost` считает стоимость вызова по его usage и ценам, которые вы передаёте за миллион токенов: ввод, чтение и запись кэша, вывод и более дорогие ступени для длинных запросов. Возвращает стоимость по частям и перечисляет в `missing` счётчики, которых в usage не было. `toUsage` читает сырой `usage` ответа без стрима, в том числе у Anthropic, где `input_tokens` не включает кэшированные токены. Таблицы цен в пакете нет: цены меняются слишком часто.
+
 ## Сравнение с другими пакетами
 
 |                                                                  | llmmend    | jsonrepair | partial-json | best-effort-json-parser | eventsource-parser | ai         | @langchain/textsplitters |
@@ -182,6 +202,7 @@ const prompt = safePrompt`
 | `llmmend/sse`    | `parseSSE`, `sseResponse`, `createSSEStream`, `streamLlm`, `streamText`, `collectText`, `streamJson`, `streamToolCalls`                                          |
 | `llmmend/chunk`  | `chunkText`, `chunkDocuments`, `estimateTokens`, `truncateToTokens`                                                                                              |
 | `llmmend/prompt` | `safePrompt`, `trusted`, `escapeTags`                                                                                                                            |
+| `llmmend/cost`   | `estimateCost`, `toUsage`                                                                                                                                        |
 
 Всё также реэкспортируется из корня: `import { extractJson } from 'llmmend'` по-прежнему поддерживает tree-shaking.
 
@@ -197,6 +218,7 @@ const prompt = safePrompt`
 | `llmmend/sse`    | ~3.7 kB (один `parseSSE` ~0.9 kB; `collectText` с вызовами инструментов ~6.8 kB) |
 | `llmmend/chunk`  | ~2 kB                                                                            |
 | `llmmend/prompt` | ~0.6 kB                                                                          |
+| `llmmend/cost`   | ~0.7 kB                                                                          |
 
 ## Участие
 

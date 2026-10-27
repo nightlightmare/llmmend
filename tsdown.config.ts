@@ -7,6 +7,7 @@ export default defineConfig({
     'sse/index': 'src/sse/index.ts',
     'chunk/index': 'src/chunk/index.ts',
     'prompt/index': 'src/prompt/index.ts',
+    'cost/index': 'src/cost/index.ts',
   },
   format: ['esm', 'cjs'],
   dts: true,

@@ -4,9 +4,17 @@ import * as json from '../../dist/json/index.js'
 import * as sse from '../../dist/sse/index.js'
 import * as chunk from '../../dist/chunk/index.js'
 import * as prompt from '../../dist/prompt/index.js'
+import * as cost from '../../dist/cost/index.js'
 import { checks } from '../smoke-checks.mjs'
 
-const modules = { '.': root, './json': json, './sse': sse, './chunk': chunk, './prompt': prompt }
+const modules = {
+  '.': root,
+  './json': json,
+  './sse': sse,
+  './chunk': chunk,
+  './prompt': prompt,
+  './cost': cost,
+}
 
 export default {
   async fetch() {

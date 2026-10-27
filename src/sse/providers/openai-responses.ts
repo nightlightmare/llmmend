@@ -1,4 +1,5 @@
-import type { LlmEvent, LlmUsage, ProviderAdapter, StopReason } from '../events'
+import { fromResponses, type ResponsesUsage } from '../../shared/usage'
+import type { LlmEvent, ProviderAdapter, StopReason } from '../events'
 import type { SSEEvent } from '../parse'
 import { done, parseObject } from './shared'
 
@@ -12,12 +13,7 @@ interface RawItem {
 
 interface RawResponse {
   id?: string
-  usage?: {
-    input_tokens?: number
-    output_tokens?: number
-    input_tokens_details?: { cached_tokens?: number } | null
-    output_tokens_details?: { reasoning_tokens?: number } | null
-  } | null
+  usage?: ResponsesUsage | null
   incomplete_details?: { reason?: string } | null
   error?: { message?: string } | null
 }
@@ -50,18 +46,8 @@ const IGNORED = new Set([
   'response.custom_tool_call_input.done',
 ])
 
-function usage(raw: RawResponse['usage']): LlmEvent[] {
-  if (!raw) return []
-  const event: { type: 'usage' } & LlmUsage = { type: 'usage' }
-  // `input_tokens` already includes cached tokens, `output_tokens` reasoning ones.
-  if (raw.input_tokens !== undefined) event.inputTokens = raw.input_tokens
-  if (raw.output_tokens !== undefined) event.outputTokens = raw.output_tokens
-  const cached = raw.input_tokens_details?.cached_tokens
-  if (cached !== undefined) event.cacheReadTokens = cached
-  const reasoning = raw.output_tokens_details?.reasoning_tokens
-  if (reasoning !== undefined) event.reasoningTokens = reasoning
-  return [event]
-}
+const usage = (raw: RawResponse['usage']): LlmEvent[] =>
+  raw ? [{ type: 'usage', ...fromResponses(raw) }] : []
 
 function create(): (event: SSEEvent) => LlmEvent[] {
   // Every output item is one Block and keeps its `output_index`, so only the tool call items and

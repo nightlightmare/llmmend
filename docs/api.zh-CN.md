@@ -2,7 +2,7 @@
 
 # API 参考
 
-`llmmend` 有四个模块。可以从模块导入，也可以从根导入：两种方式都支持 tree-shaking。
+`llmmend` 有五个模块。可以从模块导入，也可以从根导入：两种方式都支持 tree-shaking。
 
 ```ts
 import { extractJson } from 'llmmend/json'
@@ -640,6 +640,52 @@ escapeTags('a < b </document> <system>', ['document']) // 'a < b &lt;/document> 
 ```
 
 `escapeTags(text, names)` 就是 `safePrompt` 所做的转义，供不使用它构建的提示词使用。它转义 `names` 中各名称的开始、结束和自闭合标签，不区分大小写，可带属性；也转义在 `>` 之前被截断的标签（末尾的 `</document`），因为模型也可能把它读作标签。更长的名称是另一个标签：`<documents>` 保持不变。
+
+## llmmend/cost
+
+### estimateCost
+
+```ts
+import { collectText } from 'llmmend/sse'
+import { estimateCost, type Prices } from 'llmmend/cost'
+
+// 美元/百万 token，取自提供商的价格页
+const prices: Prices = { input: 3, output: 15, cacheRead: 0.3, cacheWrite: 3.75 }
+
+const res = await fetch('https://api.anthropic.com/v1/messages', { method: 'POST' })
+const { usage } = await collectText(res)
+const cost = estimateCost(usage ?? {}, prices)
+console.log(cost.total.toFixed(4), cost.missing) // 如果流中途断开，missing 为 ['output']
+```
+
+`estimateCost(usage, prices)` 返回 `{ total, input, cacheRead, cacheWrite, output, missing? }`：调用各部分的费用，不做舍入，单位与价格相同。它从不抛出异常。
+
+- **价格**按每百万 token 计，与提供商公布的方式一致：`{ input, output, cacheRead?, cacheWrite?, tiers? }`。未给出 `cacheRead` 或 `cacheWrite` 时，这些 token 按 `input` 计价：对缓存读取会偏高，对 Anthropic 的缓存写入（`input` 的 1.25 倍）会偏低。
+- **Usage** 是来自流或 `toUsage` 的 `LlmUsage`。`input` 是 `inputTokens` 减去缓存 token；`outputTokens` 已包含推理 token。
+- **`missing`** 在 usage 缺少某个计数时列出 `'input'` 或 `'output'`，该部分按 0 计：例如流在最终 usage 之前断开，或 Chat Completions 未设置 `stream_options: { include_usage: true }`。没有缺失时不出现该字段。缺少缓存计数表示没有使用缓存。
+- **`tiers`** 为长请求定价：`tiers: [{ above: 200_000, input: 2.5, output: 15 }]`。`above` 小于 `inputTokens` 的档位中 `above` 最大的那一档适用于整个调用；档位中未给出的价格取自基础价格。
+
+批量折扣、优先级档位以及 5 分钟与 1 小时缓存写入的差别在 usage 中看不出来：请传入实际适用的价格。
+
+### toUsage
+
+```ts
+import { estimateCost, toUsage } from 'llmmend/cost'
+
+// 非流式的 Messages API 回复：`input_tokens` 不含缓存 token
+const usage = toUsage({
+  input_tokens: 1_200,
+  cache_read_input_tokens: 40_000,
+  cache_creation_input_tokens: 0,
+  output_tokens: 800,
+})
+// { inputTokens: 41_200, outputTokens: 800, cacheReadTokens: 40_000, cacheWriteTokens: 0 }
+
+estimateCost(usage, { input: 3, output: 15, cacheRead: 0.3, cacheWrite: 3.75 })
+// { total: 0.0276, input: 0.0036, cacheRead: 0.012, cacheWrite: 0, output: 0.012 }
+```
+
+`toUsage(raw)` 按与流相同的规则把提供商原始的 `usage` 转成 `LlmUsage`，并根据字段识别格式：Anthropic（缓存 token 会加到 `input_tokens` 上）、OpenAI Chat Completions 及兼容 API（`prompt_tokens`）、OpenAI Responses（`input_tokens_details`）和 Gemini（`usageMetadata`：思考 token 计入输出）。其他任何值，包括 `null`，都返回 `{}`，于是 `estimateCost` 会把两个计数都标为 `missing`。它从不抛出异常。
 
 ## 错误
 

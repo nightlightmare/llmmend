@@ -140,6 +140,26 @@ const prompt = safePrompt`
 
 `safePrompt` 针对模板自身使用的标签转义每个插值，因此文档无法闭合 `<document>`，也无法塞入自己的 `<instructions>`。其余内容原样送达模型：代码、`a < b` 以及模板未使用的标签。对象以 JSON 插入，模板共同的缩进会被去掉。
 
+## 一次调用花了多少钱
+
+```ts
+import { estimateCost, toUsage } from 'llmmend/cost'
+
+// 非流式的 Messages API 回复：`input_tokens` 不含缓存 token
+const usage = toUsage({
+  input_tokens: 1_200,
+  cache_read_input_tokens: 40_000,
+  cache_creation_input_tokens: 0,
+  output_tokens: 800,
+})
+// { inputTokens: 41_200, outputTokens: 800, cacheReadTokens: 40_000, cacheWriteTokens: 0 }
+
+estimateCost(usage, { input: 3, output: 15, cacheRead: 0.3, cacheWrite: 3.75 })
+// { total: 0.0276, input: 0.0036, cacheRead: 0.012, cacheWrite: 0, output: 0.012 }
+```
+
+`estimateCost` 用你传入的价格（每百万 token）为一次调用的 usage 计价：输入、缓存读写、输出，以及长请求的更高档位。它按部分返回费用，并在 `missing` 中列出 usage 缺少的计数。`toUsage` 读取非流式回复的原始 `usage`，包括 Anthropic 的（其 `input_tokens` 不含缓存 token）。包内不附带价格表：价格变化太频繁。
+
 ## 与其他包对比
 
 |                                                      | llmmend    | jsonrepair | partial-json | best-effort-json-parser | eventsource-parser | ai       | @langchain/textsplitters |
@@ -182,6 +202,7 @@ const prompt = safePrompt`
 | `llmmend/sse`    | `parseSSE`, `sseResponse`, `createSSEStream`, `streamLlm`, `streamText`, `collectText`, `streamJson`, `streamToolCalls`                                          |
 | `llmmend/chunk`  | `chunkText`, `chunkDocuments`, `estimateTokens`, `truncateToTokens`                                                                                              |
 | `llmmend/prompt` | `safePrompt`, `trusted`, `escapeTags`                                                                                                                            |
+| `llmmend/cost`   | `estimateCost`, `toUsage`                                                                                                                                        |
 
 所有内容也从根模块重新导出：`import { extractJson } from 'llmmend'` 依然支持 tree-shaking。
 
@@ -197,6 +218,7 @@ const prompt = safePrompt`
 | `llmmend/sse`    | ~3.7 kB（仅 `parseSSE` 约 0.9 kB；含工具调用的 `collectText` 约 6.8 kB） |
 | `llmmend/chunk`  | ~2 kB                                                                    |
 | `llmmend/prompt` | ~0.6 kB                                                                  |
+| `llmmend/cost`   | ~0.7 kB                                                                  |
 
 ## 参与贡献
 

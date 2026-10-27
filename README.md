@@ -140,6 +140,26 @@ const prompt = safePrompt`
 
 `safePrompt` escapes each substitution for the tags the template itself uses, so a document can't close `<document>` or slip in its own `<instructions>`. Everything else reaches the model as written: code, `a < b` and tags the template doesn't use. Objects go in as JSON, and the template's shared indentation is removed.
 
+## What a call cost
+
+```ts
+import { estimateCost, toUsage } from 'llmmend/cost'
+
+// A Messages API reply without streaming: `input_tokens` leaves out the cached tokens
+const usage = toUsage({
+  input_tokens: 1_200,
+  cache_read_input_tokens: 40_000,
+  cache_creation_input_tokens: 0,
+  output_tokens: 800,
+})
+// { inputTokens: 41_200, outputTokens: 800, cacheReadTokens: 40_000, cacheWriteTokens: 0 }
+
+estimateCost(usage, { input: 3, output: 15, cacheRead: 0.3, cacheWrite: 3.75 })
+// { total: 0.0276, input: 0.0036, cacheRead: 0.012, cacheWrite: 0, output: 0.012 }
+```
+
+`estimateCost` prices a call’s usage with the prices you pass, per million tokens: input, cache reads and writes, output, and higher tiers for long requests. It returns the cost by part, and lists in `missing` any count the usage lacked. `toUsage` reads the raw `usage` of a reply without streaming; Anthropic’s, which leaves cached tokens out of `input_tokens`, included. No price table ships: prices change too often.
+
 ## Compared with other packages
 
 |                                                             | llmmend    | jsonrepair | partial-json | best-effort-json-parser | eventsource-parser | ai       | @langchain/textsplitters |
@@ -182,6 +202,7 @@ Checked on 2026-10-24 with jsonrepair 3.15.0, partial-json 0.1.7, best-effort-js
 | `llmmend/sse`    | `parseSSE`, `sseResponse`, `createSSEStream`, `streamLlm`, `streamText`, `collectText`, `streamJson`, `streamToolCalls`                                          |
 | `llmmend/chunk`  | `chunkText`, `chunkDocuments`, `estimateTokens`, `truncateToTokens`                                                                                              |
 | `llmmend/prompt` | `safePrompt`, `trusted`, `escapeTags`                                                                                                                            |
+| `llmmend/cost`   | `estimateCost`, `toUsage`                                                                                                                                        |
 
 Everything is also re-exported from the root: `import { extractJson } from 'llmmend'` stays tree-shakeable.
 
@@ -197,6 +218,7 @@ For AI coding assistants: [llms.txt](https://github.com/nightlightmare/llmmend/b
 | `llmmend/sse`    | ~3.7 kB (`parseSSE` alone ~0.9 kB; `collectText` with tool calls ~6.8 kB) |
 | `llmmend/chunk`  | ~2 kB                                                                     |
 | `llmmend/prompt` | ~0.6 kB                                                                   |
+| `llmmend/cost`   | ~0.7 kB                                                                   |
 
 ## Contributing
 
