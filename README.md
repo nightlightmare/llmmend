@@ -174,7 +174,7 @@ For AI coding assistants: [llms.txt](https://github.com/nightlightmare/llmmend/b
 
 | Module          | min+brotli                                                                |
 | --------------- | ------------------------------------------------------------------------- |
-| `llmmend/json`  | ~4.9 kB (`extractJson` alone ~3.4 kB, tags ~1.1 kB, code blocks ~0.5 kB)  |
+| `llmmend/json`  | ~5.2 kB (`extractJson` alone ~3.4 kB, tags ~1.1 kB, code blocks ~0.5 kB)  |
 | `llmmend/sse`   | ~3.6 kB (`parseSSE` alone ~0.9 kB; `collectText` with tool calls ~6.2 kB) |
 | `llmmend/chunk` | ~1.8 kB                                                                   |
 

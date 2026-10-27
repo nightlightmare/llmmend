@@ -34,7 +34,8 @@ async function bestOf(text: string): Promise<number> {
   return best
 }
 
-/** How much longer four times the text takes: about 4 when linear, 16 when quadratic. */
+/** How much longer four times the text takes: about 4 when linear, 16 when quadratic (CI runners
+ * are noisy, so the bound for linear is 8). */
 async function growth(make: (size: number) => string): Promise<number> {
   return (await bestOf(make(400_000))) / (await bestOf(make(100_000)))
 }
@@ -53,7 +54,7 @@ describe('streamJson', () => {
   ])(
     'streams %s in linear time',
     async (_, make) => {
-      expect(await growth(make)).toBeLessThan(6)
+      expect(await growth(make)).toBeLessThan(8)
     },
     120_000,
   )

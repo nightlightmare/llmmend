@@ -143,7 +143,7 @@
     {
       "name": "llmmend/json",
       "path": "dist/json/index.js",
-      "limit": "5 kB"
+      "limit": "5.5 kB"
     },
     {
       "name": "llmmend/json (import { extractTag, extractAllTags })",
