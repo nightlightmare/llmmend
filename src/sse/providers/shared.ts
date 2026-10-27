@@ -10,11 +10,18 @@ export function parseObject<T extends object>(data: string): T | undefined {
   }
 }
 
-/** The final event for a Provider's stop reason string, mapped through `reasons`. */
-export function done(raw: string | undefined, reasons: Map<string, StopReason>): LlmEvent[] {
-  return [
-    raw === undefined
-      ? { type: 'done', stopReason: 'unknown' }
-      : { type: 'done', stopReason: reasons.get(raw) ?? 'unknown', rawStopReason: raw },
-  ]
+/** The final event, with the raw stop reason and the response id when there are any. */
+export function done(
+  stopReason: StopReason,
+  rawStopReason: string | undefined,
+  responseId: string | undefined,
+): LlmEvent[] {
+  const event: LlmEvent = { type: 'done', stopReason }
+  if (rawStopReason !== undefined) event.rawStopReason = rawStopReason
+  if (responseId !== undefined) event.responseId = responseId
+  return [event]
 }
+
+/** The Stop reason of a Provider's raw stop reason, mapped through `reasons`. */
+export const mapStop = (raw: string | undefined, reasons: Map<string, StopReason>): StopReason =>
+  (raw !== undefined && reasons.get(raw)) || 'unknown'

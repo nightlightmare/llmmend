@@ -177,7 +177,7 @@ describe('streamText and collectText', () => {
     expect(pieces.join('')).toBe(sentence)
   })
 
-  it('collectText returns the text, Stop reason and last usage', async () => {
+  it('collectText returns the text, Stop reason, last usage and response id', async () => {
     expect(await collectText(byteStream([text]), { provider: 'anthropic' })).toEqual({
       text: sentence,
       stopReason: 'end',
@@ -188,11 +188,12 @@ describe('streamText and collectText', () => {
         cacheWriteTokens: 0,
         reasoningTokens: 0,
       },
+      responseId: 'msg_bdrk_27og4ulziruevcs3sxlfj4zahaw22mpqytohxml5vczbpu6pndda',
       toolCalls: [],
     })
   })
 
-  it('collectText leaves usage out when the Provider sent none', async () => {
+  it('collectText leaves usage and the response id out when the Provider sent none', async () => {
     expect(await collectText(new Response(null), { provider: 'anthropic' })).toEqual({
       text: '',
       stopReason: 'unknown',

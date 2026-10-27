@@ -42,6 +42,8 @@ export interface CollectedText<Tools extends ToolSchemas = Record<never, never>>
   stopReason: StopReason
   /** The last usage snapshot, if the Provider sent one. */
   usage?: LlmUsage
+  /** The Provider's id of the response, from the `done` event (see `LlmEvent`). */
+  responseId?: string
   /** The answer's tool calls in Block order, each usable (`ok: true`) or with the reason it is not. */
   toolCalls: ToolCall<Tools>[]
 }
@@ -119,8 +121,10 @@ export async function collectText<Tools extends ToolSchemas = Record<never, neve
     else if (event.type === 'tool_call_delta') {
       const call = calls.get(event.index)
       if (call) call.argsText += event.argsDelta
-    } else if (event.type === 'done') result.stopReason = event.stopReason
-    else if (event.type === 'usage') {
+    } else if (event.type === 'done') {
+      result.stopReason = event.stopReason
+      if (event.responseId !== undefined) result.responseId = event.responseId
+    } else if (event.type === 'usage') {
       const { type: _, ...usage } = event
       result.usage = usage
     }

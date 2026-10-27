@@ -19,6 +19,7 @@
   {
     "type": "done",
     "stopReason": "max_tokens",
-    "rawStopReason": "max_output_tokens"
+    "rawStopReason": "max_output_tokens",
+    "responseId": "resp_incomplete"
   }
 ]

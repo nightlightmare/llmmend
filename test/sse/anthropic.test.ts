@@ -62,7 +62,12 @@ describe('anthropic adapter: fixtures', () => {
     expect(join(events, 'text')).toBe(
       'The sea stretches endlessly, its waves whispering secrets to the shore 🌊. Sailors have long called it by many names, but my favorite is the Russian word «море».',
     )
-    expect(events.at(-1)).toEqual({ type: 'done', stopReason: 'end', rawStopReason: 'end_turn' })
+    expect(events.at(-1)).toEqual({
+      type: 'done',
+      stopReason: 'end',
+      rawStopReason: 'end_turn',
+      responseId: 'msg_bdrk_27og4ulziruevcs3sxlfj4zahaw22mpqytohxml5vczbpu6pndda',
+    })
     expect(lastUsage(events)).toEqual({
       type: 'usage',
       inputTokens: 36,
@@ -135,6 +140,7 @@ describe('anthropic adapter: fixtures', () => {
       type: 'done',
       stopReason: 'tool_use',
       rawStopReason: 'tool_use',
+      responseId: 'msg_bdrk_dphddwqp6msats2llmo7cklrax34wxzp5uknl7ummrkc4hldy6uq',
     })
   })
 
@@ -144,6 +150,7 @@ describe('anthropic adapter: fixtures', () => {
       type: 'done',
       stopReason: 'max_tokens',
       rawStopReason: 'max_tokens',
+      responseId: 'msg_bdrk_6zhwtkhva7beo22itzg577mybtu6pd3lk7kre33gdkkxklbljn4a',
     })
   })
 

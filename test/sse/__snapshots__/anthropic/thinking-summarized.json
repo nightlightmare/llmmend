@@ -162,6 +162,7 @@
   {
     "type": "done",
     "stopReason": "end",
-    "rawStopReason": "end_turn"
+    "rawStopReason": "end_turn",
+    "responseId": "msg_bdrk_deonfrxcljnq3k6fbsord2xgktkr34ze4eld33dp6nmexwkk2alq"
   }
 ]

@@ -47,6 +47,7 @@
   {
     "type": "done",
     "stopReason": "tool_use",
-    "rawStopReason": "STOP"
+    "rawStopReason": "STOP",
+    "responseId": "Is7baoLsOaKIvdIPo9zQ2AQ"
   }
 ]

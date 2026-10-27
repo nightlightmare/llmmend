@@ -70,7 +70,12 @@ describe('openai adapter: fixtures', () => {
       outputTokens: 21,
       cacheReadTokens: 24,
     })
-    expect(events.at(-1)).toEqual({ type: 'done', stopReason: 'end', rawStopReason: 'stop' })
+    expect(events.at(-1)).toEqual({
+      type: 'done',
+      stopReason: 'end',
+      rawStopReason: 'stop',
+      responseId: 'chatcmpl-957',
+    })
   })
 
   it('emits start and arguments together when a tool call arrives whole (Ollama)', async () => {
@@ -85,6 +90,7 @@ describe('openai adapter: fixtures', () => {
       type: 'done',
       stopReason: 'tool_use',
       rawStopReason: 'tool_calls',
+      responseId: 'chatcmpl-586',
     })
   })
 
@@ -125,7 +131,12 @@ describe('openai adapter: fixtures', () => {
     const events = await run('openrouter/reasoning')
     expect(join(events, 'text')).toBe('12 squared is 144.')
     expect(lastUsage(events)).toMatchObject({ inputTokens: 14, reasoningTokens: 31 })
-    expect(events.at(-1)).toEqual({ type: 'done', stopReason: 'end', rawStopReason: 'stop' })
+    expect(events.at(-1)).toEqual({
+      type: 'done',
+      stopReason: 'end',
+      rawStopReason: 'stop',
+      responseId: 'gen-synthetic',
+    })
   })
 
   it('stops at the length limit', async () => {
@@ -133,6 +144,7 @@ describe('openai adapter: fixtures', () => {
       type: 'done',
       stopReason: 'max_tokens',
       rawStopReason: 'length',
+      responseId: 'chatcmpl-540',
     })
   })
 

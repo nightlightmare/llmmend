@@ -274,17 +274,17 @@ function show(ev: LlmEvent): string {
 }
 ```
 
-| `type`                | 字段                                                                                         | 含义                                                                                                                                       |
-| --------------------- | -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| `text`                | `index`, `text`                                                                              | 回答文本的一个片段。                                                                                                                       |
-| `reasoning`           | `index`, `text`, `redacted?`                                                                 | 推理的一个片段。`redacted` 保存 Anthropic 加密的 `redacted_thinking` 数据；请原样发回。                                                    |
-| `reasoning_signature` | `index`, `signature`                                                                         | 继续对话时需要随块 `index` 原样发回的数据：Anthropic 的推理签名，或 Gemini 的 `thoughtSignature`（可能出现在任何部分上，通常是函数调用）。 |
-| `tool_call_start`     | `index`, `id`, `name`, `custom?`                                                             | 一次工具调用开始。`custom: true`：OpenAI Responses 的 custom tool，其输入是自由文本而不是 JSON。                                           |
-| `tool_call_delta`     | `index`, `argsDelta`                                                                         | 工具调用 JSON 参数的一个片段；按顺序拼接。                                                                                                 |
-| `usage`               | `inputTokens?`, `outputTokens?`, `cacheReadTokens?`, `cacheWriteTokens?`, `reasoningTokens?` | 截至目前的 token 用量。                                                                                                                    |
-| `done`                | `stopReason`, `rawStopReason?`                                                               | 流结束。                                                                                                                                   |
-| `error`               | `message`, `raw`                                                                             | 提供商在流中途报告了错误。                                                                                                                 |
-| `other`               | `raw`                                                                                        | 适配器不认识的事件，即 `parseSSE` 解析出的原样事件。                                                                                       |
+| `type`                | 字段                                                                                         | 含义                                                                                                                                                                                      |
+| --------------------- | -------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `text`                | `index`, `text`                                                                              | 回答文本的一个片段。                                                                                                                                                                      |
+| `reasoning`           | `index`, `text`, `redacted?`                                                                 | 推理的一个片段。`redacted` 保存 Anthropic 加密的 `redacted_thinking` 数据；请原样发回。                                                                                                   |
+| `reasoning_signature` | `index`, `signature`, `itemId?`                                                              | 继续对话时需要随块 `index` 原样发回的数据：Anthropic 的推理签名，或 Gemini 的 `thoughtSignature`（可能出现在任何部分上，通常是函数调用）。`itemId`：OpenAI Responses 的推理项（`rs_…`）。 |
+| `tool_call_start`     | `index`, `id`, `name`, `custom?`, `itemId?`                                                  | 一次工具调用开始。`custom: true`：OpenAI Responses 的 custom tool，其输入是自由文本而不是 JSON。`itemId`：OpenAI Responses 的函数调用项（`fc_…`）。                                       |
+| `tool_call_delta`     | `index`, `argsDelta`                                                                         | 工具调用 JSON 参数的一个片段；按顺序拼接。                                                                                                                                                |
+| `usage`               | `inputTokens?`, `outputTokens?`, `cacheReadTokens?`, `cacheWriteTokens?`, `reasoningTokens?` | 截至目前的 token 用量。                                                                                                                                                                   |
+| `done`                | `stopReason`, `rawStopReason?`, `responseId?`                                                | 流结束。`responseId`：提供商对该响应的 id。                                                                                                                                               |
+| `error`               | `message`, `raw`                                                                             | 提供商在流中途报告了错误。                                                                                                                                                                |
+| `other`               | `raw`                                                                                        | 适配器不认识的事件，即 `parseSSE` 解析出的原样事件。                                                                                                                                      |
 
 `index` 是块的编号：文本、推理和每次工具调用各有自己的编号，所有提供商都一样。`tool_call_delta` 总是在相同 `index` 的 `tool_call_start` 之后到达。
 
@@ -303,7 +303,7 @@ function show(ev: LlmEvent): string {
 | `error`         | `error` 事件                                  | 数据中的 `error` 对象         | 数据中的 `error` 对象；`MALFORMED_FUNCTION_CALL`, `MISSING_THOUGHT_SIGNATURE`, …     |
 | `unknown`       | 其他值，或没有最终事件                        | 其他值，或没有 `[DONE]`       | 其他值，或没有停止原因                                                               |
 
-`rawStopReason` 保留提供商的原始字符串。
+`rawStopReason` 保留提供商的原始字符串。`responseId` 是提供商对该响应的 id：Anthropic 为 `msg_…`，Chat Completions 为 `chatcmpl-…`（兼容 API 可能不同），Responses 为 `resp_…`（用于 `previous_response_id`），Gemini 为 `responseId`。它随提供商自己的结束事件到来，因此 `streamLlm` 在错误或流中断后补上的 `done` 不带它。配合 `tool_call_start` 和 `reasoning_signature` 上的 `itemId`，自行保存 Responses 历史的客户端可以把这些项发回。
 
 错误与流的结束：
 
@@ -348,7 +348,7 @@ const { text, stopReason, usage } = await collectText(res, { provider: 'openai' 
 console.log(text, stopReason, usage?.outputTokens)
 ```
 
-读取整个流，返回 `{ text, stopReason, usage?, toolCalls }`，其中是最后一次用量快照。
+读取整个流，返回 `{ text, stopReason, usage?, responseId?, toolCalls }`，其中是最后一次用量快照。
 
 #### 工具调用
 

@@ -3008,6 +3008,7 @@
   {
     "type": "done",
     "stopReason": "max_tokens",
-    "rawStopReason": "length"
+    "rawStopReason": "length",
+    "responseId": "chatcmpl-540"
   }
 ]
