@@ -164,6 +164,12 @@
       "limit": "1 kB"
     },
     {
+      "name": "llmmend/sse (import { sseResponse })",
+      "path": "dist/sse/index.js",
+      "import": "{ sseResponse }",
+      "limit": "1 kB"
+    },
+    {
       "name": "llmmend/sse (import { streamLlm, streamText })",
       "path": "dist/sse/index.js",
       "import": "{ streamLlm, streamText }",

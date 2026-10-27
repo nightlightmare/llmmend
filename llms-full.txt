@@ -441,6 +441,44 @@ With `tools`, `partial` is typed as a deep partial of the tool schema's input, n
 
 Then it yields one final item: `{ done: true }` with everything `collectText` returns. Reasoning is not yielded: read it with `streamLlm`. Each argument delta re-parses that call's arguments, which is fine for arguments of a few kilobytes.
 
+### sseResponse
+
+```ts
+import { sseResponse, streamLlm } from 'llmmend/sse'
+
+// A server route that passes the model's stream on to the browser as LLM events.
+export async function POST(request: Request): Promise<Response> {
+  const upstream = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'x-api-key': '…',
+      'anthropic-version': '2023-06-01',
+      'content-type': 'application/json',
+    },
+    body: await request.text(),
+    signal: request.signal,
+  })
+  return sseResponse(streamLlm(upstream), { keepAlive: 15_000 })
+}
+```
+
+```ts
+import { type LlmEvent, parseSSE } from 'llmmend/sse'
+
+// In the browser.
+const res = await fetch('/api/chat', { method: 'POST', body: JSON.stringify({ messages: [] }) })
+for await (const event of parseSSE(res.body!)) {
+  const ev = JSON.parse(event.data) as LlmEvent
+  if (ev.type === 'text') console.log(ev.text)
+}
+```
+
+`sseResponse(source, init?)` streams an async iterable as server-sent events, in a `Response` with `content-type: text/event-stream`, `cache-control: no-cache` and `x-accel-buffering: no` (so nginx does not hold events back), unless `init` sets them. `init` is a `ResponseInit` plus `keepAlive`. `createSSEStream(source, { keepAlive? })` gives the same stream as a `ReadableStream<Uint8Array>`, for servers that take a body rather than a `Response`.
+
+Each item of `source` is an event `{ data, event?, id?, retry? }` or a plain value. A string `data` goes as is, anything else through `JSON.stringify`; multi-line data becomes several `data:` lines, which `parseSSE` joins again. An object is an event only when it has `data` and no keys but `event`, `id` and `retry`, so LLM events go as JSON. An `event` or `id` with a line break, a `retry` that is not a whole number, or an error from the source errors the stream.
+
+`keepAlive` (milliseconds, off by default) sends a `:` comment after that long without an event, so proxies don't drop a quiet connection, for example while the model thinks. When the client goes away, the stream calls `return()` on the source: `streamLlm` then cancels the upstream request as soon as its next chunk arrives.
+
 ### Custom Provider adapters
 
 ```ts

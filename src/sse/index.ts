@@ -1,4 +1,5 @@
 export { parseSSE, type ParseSSEOptions, type SSEEvent } from './parse'
+export { createSSEStream, type SSEMessage, sseResponse, type SSEStreamOptions } from './serve'
 export type { LlmEvent, LlmUsage, Provider, ProviderAdapter, StopReason } from './events'
 export {
   collectText,

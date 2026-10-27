@@ -443,6 +443,44 @@ for await (const item of streamToolCalls(res, { tools })) {
 
 В конце приходит один итоговый элемент: `{ done: true }` со всем, что возвращает `collectText`. Рассуждения модели не выдаются: их читает `streamLlm`. Каждая дельта аргументов заново разбирает аргументы своего вызова, для аргументов в несколько килобайт это нормально.
 
+### sseResponse
+
+```ts
+import { sseResponse, streamLlm } from 'llmmend/sse'
+
+// Серверный маршрут, который передаёт стрим модели в браузер в виде LLM-событий.
+export async function POST(request: Request): Promise<Response> {
+  const upstream = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'x-api-key': '…',
+      'anthropic-version': '2023-06-01',
+      'content-type': 'application/json',
+    },
+    body: await request.text(),
+    signal: request.signal,
+  })
+  return sseResponse(streamLlm(upstream), { keepAlive: 15_000 })
+}
+```
+
+```ts
+import { type LlmEvent, parseSSE } from 'llmmend/sse'
+
+// В браузере.
+const res = await fetch('/api/chat', { method: 'POST', body: JSON.stringify({ messages: [] }) })
+for await (const event of parseSSE(res.body!)) {
+  const ev = JSON.parse(event.data) as LlmEvent
+  if (ev.type === 'text') console.log(ev.text)
+}
+```
+
+`sseResponse(source, init?)` отдаёт асинхронный итерируемый источник как server-sent events в `Response` с заголовками `content-type: text/event-stream`, `cache-control: no-cache` и `x-accel-buffering: no` (чтобы nginx не придерживал события), если `init` не задаёт их сам. `init` — это `ResponseInit` плюс `keepAlive`. `createSSEStream(source, { keepAlive? })` даёт тот же поток как `ReadableStream<Uint8Array>` — для серверов, которые принимают тело, а не `Response`.
+
+Каждый элемент `source` — событие `{ data, event?, id?, retry? }` или просто значение. Строковый `data` уходит как есть, всё остальное — через `JSON.stringify`; многострочные данные становятся несколькими строками `data:`, которые `parseSSE` снова склеивает. Объект считается событием, только если в нём есть `data` и нет других ключей, кроме `event`, `id` и `retry`, поэтому LLM-события уходят как JSON. `event` или `id` с переводом строки, `retry`, не являющийся целым числом, или ошибка источника переводят поток в ошибку.
+
+`keepAlive` (в миллисекундах, по умолчанию выключен) отправляет комментарий `:`, если столько времени не было событий, чтобы прокси не обрывали тихое соединение, например пока модель думает. Когда клиент уходит, поток вызывает у источника `return()`: `streamLlm` тогда отменяет запрос к провайдеру, как только придёт его следующий кусок.
+
 ### Свои адаптеры провайдеров
 
 ```ts

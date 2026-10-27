@@ -443,6 +443,44 @@ for await (const item of streamToolCalls(res, { tools })) {
 
 最后输出一个最终项：`{ done: true }`，包含 `collectText` 返回的全部内容。推理内容不会输出：请用 `streamLlm` 读取。每个参数增量都会重新解析该调用的参数，对于几 KB 的参数没有问题。
 
+### sseResponse
+
+```ts
+import { sseResponse, streamLlm } from 'llmmend/sse'
+
+// 服务器路由：把模型的流以 LLM 事件的形式转发给浏览器。
+export async function POST(request: Request): Promise<Response> {
+  const upstream = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'x-api-key': '…',
+      'anthropic-version': '2023-06-01',
+      'content-type': 'application/json',
+    },
+    body: await request.text(),
+    signal: request.signal,
+  })
+  return sseResponse(streamLlm(upstream), { keepAlive: 15_000 })
+}
+```
+
+```ts
+import { type LlmEvent, parseSSE } from 'llmmend/sse'
+
+// 在浏览器中。
+const res = await fetch('/api/chat', { method: 'POST', body: JSON.stringify({ messages: [] }) })
+for await (const event of parseSSE(res.body!)) {
+  const ev = JSON.parse(event.data) as LlmEvent
+  if (ev.type === 'text') console.log(ev.text)
+}
+```
+
+`sseResponse(source, init?)` 把一个异步可迭代对象作为 server-sent events 输出到 `Response` 中，带有 `content-type: text/event-stream`、`cache-control: no-cache` 和 `x-accel-buffering: no`（让 nginx 不缓冲事件），除非 `init` 自己设置了它们。`init` 是 `ResponseInit` 加上 `keepAlive`。`createSSEStream(source, { keepAlive? })` 以 `ReadableStream<Uint8Array>` 的形式给出同样的流，适用于接收响应体而不是 `Response` 的服务器。
+
+`source` 的每一项是一个事件 `{ data, event?, id?, retry? }` 或一个普通值。字符串 `data` 原样发送，其他值经过 `JSON.stringify`；多行数据会变成多条 `data:` 行，`parseSSE` 会再把它们拼接起来。只有含有 `data` 且除 `event`、`id`、`retry` 外没有其他键的对象才算事件，因此 LLM 事件以 JSON 发送。带换行的 `event` 或 `id`、不是整数的 `retry`，或来源抛出的错误，都会使流出错。
+
+`keepAlive`（毫秒，默认关闭）在这么长时间没有事件后发送一条 `:` 注释，让代理不会断开安静的连接，例如模型思考时。客户端离开时，流会调用来源的 `return()`：`streamLlm` 会在上游的下一块数据到达时取消上游请求。
+
 ### 自定义提供商适配器
 
 ```ts
