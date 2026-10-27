@@ -1,6 +1,6 @@
 import type { LlmEvent, LlmUsage, ProviderAdapter, StopReason } from '../events'
 import type { SSEEvent } from '../parse'
-import { parseObject } from './shared'
+import { done, parseObject } from './shared'
 
 interface RawPart {
   text?: string
@@ -11,6 +11,7 @@ interface RawPart {
 
 /** The fields of a `streamGenerateContent` chunk this adapter reads. */
 interface RawChunk {
+  responseId?: string
   candidates?: { content?: { parts?: RawPart[] }; finishReason?: string }[]
   promptFeedback?: { blockReason?: string }
   usageMetadata?: {
@@ -60,6 +61,7 @@ function create(): (event: SSEEvent) => LlmEvent[] {
   let kind: 'text' | 'reasoning' | undefined
   let index = 0
   let calledTools = false
+  let responseId: string | undefined
 
   return (sse) => {
     const raw = parseObject<RawChunk>(sse.data)
@@ -68,6 +70,7 @@ function create(): (event: SSEEvent) => LlmEvent[] {
       return [{ type: 'other', raw: sse }]
     }
 
+    responseId ??= raw.responseId
     const events: LlmEvent[] = []
     // Only one answer per stream (ADR 0001): alternative candidates are ignored.
     const candidate = raw.candidates?.[0]
@@ -120,13 +123,9 @@ function create(): (event: SSEEvent) => LlmEvent[] {
     const blocked = raw.promptFeedback?.blockReason
     if (candidate?.finishReason) {
       const finish = candidate.finishReason
-      events.push({
-        type: 'done',
-        stopReason: stopReason(finish, calledTools),
-        rawStopReason: finish,
-      })
+      events.push(...done(stopReason(finish, calledTools), finish, responseId))
     } else if (blocked && !candidate) {
-      events.push({ type: 'done', stopReason: 'refused', rawStopReason: blocked })
+      events.push(...done('refused', blocked, responseId))
     }
     return events
   }

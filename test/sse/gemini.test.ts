@@ -65,7 +65,12 @@ describe('gemini adapter: fixtures', () => {
     expect(events.every((e) => !('index' in e) || e.index === 0)).toBe(true)
     expect(events.filter((e) => e.type === 'reasoning_signature')).toHaveLength(1)
     expect(lastUsage(events)).toEqual({ type: 'usage', inputTokens: 19, outputTokens: 31 })
-    expect(events.at(-1)).toEqual({ type: 'done', stopReason: 'end', rawStopReason: 'STOP' })
+    expect(events.at(-1)).toEqual({
+      type: 'done',
+      stopReason: 'end',
+      rawStopReason: 'STOP',
+      responseId: '18zbapqqPK3dxs0P7J24wQQ',
+    })
   })
 
   it('puts thought summaries in a reasoning Block before the text Block', async () => {
@@ -88,7 +93,12 @@ describe('gemini adapter: fixtures', () => {
     ])
     expect(events.find((e) => e.type === 'reasoning_signature')).toMatchObject({ index: 0 })
     // Gemini says STOP; the answer called tools.
-    expect(events.at(-1)).toEqual({ type: 'done', stopReason: 'tool_use', rawStopReason: 'STOP' })
+    expect(events.at(-1)).toEqual({
+      type: 'done',
+      stopReason: 'tool_use',
+      rawStopReason: 'STOP',
+      responseId: 'Is7baoLsOaKIvdIPo9zQ2AQ',
+    })
   })
 
   it('stops at MAX_TOKENS', async () => {
@@ -96,6 +106,7 @@ describe('gemini adapter: fixtures', () => {
       type: 'done',
       stopReason: 'max_tokens',
       rawStopReason: 'MAX_TOKENS',
+      responseId: 'n9bbasThNN6fvdIP1J2ziAU',
     })
   })
 
@@ -113,6 +124,7 @@ describe('gemini adapter: fixtures', () => {
       type: 'done',
       stopReason: 'refused',
       rawStopReason: 'SAFETY',
+      responseId: 'synthetic',
     })
   })
 

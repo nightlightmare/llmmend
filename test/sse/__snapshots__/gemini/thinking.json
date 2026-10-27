@@ -189,6 +189,7 @@
   {
     "type": "done",
     "stopReason": "end",
-    "rawStopReason": "STOP"
+    "rawStopReason": "STOP",
+    "responseId": "tM3bauXeCYT6xN8P3Pm5kQQ"
   }
 ]

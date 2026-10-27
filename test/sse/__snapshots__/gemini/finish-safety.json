@@ -17,6 +17,7 @@
   {
     "type": "done",
     "stopReason": "refused",
-    "rawStopReason": "SAFETY"
+    "rawStopReason": "SAFETY",
+    "responseId": "synthetic"
   }
 ]

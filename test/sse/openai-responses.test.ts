@@ -72,17 +72,34 @@ describe('openai-responses adapter: fixtures', () => {
       cacheReadTokens: 0,
       reasoningTokens: 0,
     })
-    expect(events.at(-1)).toEqual({ type: 'done', stopReason: 'end', rawStopReason: 'completed' })
+    expect(events.at(-1)).toEqual({
+      type: 'done',
+      stopReason: 'end',
+      rawStopReason: 'completed',
+      responseId: 'resp_119125',
+    })
   })
 
   it('numbers tool calls by output_index and ends with tool_use', async () => {
     const events = await run('ollama-responses/tool-calls')
     expect(events.filter((e) => e.type === 'tool_call_start')).toEqual([
-      { type: 'tool_call_start', index: 0, id: 'call_trir5kan', name: 'get_weather' },
-      { type: 'tool_call_start', index: 1, id: 'call_r5g1vw49', name: 'get_weather' },
+      {
+        type: 'tool_call_start',
+        index: 0,
+        id: 'call_trir5kan',
+        name: 'get_weather',
+        itemId: 'fc_421431_0',
+      },
+      {
+        type: 'tool_call_start',
+        index: 1,
+        id: 'call_r5g1vw49',
+        name: 'get_weather',
+        itemId: 'fc_530436_0',
+      },
     ])
     expect([args(events, 0), args(events, 1)]).toEqual(['{"city":"Paris"}', '{"city":"Tokyo"}'])
-    expect(events.at(-1)).toMatchObject({ stopReason: 'tool_use' })
+    expect(events.at(-1)).toMatchObject({ stopReason: 'tool_use', responseId: 'resp_467023' })
   })
 
   it('joins summary parts into one reasoning Block and passes encrypted content back', async () => {
@@ -92,6 +109,7 @@ describe('openai-responses adapter: fixtures', () => {
       type: 'reasoning_signature',
       index: 0,
       signature: 'gAAAAABpSYNTHETICencryptedReasoningContent==',
+      itemId: 'rs_synthetic',
     })
     expect(events.every((e) => e.type !== 'text' || e.index === 1)).toBe(true)
     expect(lastUsage(events)).toMatchObject({ outputTokens: 96, reasoningTokens: 64 })
@@ -104,6 +122,7 @@ describe('openai-responses adapter: fixtures', () => {
       type: 'done',
       stopReason: 'refused',
       rawStopReason: 'completed',
+      responseId: 'resp_refusal',
     })
   })
 
@@ -112,6 +131,7 @@ describe('openai-responses adapter: fixtures', () => {
       type: 'done',
       stopReason: 'max_tokens',
       rawStopReason: 'max_output_tokens',
+      responseId: 'resp_incomplete',
     })
   })
 
@@ -132,6 +152,7 @@ describe('openai-responses adapter: fixtures', () => {
       id: 'call_custom1',
       name: 'run_sql',
       custom: true,
+      itemId: 'ctc_synthetic',
     })
     expect(args(events, 0)).toBe('SELECT count(*) FROM users')
     expect(events.at(-1)).toMatchObject({ stopReason: 'tool_use' })

@@ -27,6 +27,7 @@
   {
     "type": "done",
     "stopReason": "end",
-    "rawStopReason": "end_turn"
+    "rawStopReason": "end_turn",
+    "responseId": "msg_synthetic_redacted"
   }
 ]

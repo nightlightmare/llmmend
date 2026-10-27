@@ -23,7 +23,7 @@ Install with `npm i llmmend`. Import from `llmmend/json`, `llmmend/sse` or `llmm
 - [streamLlm](https://github.com/nightlightmare/llmmend/blob/main/docs/api.md#streamllm): `streamLlm(source, { provider?, signal? })` turns a Provider's stream into one sequence of LLM events.
 - [LLM events](https://github.com/nightlightmare/llmmend/blob/main/docs/api.md#llm-events): `index` is the Block: text, reasoning and each tool call get their own number, the same way for every Provider.
 - [streamText](https://github.com/nightlightmare/llmmend/blob/main/docs/api.md#streamtext): Yields only the answer's text.
-- [collectText](https://github.com/nightlightmare/llmmend/blob/main/docs/api.md#collecttext): Reads the whole stream and returns `{ text, stopReason, usage?, toolCalls }`, with the last usage snapshot.
+- [collectText](https://github.com/nightlightmare/llmmend/blob/main/docs/api.md#collecttext): Reads the whole stream and returns `{ text, stopReason, usage?, responseId?, toolCalls }`, with the last usage snapshot.
 - [streamJson](https://github.com/nightlightmare/llmmend/blob/main/docs/api.md#streamjson): Streams a Reply that contains JSON.
 - [streamToolCalls](https://github.com/nightlightmare/llmmend/blob/main/docs/api.md#streamtoolcalls): Streams an answer with tool calls, for UIs that render a call while the model writes it.
 - [Custom Provider adapters](https://github.com/nightlightmare/llmmend/blob/main/docs/api.md#custom-provider-adapters): An adapter turns each parsed SSE event into zero or more LLM events.

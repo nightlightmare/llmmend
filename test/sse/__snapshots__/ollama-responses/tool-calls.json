@@ -3,7 +3,8 @@
     "type": "tool_call_start",
     "index": 0,
     "id": "call_trir5kan",
-    "name": "get_weather"
+    "name": "get_weather",
+    "itemId": "fc_421431_0"
   },
   {
     "type": "tool_call_delta",
@@ -14,7 +15,8 @@
     "type": "tool_call_start",
     "index": 1,
     "id": "call_r5g1vw49",
-    "name": "get_weather"
+    "name": "get_weather",
+    "itemId": "fc_530436_0"
   },
   {
     "type": "tool_call_delta",
@@ -31,6 +33,7 @@
   {
     "type": "done",
     "stopReason": "tool_use",
-    "rawStopReason": "completed"
+    "rawStopReason": "completed",
+    "responseId": "resp_467023"
   }
 ]

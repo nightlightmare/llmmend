@@ -67,6 +67,7 @@
   {
     "type": "done",
     "stopReason": "max_tokens",
-    "rawStopReason": "max_tokens"
+    "rawStopReason": "max_tokens",
+    "responseId": "msg_bdrk_6zhwtkhva7beo22itzg577mybtu6pd3lk7kre33gdkkxklbljn4a"
   }
 ]

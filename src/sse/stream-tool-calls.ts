@@ -62,6 +62,7 @@ export async function* streamToolCalls<Tools extends ToolSchemas = Record<never,
   let text = ''
   let stopReason: StopReason = 'unknown'
   let usage: LlmUsage | undefined
+  let responseId: string | undefined
   const calls = new Map<number, PendingToolCall>()
   // What was last yielded per call, serialized, so an unchanged Partial value is not repeated.
   const shown = new Map<number, string>()
@@ -100,9 +101,16 @@ export async function* streamToolCalls<Tools extends ToolSchemas = Record<never,
     } else if (event.type === 'usage') {
       const { type: _, ...counts } = event
       usage = counts
-    } else if (event.type === 'done') stopReason = event.stopReason
+    } else if (event.type === 'done') ({ stopReason, responseId } = event)
   }
 
   const toolCalls = (await finishToolCalls(calls.values(), tools)) as ToolCall<Tools>[]
-  yield { done: true, text, stopReason, ...(usage ? { usage } : {}), toolCalls }
+  yield {
+    done: true,
+    text,
+    stopReason,
+    ...(usage ? { usage } : {}),
+    ...(responseId !== undefined ? { responseId } : {}),
+    toolCalls,
+  }
 }
