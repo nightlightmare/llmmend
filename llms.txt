@@ -41,6 +41,11 @@ Install with `npm i llmmend`. Import from `llmmend/json`, `llmmend/sse`, `llmmen
 - [safePrompt](https://github.com/nightlightmare/llmmend/blob/main/docs/api.md#safeprompt): `safePrompt` is a template tag that returns a string.
 - [escapeTags](https://github.com/nightlightmare/llmmend/blob/main/docs/api.md#escapetags): `escapeTags(text, names)` is the escaping `safePrompt` applies, for prompts built without it.
 
+## llmmend/cost
+
+- [estimateCost](https://github.com/nightlightmare/llmmend/blob/main/docs/api.md#estimatecost): `estimateCost(usage, prices)` returns `{ total, input, cacheRead, cacheWrite, output, missing? }`: what each part of the call cost, unrounded, in the unit of the prices.
+- [toUsage](https://github.com/nightlightmare/llmmend/blob/main/docs/api.md#tousage): `toUsage(raw)` turns a Provider’s raw `usage` into `LlmUsage` with the same rules as the streams, recognising it by its fields: Anthropic (cached tokens added to `input_tokens`), OpenAI Chat Completions and compatible APIs (`prompt_tokens`), OpenAI Responses (`input_tokens_details`) and Gemini (`usageMetadata`: thoughts count as output).
+
 ## Reference
 
 - [Errors](https://github.com/nightlightmare/llmmend/blob/main/docs/api.md#errors): Every error llmmend throws extends `LlmmendError`, which has a `code`

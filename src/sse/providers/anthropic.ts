@@ -1,20 +1,13 @@
-import type { LlmEvent, LlmUsage, ProviderAdapter, StopReason } from '../events'
+import { type AnthropicUsage, fromAnthropic } from '../../shared/usage'
+import type { LlmEvent, ProviderAdapter, StopReason } from '../events'
 import type { SSEEvent } from '../parse'
 import { done, mapStop, parseObject } from './shared'
-
-interface RawUsage {
-  input_tokens?: number
-  output_tokens?: number
-  cache_read_input_tokens?: number
-  cache_creation_input_tokens?: number
-  output_tokens_details?: { thinking_tokens?: number }
-}
 
 /** The fields of the Messages API stream events this adapter reads. */
 interface RawEvent {
   type?: string
   index?: number
-  message?: { id?: string; usage?: RawUsage }
+  message?: { id?: string; usage?: AnthropicUsage }
   content_block?: {
     type?: string
     text?: string
@@ -32,7 +25,7 @@ interface RawEvent {
     partial_json?: string
     stop_reason?: string | null
   }
-  usage?: RawUsage
+  usage?: AnthropicUsage
   error?: { message?: string }
 }
 
@@ -50,29 +43,16 @@ function create(): (event: SSEEvent) => LlmEvent[] {
   // Blocks started as tool calls, so their argument deltas can be told from unknown Blocks.
   const toolBlocks = new Set<number>()
   // `message_delta` may repeat only some counts, so each one keeps its latest value.
-  let input: number | undefined
-  let read: number | undefined
-  let write: number | undefined
-  let output: number | undefined
-  let thinking: number | undefined
+  let counts: AnthropicUsage = {}
   let rawStopReason: string | undefined
   let responseId: string | undefined
 
-  const usage = (raw: RawUsage | undefined): LlmEvent[] => {
+  const usage = (raw: AnthropicUsage | undefined): LlmEvent[] => {
     if (!raw) return []
-    input = raw.input_tokens ?? input
-    read = raw.cache_read_input_tokens ?? read
-    write = raw.cache_creation_input_tokens ?? write
-    output = raw.output_tokens ?? output
-    thinking = raw.output_tokens_details?.thinking_tokens ?? thinking
-    const event: { type: 'usage' } & LlmUsage = { type: 'usage' }
-    // Anthropic counts cached tokens apart from `input_tokens`; llmmend's `inputTokens` includes them.
-    if (input !== undefined) event.inputTokens = input + (read ?? 0) + (write ?? 0)
-    if (output !== undefined) event.outputTokens = output
-    if (read !== undefined) event.cacheReadTokens = read
-    if (write !== undefined) event.cacheWriteTokens = write
-    if (thinking !== undefined) event.reasoningTokens = thinking
-    return [event]
+    // A count missing from this event (or `null`) keeps its earlier value.
+    const latest = Object.entries(raw).filter(([, value]) => value != null)
+    counts = { ...counts, ...Object.fromEntries(latest) }
+    return [{ type: 'usage', ...fromAnthropic(counts) }]
   }
 
   return (sse) => {

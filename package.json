@@ -1,7 +1,7 @@
 {
   "name": "llmmend",
   "version": "0.5.0",
-  "description": "Extract & repair JSON from LLM replies, parse SSE streams from any provider, token-aware text chunking, safe prompt templates. Zero deps, TS-first.",
+  "description": "Extract & repair JSON from LLM replies, parse SSE streams from any provider, token-aware text chunking, safe prompt templates, cost from usage. Zero deps, TS-first.",
   "keywords": [
     "anthropic",
     "chunking",
@@ -86,6 +86,16 @@
       "require": {
         "types": "./dist/prompt/index.d.cts",
         "default": "./dist/prompt/index.cjs"
+      }
+    },
+    "./cost": {
+      "import": {
+        "types": "./dist/cost/index.d.ts",
+        "default": "./dist/cost/index.js"
+      },
+      "require": {
+        "types": "./dist/cost/index.d.cts",
+        "default": "./dist/cost/index.cjs"
       }
     },
     "./package.json": "./package.json"
@@ -212,6 +222,11 @@
     {
       "name": "llmmend/prompt",
       "path": "dist/prompt/index.js",
+      "limit": "1 kB"
+    },
+    {
+      "name": "llmmend/cost",
+      "path": "dist/cost/index.js",
       "limit": "1 kB"
     }
   ],
