@@ -1,0 +1,7 @@
+{
+  "provider": "anthropic",
+  "case": "overloaded",
+  "description": "A 529: the API is temporarily overloaded.",
+  "synthetic": true,
+  "source": "https://docs.claude.com/en/api/errors"
+}

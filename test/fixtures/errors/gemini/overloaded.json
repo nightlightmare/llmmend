@@ -1,0 +1,7 @@
+{
+  "status": 503,
+  "headers": {
+    "content-type": "application/json"
+  },
+  "body": "{\n  \"error\": {\n    \"code\": 503,\n    \"message\": \"The model is overloaded. Please try again later.\",\n    \"status\": \"UNAVAILABLE\"\n  }\n}"
+}

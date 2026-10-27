@@ -1,0 +1,7 @@
+{
+  "status": 400,
+  "headers": {
+    "content-type": "application/json"
+  },
+  "body": "{\n  \"error\": {\n    \"code\": 400,\n    \"message\": \"The input token count (1150001) exceeds the maximum number of tokens allowed (1048576).\",\n    \"status\": \"INVALID_ARGUMENT\"\n  }\n}"
+}

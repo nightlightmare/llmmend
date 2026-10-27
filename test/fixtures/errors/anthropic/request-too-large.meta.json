@@ -1,0 +1,7 @@
+{
+  "provider": "anthropic",
+  "case": "request-too-large",
+  "description": "A 413: the request is over the size limit.",
+  "synthetic": true,
+  "source": "https://docs.claude.com/en/api/errors"
+}

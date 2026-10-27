@@ -1,0 +1,7 @@
+{
+  "provider": "gemini",
+  "case": "overloaded",
+  "description": "A 503 UNAVAILABLE.",
+  "synthetic": true,
+  "source": "https://ai.google.dev/gemini-api/docs/troubleshooting"
+}

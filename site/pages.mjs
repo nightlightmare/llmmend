@@ -129,6 +129,9 @@ const tools = {
           '',
         )}${price('price-tier-input', t.cost.tierInput, '')}${price('price-tier-output', t.cost.tierOutput, '')}
       </fieldset>`,
+  retry: (t) => `
+      <div class="controls">${select('sample', t.sample, Object.entries(t.retry.samples))}
+      </div>`,
 }
 
 function page(lang, tab, { version, goatcounter }) {

@@ -2,7 +2,7 @@
 
 # Справочник API
 
-В `llmmend` пять модулей. Импортируйте из модуля или из корня: tree-shaking работает в обоих случаях.
+В `llmmend` шесть модулей. Импортируйте из модуля или из корня: tree-shaking работает в обоих случаях.
 
 ```ts
 import { extractJson } from 'llmmend/json'
@@ -686,6 +686,60 @@ estimateCost(usage, { input: 3, output: 15, cacheRead: 0.3, cacheWrite: 3.75 })
 ```
 
 `toUsage(raw)` переводит сырой `usage` провайдера в `LlmUsage` по тем же правилам, что и стримы, и распознаёт его по полям: Anthropic (кэшированные токены прибавляются к `input_tokens`), OpenAI Chat Completions и совместимые API (`prompt_tokens`), OpenAI Responses (`input_tokens_details`) и Gemini (`usageMetadata`: рассуждения считаются выводом). Всё остальное, включая `null`, даёт `{}`, и `estimateCost` помечает оба счётчика как `missing`. Никогда не бросает исключений.
+
+## llmmend/retry
+
+### classifyError
+
+```ts
+import { classifyError } from 'llmmend/retry'
+import { collectText } from 'llmmend/sse'
+
+async function withRetry<T>(call: () => Promise<T>, attempts = 4): Promise<T> {
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return await call()
+    } catch (error) {
+      const c = classifyError(error)
+      // кончились деньги, промпт длиннее контекста, неверный ключ: повтор не поможет
+      if (!c.retryable || attempt === attempts) throw error
+      const backoff = 500 * 2 ** attempt * (0.5 + Math.random())
+      await new Promise((resolve) => setTimeout(resolve, c.retryAfter ?? backoff))
+    }
+  }
+}
+
+const { text } = await withRetry(async () =>
+  collectText(await fetch('https://api.anthropic.com/v1/messages', { method: 'POST' })),
+)
+```
+
+`classifyError(error)` возвращает `{ kind, retryable, retryAfter?, status?, message }` для неудачного вызова модели. Никогда не бросает исключений. Принимает:
+
+- `LlmmendHttpError` (ответ не 2xx у `streamLlm` и его обёрток);
+- событие `error` из стрима, у него нет `status`;
+- ошибки `fetch`: `TypeError` — это `network`, `AbortError` — `aborted`, `TimeoutError` — `timeout`;
+- ошибки API официальных SDK (`@anthropic-ai/sdk`, `openai`, `@google/genai`), распознанные по форме объекта: SDK не импортируются.
+
+Там, где статуса мало, решает тело ошибки провайдера: 429 с `insufficient_quota` — это `quota`, а не `rate_limit`; 400 про длину промпта — `context_length`; 400 `API_KEY_INVALID` у Gemini — `auth`; `RESOURCE_EXHAUSTED` у Gemini — `quota` для дневной квоты и `rate_limit` в остальных случаях.
+
+| `kind`            | Когда                                                                                        | `retryable` |
+| ----------------- | -------------------------------------------------------------------------------------------- | ----------- |
+| `rate_limit`      | 429; Anthropic `rate_limit_error`; OpenAI `rate_limit_exceeded`; Gemini `RESOURCE_EXHAUSTED` | да          |
+| `quota`           | OpenAI `insufficient_quota`; Anthropic 402 `billing_error`; дневная квота Gemini             | нет         |
+| `overloaded`      | 529, 503; Anthropic `overloaded_error`; Gemini `UNAVAILABLE`                                 | да          |
+| `server`          | прочие 5xx; Anthropic `api_error`; OpenAI `server_error`; Gemini `INTERNAL`                  | да          |
+| `timeout`         | 408, 504; Gemini `DEADLINE_EXCEEDED`; `TimeoutError`                                         | да          |
+| `network`         | соединение не удалось: `fetch` бросил `TypeError`                                            | да          |
+| `context_length`  | промпт длиннее контекста, или 413                                                            | нет         |
+| `auth`            | 401, 403; неверный ключ                                                                      | нет         |
+| `invalid_request` | прочие 4xx: неизвестная модель, неверные параметры                                           | нет         |
+| `aborted`         | `AbortError` от вашего `signal`                                                              | нет         |
+| `unknown`         | всё остальное                                                                                | нет         |
+
+`retryAfter` — в миллисекундах, из `retry-after-ms`, иначе из `retry-after` (секунды или HTTP-дата), иначе из `RetryInfo.retryDelay` в теле ответа Gemini. Задаётся только для видов, которые стоит повторять, и только если провайдер подсказал; иначе выбирайте задержку сами. `message` — текст самого провайдера (`Overloaded`, `prompt is too long: 1125057 tokens > 1000000 maximum`), а не `HTTP 529`.
+
+С `p-retry` или `promisepilot` передайте `classifyError(error).retryable` как условие повтора, а `retryAfter` — как задержку.
 
 ## Ошибки
 

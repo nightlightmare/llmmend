@@ -1,0 +1,7 @@
+{
+  "provider": "openai",
+  "case": "context-length",
+  "description": "A 400 context_length_exceeded.",
+  "synthetic": true,
+  "source": "https://platform.openai.com/docs/guides/error-codes"
+}

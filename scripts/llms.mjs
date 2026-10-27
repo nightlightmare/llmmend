@@ -45,9 +45,9 @@ function sections(text) {
 const index = [
   '# llmmend',
   '',
-  '> Fix what your LLM returns: extract and repair JSON from model replies, turn streaming responses from Anthropic, OpenAI (Chat Completions and Responses), Gemini and OpenAI-compatible servers into one event format, split text into token-sized chunks, and build prompts that untrusted input cannot break out of. Zero dependencies; Node 20+, Bun, Deno, browsers and edge runtimes.',
+  '> Fix what your LLM returns: extract and repair JSON from model replies, turn streaming responses from Anthropic, OpenAI (Chat Completions and Responses), Gemini and OpenAI-compatible servers into one event format, split text into token-sized chunks, build prompts that untrusted input cannot break out of, price calls from their usage, and tell which errors are worth retrying. Zero dependencies; Node 20+, Bun, Deno, browsers and edge runtimes.',
   '',
-  'Install with `npm i llmmend`. Import from `llmmend/json`, `llmmend/sse`, `llmmend/chunk` or `llmmend/prompt`, or from the root: both are tree-shakeable. `extractJson` never throws on bad input: check `res.ok`, then read `res.value` or `res.error`. Streams take a `fetch` `Response` and detect the Provider by default.',
+  'Install with `npm i llmmend`. Import from `llmmend/json`, `llmmend/sse`, `llmmend/chunk`, `llmmend/prompt`, `llmmend/cost` or `llmmend/retry`, or from the root: both are tree-shakeable. `extractJson` never throws on bad input: check `res.ok`, then read `res.value` or `res.error`. Streams take a `fetch` `Response` and detect the Provider by default.',
 ]
 for (const s of sections(reference)) {
   const module = s.level === 2 && s.text.startsWith('llmmend/')
@@ -64,7 +64,7 @@ index.push(
   `- [Full API reference in one file](${repo}/blob/main/llms-full.txt): the same as docs/api.md, without links to translations`,
   `- [README](${repo}#readme): overview, token estimate accuracy, comparison with other packages`,
   `- [Changelog](${repo}/blob/main/CHANGELOG.md)`,
-  '- [Playground](https://nightlightmare.github.io/llmmend/): try JSON repair, SSE parsing, chunking, prompt escaping and cost in the browser',
+  '- [Playground](https://nightlightmare.github.io/llmmend/): try JSON repair, SSE parsing, chunking, prompt escaping, cost and error classification in the browser',
   '',
 )
 

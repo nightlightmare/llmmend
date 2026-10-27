@@ -1,0 +1,7 @@
+{
+  "provider": "openai",
+  "case": "quota",
+  "description": "A 429 insufficient_quota: out of credit, not a rate limit.",
+  "synthetic": true,
+  "source": "https://platform.openai.com/docs/guides/error-codes"
+}

@@ -1,0 +1,7 @@
+{
+  "provider": "openai",
+  "case": "server",
+  "description": "A 500 server_error.",
+  "synthetic": true,
+  "source": "https://platform.openai.com/docs/guides/error-codes"
+}

@@ -1,0 +1,9 @@
+{
+  "status": 429,
+  "headers": {
+    "content-type": "application/json",
+    "retry-after-ms": "1500",
+    "retry-after": "2"
+  },
+  "body": "{\"error\":{\"message\":\"Rate limit reached for gpt-5-mini on tokens per min (TPM): Limit 200000, Used 199500, Requested 1200. Please try again in 1.5s.\",\"type\":\"tokens\",\"param\":null,\"code\":\"rate_limit_exceeded\"}}"
+}

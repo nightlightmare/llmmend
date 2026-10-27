@@ -1,0 +1,7 @@
+{
+  "provider": "openai",
+  "case": "rate-limit",
+  "description": "A 429 rate_limit_exceeded with retry-after-ms.",
+  "synthetic": true,
+  "source": "https://platform.openai.com/docs/guides/error-codes"
+}

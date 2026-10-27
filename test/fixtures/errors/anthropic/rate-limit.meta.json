@@ -1,0 +1,7 @@
+{
+  "provider": "anthropic",
+  "case": "rate-limit",
+  "description": "A 429 with retry-after.",
+  "synthetic": true,
+  "source": "https://docs.claude.com/en/api/errors"
+}

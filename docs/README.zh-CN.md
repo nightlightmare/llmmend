@@ -18,7 +18,7 @@
 npm i llmmend
 ```
 
-在浏览器中试用，数据不会离开你的电脑：[在线演示](https://nightlightmare.github.io/llmmend/zh-CN/)，可修复 JSON、解析 SSE 流、分块、转义提示词和计算调用费用。可直接运行的[示例](https://github.com/nightlightmare/llmmend/tree/main/examples)：Next.js、Hono、Cloudflare Workers 和 Deno。
+在浏览器中试用，数据不会离开你的电脑：[在线演示](https://nightlightmare.github.io/llmmend/zh-CN/)，可修复 JSON、解析 SSE 流、分块、转义提示词、计算调用费用和判断错误是否值得重试。可直接运行的[示例](https://github.com/nightlightmare/llmmend/tree/main/examples)：Next.js、Hono、Cloudflare Workers 和 Deno。
 
 ## 为什么
 
@@ -160,6 +160,33 @@ estimateCost(usage, { input: 3, output: 15, cacheRead: 0.3, cacheWrite: 3.75 })
 
 `estimateCost` 用你传入的价格（每百万 token）为一次调用的 usage 计价：输入、缓存读写、输出，以及长请求的更高档位。它按部分返回费用，并在 `missing` 中列出 usage 缺少的计数。`toUsage` 读取非流式回复的原始 `usage`，包括 Anthropic 的（其 `input_tokens` 不含缓存 token）。包内不附带价格表：价格变化太频繁。
 
+## 哪些错误值得重试
+
+```ts
+import { classifyError } from 'llmmend/retry'
+import { collectText } from 'llmmend/sse'
+
+async function withRetry<T>(call: () => Promise<T>, attempts = 4): Promise<T> {
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return await call()
+    } catch (error) {
+      const c = classifyError(error)
+      // 余额不足、提示词超出上下文、密钥错误：重试也没用
+      if (!c.retryable || attempt === attempts) throw error
+      const backoff = 500 * 2 ** attempt * (0.5 + Math.random())
+      await new Promise((resolve) => setTimeout(resolve, c.retryAfter ?? backoff))
+    }
+  }
+}
+
+const { text } = await withRetry(async () =>
+  collectText(await fetch('https://api.anthropic.com/v1/messages', { method: 'POST' })),
+)
+```
+
+`classifyError` 把失败的调用归入十一种类型之一，并给出 `retryable` 和提供商建议的 `retryAfter`（毫秒）。它能读出仅凭状态码看不出的信息：表示余额不足的 429、表示提示词过长的 400、Gemini 写在正文里的重试延迟。它接受 `LlmmendHttpError`、流中的 `error` 事件、`fetch` 错误以及官方 SDK 的错误。
+
 ## 与其他包对比
 
 |                                                      | llmmend    | jsonrepair | partial-json | best-effort-json-parser | eventsource-parser | ai       | @langchain/textsplitters |
@@ -203,6 +230,7 @@ estimateCost(usage, { input: 3, output: 15, cacheRead: 0.3, cacheWrite: 3.75 })
 | `llmmend/chunk`  | `chunkText`, `chunkDocuments`, `estimateTokens`, `truncateToTokens`                                                                                              |
 | `llmmend/prompt` | `safePrompt`, `trusted`, `escapeTags`                                                                                                                            |
 | `llmmend/cost`   | `estimateCost`, `toUsage`                                                                                                                                        |
+| `llmmend/retry`  | `classifyError`                                                                                                                                                  |
 
 所有内容也从根模块重新导出：`import { extractJson } from 'llmmend'` 依然支持 tree-shaking。
 
@@ -219,6 +247,7 @@ estimateCost(usage, { input: 3, output: 15, cacheRead: 0.3, cacheWrite: 3.75 })
 | `llmmend/chunk`  | ~2 kB                                                                    |
 | `llmmend/prompt` | ~0.6 kB                                                                  |
 | `llmmend/cost`   | ~0.7 kB                                                                  |
+| `llmmend/retry`  | ~1.4 kB                                                                  |
 
 ## 参与贡献
 

@@ -1,0 +1,7 @@
+{
+  "status": 504,
+  "headers": {
+    "content-type": "application/json"
+  },
+  "body": "{\n  \"error\": {\n    \"code\": 504,\n    \"message\": \"Deadline expired before operation could complete.\",\n    \"status\": \"DEADLINE_EXCEEDED\"\n  }\n}"
+}

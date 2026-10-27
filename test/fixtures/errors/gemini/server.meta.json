@@ -1,0 +1,7 @@
+{
+  "provider": "gemini",
+  "case": "server",
+  "description": "A 500 INTERNAL.",
+  "synthetic": true,
+  "source": "https://ai.google.dev/gemini-api/docs/troubleshooting"
+}

@@ -3,7 +3,7 @@
 // scripts, so a page carries only its own language.
 
 export const LANGS = ['en', 'ru', 'zh-CN']
-export const TABS = ['json', 'sse', 'chunk', 'prompt', 'cost']
+export const TABS = ['json', 'sse', 'chunk', 'prompt', 'cost', 'retry']
 
 export const STRINGS = {
   en: {
@@ -11,13 +11,21 @@ export const STRINGS = {
     language: 'Language',
     style: 'Style',
     tagline: 'Fix what your LLM returns. Zero dependencies.',
-    tabs: { json: 'JSON', sse: 'SSE stream', chunk: 'Chunks', prompt: 'Prompt', cost: 'Cost' },
+    tabs: {
+      json: 'JSON',
+      sse: 'SSE stream',
+      chunk: 'Chunks',
+      prompt: 'Prompt',
+      cost: 'Cost',
+      retry: 'Errors',
+    },
     title: {
       json: 'Fix broken JSON from an LLM reply online',
       sse: 'Parse an LLM SSE stream online: Anthropic, OpenAI, Gemini',
       chunk: 'Split text into token-sized chunks online',
       prompt: 'Escape user input in an LLM prompt online: prompt injection through tags',
       cost: 'LLM API cost calculator from token usage: Anthropic, OpenAI, Gemini',
+      retry: 'Is this LLM API error worth retrying? Classify 429, 529, quota and context errors',
     },
     h1: {
       json: 'Fix broken JSON from an LLM reply',
@@ -25,6 +33,7 @@ export const STRINGS = {
       chunk: 'Split text into token-sized chunks',
       prompt: 'Keep user input inside its prompt tags',
       cost: 'What an LLM call cost',
+      retry: 'Should this LLM error be retried',
     },
     description: {
       json: 'Paste a model reply with text, code fences or <think> blocks around broken or cut-off JSON: see the repaired value and every fix that was made.',
@@ -34,6 +43,8 @@ export const STRINGS = {
       prompt:
         'Paste a document or user message and a prompt template: see the prompt with every tag the template uses escaped in the input, so the input cannot close <document> or add its own <instructions>.',
       cost: 'Paste the usage of an LLM reply (Anthropic, OpenAI, Gemini) and the prices per million tokens: see what the call cost by part, cached tokens included.',
+      retry:
+        'Paste an error response from Anthropic, OpenAI or Gemini: see its kind (rate limit, quota, overload, context length…), whether a retry can help, and how long the provider asks you to wait.',
     },
     privacy: 'Everything runs in your browser: what you paste is never sent anywhere.',
     analytics: 'A cookie-free counter (GoatCounter) records page visits, never what you paste.',
@@ -125,6 +136,25 @@ export const STRINGS = {
       },
       note: 'Prices change: check the provider’s price page. An empty cache price costs those tokens as input. In code: estimateCost and toUsage from llmmend/cost.',
     },
+    retry: {
+      samples: {
+        'gemini-rate-limit': 'Gemini: tokens per minute, RetryInfo',
+        'openai-quota': 'OpenAI: 429 that means out of credit',
+        'anthropic-context': 'Claude: prompt over the context window',
+        'gemini-auth': 'Gemini: bad key as a 400',
+        'anthropic-overloaded': 'Claude: 529 overloaded',
+        'stream-error': 'Stream error event',
+      },
+      invalid: 'Not valid JSON',
+      retry: 'retry',
+      dontRetry: 'don’t retry',
+      after: 'after',
+      result: 'classifyError',
+      httpNote:
+        'An HTTP response: { status, headers, body }, as LlmmendHttpError or an SDK error carries it. In code: classifyError from llmmend/retry.',
+      streamNote:
+        'No status: read as the payload of a stream error event. Paste { status, headers, body } for an HTTP response.',
+    },
     footer: 'Source, docs and issues',
   },
   ru: {
@@ -132,13 +162,22 @@ export const STRINGS = {
     language: 'Язык',
     style: 'Стиль',
     tagline: 'Чинит то, что вернула LLM. Без зависимостей.',
-    tabs: { json: 'JSON', sse: 'Поток SSE', chunk: 'Чанки', prompt: 'Промпт', cost: 'Стоимость' },
+    tabs: {
+      json: 'JSON',
+      sse: 'Поток SSE',
+      chunk: 'Чанки',
+      prompt: 'Промпт',
+      cost: 'Стоимость',
+      retry: 'Ошибки',
+    },
     title: {
       json: 'Починить JSON из ответа LLM онлайн',
       sse: 'Разобрать SSE-поток LLM онлайн: Anthropic, OpenAI, Gemini',
       chunk: 'Разбить текст на чанки по токенам онлайн',
       prompt: 'Экранировать ввод пользователя в промпте LLM онлайн: prompt injection через теги',
       cost: 'Калькулятор стоимости вызова LLM API по токенам: Anthropic, OpenAI, Gemini',
+      retry:
+        'Стоит ли повторять ошибку LLM API? Классификация 429, 529, квоты и переполнения контекста',
     },
     h1: {
       json: 'Починить JSON из ответа LLM',
@@ -146,6 +185,7 @@ export const STRINGS = {
       chunk: 'Разбить текст на чанки по токенам',
       prompt: 'Удержать ввод пользователя внутри тегов промпта',
       cost: 'Сколько стоил вызов LLM',
+      retry: 'Стоит ли повторять эту ошибку LLM',
     },
     description: {
       json: 'Вставьте ответ модели, где сломанный или обрезанный JSON окружён текстом, блоками кода или <think>: увидите исправленное значение и каждое исправление.',
@@ -155,6 +195,8 @@ export const STRINGS = {
       prompt:
         'Вставьте документ или сообщение пользователя и шаблон промпта: увидите промпт, где во вводе экранированы все теги шаблона, так что ввод не закроет <document> и не добавит свои <instructions>.',
       cost: 'Вставьте usage ответа LLM (Anthropic, OpenAI, Gemini) и цены за миллион токенов: увидите стоимость вызова по частям, с учётом кэша.',
+      retry:
+        'Вставьте ответ с ошибкой от Anthropic, OpenAI или Gemini: увидите её вид (лимит запросов, квота, перегрузка, длина контекста…), поможет ли повтор и сколько провайдер просит подождать.',
     },
     privacy: 'Всё работает в браузере: то, что вы вставили, никуда не отправляется.',
     analytics:
@@ -248,6 +290,25 @@ export const STRINGS = {
       },
       note: 'Цены меняются: сверяйтесь со страницей цен провайдера. Пустая цена кэша считает эти токены по цене ввода. В коде: estimateCost и toUsage из llmmend/cost.',
     },
+    retry: {
+      samples: {
+        'gemini-rate-limit': 'Gemini: токены в минуту, RetryInfo',
+        'openai-quota': 'OpenAI: 429, который значит «кончились деньги»',
+        'anthropic-context': 'Claude: промпт длиннее контекста',
+        'gemini-auth': 'Gemini: неверный ключ как 400',
+        'anthropic-overloaded': 'Claude: 529, перегрузка',
+        'stream-error': 'Событие error из стрима',
+      },
+      invalid: 'Невалидный JSON',
+      retry: 'повторять',
+      dontRetry: 'не повторять',
+      after: 'через',
+      result: 'classifyError',
+      httpNote:
+        'HTTP-ответ: { status, headers, body }, как в LlmmendHttpError или ошибке SDK. В коде: classifyError из llmmend/retry.',
+      streamNote:
+        'Статуса нет: читается как содержимое события error из стрима. Для HTTP-ответа вставьте { status, headers, body }.',
+    },
     footer: 'Исходники, документация и issues',
   },
   'zh-CN': {
@@ -255,13 +316,21 @@ export const STRINGS = {
     language: '语言',
     style: '风格',
     tagline: '修复 LLM 返回的内容。零依赖。',
-    tabs: { json: 'JSON', sse: 'SSE 流', chunk: '分块', prompt: '提示词', cost: '费用' },
+    tabs: {
+      json: 'JSON',
+      sse: 'SSE 流',
+      chunk: '分块',
+      prompt: '提示词',
+      cost: '费用',
+      retry: '错误',
+    },
     title: {
       json: '在线修复 LLM 回复中的 JSON',
       sse: '在线解析 LLM 的 SSE 流：Anthropic、OpenAI、Gemini',
       chunk: '在线按 token 把文本分块',
       prompt: '在线转义 LLM 提示词中的用户输入：防止通过标签进行提示词注入',
       cost: '按 token 用量计算 LLM API 费用：Anthropic、OpenAI、Gemini',
+      retry: '这个 LLM API 错误值得重试吗？分类 429、529、配额和上下文错误',
     },
     h1: {
       json: '修复 LLM 回复中的 JSON',
@@ -269,6 +338,7 @@ export const STRINGS = {
       chunk: '按 token 把文本分块',
       prompt: '让用户输入留在提示词标签之内',
       cost: '一次 LLM 调用花了多少钱',
+      retry: '这个 LLM 错误该不该重试',
     },
     description: {
       json: '粘贴模型回复，其中损坏或被截断的 JSON 周围有文字、代码块或 <think> 块：查看修复后的值和每一处修复。',
@@ -278,6 +348,8 @@ export const STRINGS = {
       prompt:
         '粘贴文档或用户消息以及提示词模板：查看生成的提示词，输入中凡是模板使用的标签都已转义，因此输入无法闭合 <document>，也无法加入自己的 <instructions>。',
       cost: '粘贴 LLM 回复的 usage（Anthropic、OpenAI、Gemini）和每百万 token 的价格：按部分查看这次调用的费用，包含缓存 token。',
+      retry:
+        '粘贴来自 Anthropic、OpenAI 或 Gemini 的错误响应：查看它的类型（速率限制、配额、过载、上下文长度……）、重试是否有用，以及提供商要求等待多久。',
     },
     privacy: '一切都在浏览器中运行：粘贴的内容不会发送到任何地方。',
     analytics: '无 cookie 的计数器（GoatCounter）只记录页面访问，从不记录你粘贴的内容。',
@@ -368,6 +440,25 @@ export const STRINGS = {
         output: '输出',
       },
       note: '价格会变化：请核对提供商的价格页。缓存价格留空时，这些 token 按输入价格计。代码中使用 llmmend/cost 的 estimateCost 和 toUsage。',
+    },
+    retry: {
+      samples: {
+        'gemini-rate-limit': 'Gemini：每分钟 token 数，RetryInfo',
+        'openai-quota': 'OpenAI：表示余额不足的 429',
+        'anthropic-context': 'Claude：提示词超出上下文窗口',
+        'gemini-auth': 'Gemini：以 400 返回的密钥错误',
+        'anthropic-overloaded': 'Claude：529 过载',
+        'stream-error': '流中的 error 事件',
+      },
+      invalid: '不是有效的 JSON',
+      retry: '重试',
+      dontRetry: '不要重试',
+      after: '等待',
+      result: 'classifyError',
+      httpNote:
+        'HTTP 响应：{ status, headers, body }，与 LlmmendHttpError 或 SDK 错误中的一致。代码中使用 llmmend/retry 的 classifyError。',
+      streamNote:
+        '没有状态码：按流中 error 事件的内容读取。HTTP 响应请粘贴 { status, headers, body }。',
     },
     footer: '源码、文档和 issue',
   },
