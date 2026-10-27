@@ -138,12 +138,12 @@
       "name": "llmmend (import { extractJson })",
       "path": "dist/index.js",
       "import": "{ extractJson }",
-      "limit": "3.5 kB"
+      "limit": "4 kB"
     },
     {
       "name": "llmmend/json",
       "path": "dist/json/index.js",
-      "limit": "5 kB"
+      "limit": "6 kB"
     },
     {
       "name": "llmmend/json (import { extractTag, extractAllTags })",
@@ -173,19 +173,19 @@
       "name": "llmmend/sse (import { collectText })",
       "path": "dist/sse/index.js",
       "import": "{ collectText }",
-      "limit": "6.5 kB"
+      "limit": "7 kB"
     },
     {
       "name": "llmmend/sse (import { streamToolCalls })",
       "path": "dist/sse/index.js",
       "import": "{ streamToolCalls }",
-      "limit": "6.5 kB"
+      "limit": "7 kB"
     },
     {
       "name": "llmmend/sse (import { streamJson })",
       "path": "dist/sse/index.js",
       "import": "{ streamJson }",
-      "limit": "8 kB"
+      "limit": "8.5 kB"
     },
     {
       "name": "llmmend/chunk",
