@@ -33,6 +33,22 @@ const number = (id, label, value, min) => `
           <input id="${id}" type="number" min="${min}" value="${value}" />
         </label>`
 
+const textarea = (id, label, value) => `
+        <label class="wide">${escape(label)}
+          <textarea id="${id}" rows="5" spellcheck="false">${escape(value)}</textarea>
+        </label>`
+
+// A number field that may stay empty.
+const price = (id, label, value) => `
+        <label>${escape(label)}
+          <input id="${id}" type="number" min="0" step="any" value="${value}" />
+        </label>`
+
+const TEMPLATE = `<document>
+{{input}}
+</document>
+<instructions>Summarize the document in one sentence.</instructions>`
+
 const tools = {
   json: (t) => `
       <div class="controls">${select('sample', t.sample, Object.entries(t.json.samples))}${select(
@@ -86,8 +102,33 @@ const tools = {
       )}${select('mode', t.chunk.mode, [
         ['markdown', t.chunk.markdown],
         ['text', t.chunk.text],
+      ])}${select('tokenizer', t.chunk.tokenizer, [
+        ['o200k', 'OpenAI (o200k)'],
+        ['claude', 'Claude'],
+        ['gemini', 'Gemini'],
       ])}
       </div>`,
+  prompt: (t) => `
+      <div class="controls">${select('sample', t.sample, Object.entries(t.prompt.samples))}${textarea(
+        'template',
+        t.prompt.template,
+        TEMPLATE,
+      )}
+      </div>`,
+  cost: (t) => `
+      <div class="controls">${select('sample', t.sample, Object.entries(t.cost.samples))}
+      </div>
+      <fieldset class="controls">
+        <legend>${escape(t.cost.prices)}</legend>${price('price-input', t.cost.input, 3)}${price(
+          'price-output',
+          t.cost.output,
+          15,
+        )}${price('price-cache-read', t.cost.cacheRead, 0.3)}${price('price-cache-write', t.cost.cacheWrite, 3.75)}${price(
+          'price-tier-above',
+          t.cost.tier,
+          '',
+        )}${price('price-tier-input', t.cost.tierInput, '')}${price('price-tier-output', t.cost.tierOutput, '')}
+      </fieldset>`,
 }
 
 function page(lang, tab, { version, goatcounter }) {

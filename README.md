@@ -18,7 +18,7 @@
 npm i llmmend
 ```
 
-Try it in the browser, nothing leaves your machine: [playground](https://nightlightmare.github.io/llmmend/) for JSON repair, SSE streams and chunking. Ready-to-run [examples](https://github.com/nightlightmare/llmmend/tree/main/examples) for Next.js, Hono, Cloudflare Workers and Deno.
+Try it in the browser, nothing leaves your machine: [playground](https://nightlightmare.github.io/llmmend/) for JSON repair, SSE streams, chunking, prompt escaping and call cost. Ready-to-run [examples](https://github.com/nightlightmare/llmmend/tree/main/examples) for Next.js, Hono, Cloudflare Workers and Deno.
 
 ## Why
 

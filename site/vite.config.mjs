@@ -21,7 +21,9 @@ export default defineConfig({
   root: here('.pages'),
   base: BASE,
   resolve: {
-    alias: [{ find: /^llmmend\/(json|sse|chunk)$/, replacement: here('../src/$1/index.ts') }],
+    alias: [
+      { find: /^llmmend\/(json|sse|chunk|prompt|cost)$/, replacement: here('../src/$1/index.ts') },
+    ],
   },
   build: {
     outDir: here('dist'),
