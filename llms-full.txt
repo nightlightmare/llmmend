@@ -156,6 +156,26 @@ console.log(extractAllTags(reply, 'step').map((t) => t.value)) // ['Read the fil
 
 Every closed top-level tag in the Reply, in order, as `{ name, value, attributes, start, end }`; `start` and `end` span the whole tag. With a `name`, only tags of that name (the outermost when they nest). The same rules as `extractTag` apply.
 
+### extractCodeBlocks
+
+````ts
+import { extractCodeBlocks } from 'llmmend/json'
+
+const reply =
+  'Install:\n```bash\nnpm i llmmend\n```\nThen:\n```typescript title="app.ts"\nextractJson(reply)\n```'
+
+extractCodeBlocks(reply).map((b) => b.lang) // ['bash', 'typescript']
+extractCodeBlocks(reply, { lang: 'ts' })[0]?.code // 'extractJson(reply)'
+````
+
+`extractCodeBlocks(text, { lang? })` returns every fenced code block in a Reply, in order, as `{ lang, info, code, start, end, complete }`:
+
+- `lang` is the first word of the info string in lower case (`''` without one), and `info` the whole string (`typescript title="app.ts"`).
+- `code` is the content as written, without the line breaks next to the fences; `start` and `end` span the block from the opening fence line to the closing one.
+- `complete: false` marks a block the Reply ends inside, usually at `max_tokens`: decide whether half a file is any use.
+
+The `lang` filter ignores case and matches common aliases: `ts`/`typescript`, `js`/`javascript`, `py`/`python`, `sh`/`bash`/`shell`/`zsh`, `yml`/`yaml`, `md`/`markdown`. Fences are ` ``` ` or `~~~`, closed only by the same character at least as long, so a block can show another block inside a longer fence. Indented code blocks and ` ```inline``` ` on one line don't count. `extractTag` uses the same rules to skip tags inside code.
+
 ### Issues
 
 Every result lists what was done to the Reply, in order.

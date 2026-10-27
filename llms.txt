@@ -14,6 +14,7 @@ Install with `npm i llmmend`. Import from `llmmend/json`, `llmmend/sse` or `llmm
 - [parsePartialJson](https://github.com/nightlightmare/llmmend/blob/main/docs/api.md#parsepartialjson): Reads JSON that is still arriving, for progressive UIs.
 - [extractTag](https://github.com/nightlightmare/llmmend/blob/main/docs/api.md#extracttag): `extractTag(text, name, { pick? })` finds a tag such as `<answer>…</answer>` in a Reply and returns its text, trimmed at its edges.
 - [extractAllTags](https://github.com/nightlightmare/llmmend/blob/main/docs/api.md#extractalltags): Every closed top-level tag in the Reply, in order, as `{ name, value, attributes, start, end }`; `start` and `end` span the whole tag.
+- [extractCodeBlocks](https://github.com/nightlightmare/llmmend/blob/main/docs/api.md#extractcodeblocks): `extractCodeBlocks(text, { lang? })` returns every fenced code block in a Reply, in order, as `{ lang, info, code, start, end, complete }`
 - [Issues](https://github.com/nightlightmare/llmmend/blob/main/docs/api.md#issues): Every result lists what was done to the Reply, in order.
 
 ## llmmend/sse

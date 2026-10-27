@@ -1,3 +1,4 @@
+import { fencedBlocks } from './code-blocks'
 import type { Issue } from './issue'
 
 /** A closed tag found in a Reply. `start` and `end` span the whole tag, opening to closing. */
@@ -42,32 +43,9 @@ interface Pair {
 const TAG =
   /<(\/?)([A-Za-z][\w.:-]*)((?:\s+[^\s=<>/]+(?:\s*=\s*(?:"[^"<]*"|'[^'<]*'|[^\s"'<>]+))?)*)\s*(\/?)>/g
 const ATTRIBUTE = /([^\s=<>/]+)(?:\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'<>]+)))?/g
-const FENCE = /^ {0,3}(`{3,}|~{3,})/
 
-/** Spans of fenced code blocks (``` or ~~~), where tags are format examples, not answers. */
-function fences(text: string): [number, number][] {
-  const spans: [number, number][] = []
-  let open: { marker: string; start: number } | undefined
-  let at = 0
-  for (const line of text.split('\n')) {
-    const marker = FENCE.exec(line)?.[1]
-    if (marker && !open) open = { marker, start: at }
-    else if (
-      marker &&
-      open &&
-      marker[0] === open.marker[0] &&
-      marker.length >= open.marker.length &&
-      !line.trim().slice(marker.length)
-    ) {
-      spans.push([open.start, at + line.length])
-      open = undefined
-    }
-    at += line.length + 1
-  }
-  // An unclosed fence runs to the end of the text.
-  if (open) spans.push([open.start, text.length])
-  return spans
-}
+/** Spans of fenced code blocks, where tags are format examples, not answers. */
+const fences = (text: string): [number, number][] => fencedBlocks(text).map((b) => [b.start, b.end])
 
 function tokens(text: string): Token[] {
   const skip = fences(text)
