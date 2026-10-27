@@ -108,19 +108,19 @@ truncateToTokens('A title far too long for the card it has to fit on', 8, { elli
 
 `chunkText` cuts at the coarsest separator that fits: paragraphs, then lines, sentences, words, and grapheme clusters as a last resort. Every chunk is a slice of the text with its `start` and `end`, and joining them gives the text back. In `markdown` mode chunks start at headings, and code fences and tables stay whole when they fit.
 
-Tokens are estimated without a vocabulary. The estimate minus the real count:
+Tokens are estimated without a vocabulary, for the tokenizer you name: `tokenizer: 'o200k'` (OpenAI, the default), `'claude'` or `'gemini'`, in `chunkText`, `chunkDocuments`, `truncateToTokens` and `estimateTokens`. The estimate minus the real count:
 
-| Text            | `o200k_base` (OpenAI) | Gemini 3.8 Flash | Claude Opus 5.5 |
-| --------------- | --------------------- | ---------------- | --------------- |
-| English         | +5 %                  | −5 %             | −33 %           |
-| Russian         | +5 %                  | −2 %             | −34 %           |
-| Chinese         | −1 %                  | +2 %             | −34 %           |
-| Japanese        | −11 %                 | +22 %            | −25 %           |
-| Korean          | −5 %                  | +3 %             | −46 %           |
-| Code            | −2 %                  | −15 %            | −36 %           |
-| Chat with emoji | −5 %                  | −9 %             | −38 %           |
+| Text            | `o200k` vs `o200k_base` | `gemini` vs Gemini 3.8 Flash | `claude` vs Claude Opus 5.5 |
+| --------------- | ----------------------- | ---------------------------- | --------------------------- |
+| English         | +2 %                    | −1 %                         | +3 %                        |
+| Russian         | +4 %                    | −1 %                         | +1 %                        |
+| Chinese         | +1 %                    | +1 %                         | +2 %                        |
+| Japanese        | −11 %                   | +1 %                         | +1 %                        |
+| Korean          | −5 %                    | 0 %                          | 0 %                         |
+| Code            | −2 %                    | −2 %                         | −1 %                        |
+| Chat with emoji | −5 %                    | −6 %                         | −9 %                        |
 
-Claude's tokenizer produces about 1.5× as many tokens: for Claude, divide the budget by 1.5 or pass an exact `countTokens`.
+Every preset is within ±15 % on every 1,000-character window of the calibration corpus. For an exact budget, pass `countTokens`.
 
 ## Compared with other packages
 
@@ -176,7 +176,7 @@ For AI coding assistants: [llms.txt](https://github.com/nightlightmare/llmmend/b
 | --------------- | ------------------------------------------------------------------------- |
 | `llmmend/json`  | ~5.8 kB (`extractJson` alone ~4 kB, tags ~1.1 kB, code blocks ~0.5 kB)    |
 | `llmmend/sse`   | ~3.7 kB (`parseSSE` alone ~0.9 kB; `collectText` with tool calls ~6.8 kB) |
-| `llmmend/chunk` | ~1.8 kB                                                                   |
+| `llmmend/chunk` | ~2 kB                                                                     |
 
 ## Contributing
 

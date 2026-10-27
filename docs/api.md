@@ -531,7 +531,8 @@ chunkText(text, { maxTokens: 10 }).map((c) => c.text)
 | ------------- | ---------------- | ------------------------------------------------------------------------------------------ |
 | `maxTokens`   | (required)       | The budget per chunk.                                                                      |
 | `overlap`     | `0`              | Tokens to repeat from the end of the previous chunk.                                       |
-| `countTokens` | `estimateTokens` | Count with a real tokenizer for exact budgets.                                             |
+| `countTokens` | `estimateTokens` | Count with a real tokenizer for exact budgets; `tokenizer` is then ignored.                |
+| `tokenizer`   | `'o200k'`        | The tokenizer `estimateTokens` imitates: `'o200k'` (OpenAI), `'claude'` or `'gemini'`.     |
 | `separators`  | see below        | Strings or regular expressions, coarsest first; `''` cuts between grapheme clusters.       |
 | `mode`        | `'text'`         | `'markdown'` starts chunks at headings and keeps code fences and tables whole if they fit. |
 
@@ -580,9 +581,10 @@ for (const chunk of chunkDocuments(pages, { maxTokens: 500 })) {
 import { estimateTokens } from 'llmmend/chunk'
 
 estimateTokens('Hello, world!') // 3
+estimateTokens('Hello, world!', { tokenizer: 'claude' }) // 5
 ```
 
-Estimates tokens without a vocabulary, from the kinds of characters in the text. See the README for its measured accuracy against OpenAI, Gemini and Claude tokenizers; Claude's produces about 1.5× as many tokens.
+`estimateTokens(text, { tokenizer? })` estimates tokens without a vocabulary, from the kinds of characters in the text, for OpenAI's `o200k_base` (`'o200k'`, the default), Claude (`'claude'`) or Gemini (`'gemini'`). Each preset is calibrated on exact counts for English, Russian, Chinese, Japanese and Korean text, code, Markdown and chat (Japanese and Korean on one short text each); see the README for its measured accuracy.
 
 ### truncateToTokens
 
@@ -596,7 +598,7 @@ truncateToTokens('The quick brown fox jumps over the lazy dog', 5, {
 // 'The quick … lazy dog'
 ```
 
-`truncateToTokens(text, max, { from?, ellipsis?, countTokens? })` shortens a text to at most `max` tokens without splitting a grapheme cluster. `from` says where to cut: `'end'` (default) keeps the beginning, `'start'` keeps the end, `'middle'` keeps both. The `ellipsis` (default `''`) marks the cut and counts against `max`; if not even it fits, the result is `''`.
+`truncateToTokens(text, max, { from?, ellipsis?, countTokens?, tokenizer? })` shortens a text to at most `max` tokens without splitting a grapheme cluster. `from` says where to cut: `'end'` (default) keeps the beginning, `'start'` keeps the end, `'middle'` keeps both. The `ellipsis` (default `''`) marks the cut and counts against `max`; if not even it fits, the result is `''`. Without `countTokens`, it counts with `estimateTokens` for `tokenizer`.
 
 ## Errors
 

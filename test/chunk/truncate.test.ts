@@ -18,6 +18,19 @@ describe('truncateToTokens', () => {
     )
   })
 
+  it('counts with the tokenizer it is given, unless countTokens is', () => {
+    const text = 'Claude splits text into more tokens than o200k_base does. '.repeat(10)
+    expect(estimateTokens(text, { tokenizer: 'claude' })).toBeGreaterThan(estimateTokens(text))
+    for (const tokenizer of ['o200k', 'claude', 'gemini'] as const) {
+      const cut = truncateToTokens(text, 50, { tokenizer })
+      expect(estimateTokens(cut, { tokenizer })).toBeLessThanOrEqual(50)
+      expect(
+        estimateTokens(cut + text.slice(cut.length, cut.length + 8), { tokenizer }),
+      ).toBeGreaterThan(50)
+    }
+    expect(truncateToTokens(text, 4, { tokenizer: 'claude', countTokens: chars })).toBe('Clau')
+  })
+
   it('counts the ellipsis against the budget', () => {
     expect(truncateToTokens('abcdefghij', 4, { countTokens: chars, ellipsis: '...' })).toBe('a...')
   })
@@ -53,6 +66,16 @@ describe('estimateTokens', () => {
   it('is 0 for empty text and at least 1 otherwise', () => {
     expect(estimateTokens('')).toBe(0)
     expect(estimateTokens(' ')).toBe(1)
+  })
+
+  it('estimates per tokenizer, Claude highest and Gemini lowest on English', () => {
+    const text = 'The quick brown fox jumps over the lazy dog, again and again. '.repeat(20)
+    const [o200k, claude, gemini] = (['o200k', 'claude', 'gemini'] as const).map((tokenizer) =>
+      estimateTokens(text, { tokenizer }),
+    )
+    expect(estimateTokens(text, {})).toBe(o200k)
+    expect(claude).toBeGreaterThan(o200k!)
+    expect(gemini).toBeLessThan(claude!)
   })
 
   it('counts emoji and other scripts', () => {

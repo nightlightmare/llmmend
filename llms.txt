@@ -33,8 +33,8 @@ Install with `npm i llmmend`. Import from `llmmend/json`, `llmmend/sse` or `llmm
 
 - [chunkText](https://github.com/nightlightmare/llmmend/blob/main/docs/api.md#chunktext): `chunkText(text, options)` splits a text into chunks of at most `maxTokens` tokens and returns `{ text, start, end, tokens, index, oversized?, headings? }[]`.
 - [chunkDocuments](https://github.com/nightlightmare/llmmend/blob/main/docs/api.md#chunkdocuments): `chunkDocuments(docs, options)` splits several documents with `chunkText` and returns all their chunks in one array.
-- [estimateTokens](https://github.com/nightlightmare/llmmend/blob/main/docs/api.md#estimatetokens): Estimates tokens without a vocabulary, from the kinds of characters in the text.
-- [truncateToTokens](https://github.com/nightlightmare/llmmend/blob/main/docs/api.md#truncatetotokens): `truncateToTokens(text, max, { from?, ellipsis?, countTokens? })` shortens a text to at most `max` tokens without splitting a grapheme cluster.
+- [estimateTokens](https://github.com/nightlightmare/llmmend/blob/main/docs/api.md#estimatetokens): `estimateTokens(text, { tokenizer? })` estimates tokens without a vocabulary, from the kinds of characters in the text, for OpenAI's `o200k_base` (`'o200k'`, the default), Claude (`'claude'`) or Gemini (`'gemini'`).
+- [truncateToTokens](https://github.com/nightlightmare/llmmend/blob/main/docs/api.md#truncatetotokens): `truncateToTokens(text, max, { from?, ellipsis?, countTokens?, tokenizer? })` shortens a text to at most `max` tokens without splitting a grapheme cluster.
 
 ## Reference
 

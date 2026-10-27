@@ -7,7 +7,7 @@ const chars = (text: string): number => [...text].length
 
 /** Every broken invariant, as a message; empty when the chunking is valid. */
 function violations(text: string, chunks: Chunk[], options: ChunkOptions): string[] {
-  const count = options.countTokens ?? estimateTokens
+  const count = options.countTokens ?? ((t: string) => estimateTokens(t, options))
   const out: string[] = []
   const check = (ok: boolean, message: string): void => {
     if (!ok) out.push(message)
@@ -65,6 +65,11 @@ describe('chunkText: invariants', () => {
     ['estimated tokens, text mode', { maxTokens: 12 }],
     ['estimated tokens, markdown mode', { maxTokens: 12, mode: 'markdown' as const }],
     ['estimated tokens with overlap', { maxTokens: 16, overlap: 5 }],
+    [
+      'Claude estimates, markdown mode',
+      { maxTokens: 18, tokenizer: 'claude' as const, mode: 'markdown' as const },
+    ],
+    ['Gemini estimates with overlap', { maxTokens: 12, overlap: 4, tokenizer: 'gemini' as const }],
     ['exact tokens, tiny budget', { maxTokens: 3, countTokens: chars }],
     [
       'exact tokens, markdown with overlap',

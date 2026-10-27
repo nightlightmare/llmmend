@@ -1,19 +1,22 @@
-import { estimateTokens } from './tokens'
+import { estimateTokens, type Tokenizer } from './tokens'
 
 export interface TruncateOptions {
   /** Where to cut: `'end'` (default) keeps the beginning, `'start'` the end, `'middle'` both. */
   from?: 'end' | 'start' | 'middle'
   /** Put where the text was cut; counted against `max`. Default `''`. */
   ellipsis?: string
-  /** Default: `estimateTokens`. */
+  /** Default: `estimateTokens` for `tokenizer`. */
   countTokens?: (text: string) => number
+  /** The tokenizer `estimateTokens` imitates when there is no `countTokens`. Default `'o200k'`. */
+  tokenizer?: Tokenizer
 }
 
 let segmenter: Intl.Segmenter | undefined
 
 /** Shortens `text` to at most `max` tokens, never splitting a grapheme cluster. */
 export function truncateToTokens(text: string, max: number, options: TruncateOptions = {}): string {
-  const { from = 'end', ellipsis = '', countTokens = estimateTokens } = options
+  const { from = 'end', ellipsis = '' } = options
+  const countTokens = options.countTokens ?? ((t: string) => estimateTokens(t, options))
   if (countTokens(text) <= max) return text
   segmenter ??= new Intl.Segmenter()
   const graphemes = Array.from(segmenter.segment(text), (s) => s.segment)
