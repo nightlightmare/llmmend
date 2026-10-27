@@ -1,5 +1,17 @@
 # llmmend
 
+## 0.6.0
+
+### Minor Changes
+
+- f3af34c: New module `llmmend/retry`: `classifyError(error)` sorts a failed model call (an `LlmmendHttpError`, a stream `error` event, a `fetch` error, or an official SDK's API error) into one of eleven kinds with `retryable`, the Provider's `retryAfter` in milliseconds, `status` and the Provider's own `message`. It tells a 429 that means out of credit from a rate limit, and a 400 about prompt length from other bad requests.
+- ac96474: New module `llmmend/cost`: `estimateCost(usage, prices)` prices a call's token usage with prices you pass per million tokens (input, cache reads and writes, output, long-context tiers) and returns the cost by part, listing any missing count; `toUsage(raw)` reads the raw `usage` of an Anthropic, OpenAI or Gemini reply without streaming.
+- cac91dd: New module `llmmend/prompt`: `safePrompt`, a template tag that escapes each substitution for the tags the template itself uses, so untrusted text can't close `<document>` or open `<instructions>`; `trusted` to insert a built prompt as is; and `escapeTags` for the same escaping without a template.
+
+### Patch Changes
+
+- ac96474: Stream `usage` events leave out a token count the Provider sent as `null` (Anthropic can send `cache_creation_input_tokens: null`) instead of passing the `null` through. The four stream adapters now share one usage conversion with `toUsage`.
+
 ## 0.5.0
 
 ### Minor Changes
