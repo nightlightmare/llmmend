@@ -1,5 +1,16 @@
 # llmmend
 
+## 0.4.0
+
+### Minor Changes
+
+- 8b54dc4: Chunks in `markdown` mode carry `headings`: the path of headings in effect where the chunk's own text starts, for search context (ATX and setext headings, none from code fences; only the markers removed). New `chunkDocuments` splits several documents in one call and gives every chunk its document's position (`doc`) and typed `metadata`.
+- f59de27: Add `extractCodeBlocks` to `llmmend/json`: every fenced code block in a Reply with its language, info string, content, position and `complete: false` for a block cut off at the end; the `lang` filter matches common aliases (`ts`/`typescript`, `sh`/`bash`…). `extractTag` now skips code with the same fence scanner.
+
+### Patch Changes
+
+- 380f4f6: `streamJson` parses incrementally: a text event costs about its own length instead of re-parsing the whole Reply, so a Reply of 100 kB streams in tens of milliseconds instead of seconds to minutes. Every yielded item is the same as before; successive `partial` values now share the parts that ended, so treat them as read-only. A cut-off `-Inf` (for `-Infinity`) is now a Truncation, like a cut-off `tru`, instead of failing the value. The parser grows by about 0.35 kB (min+brotli), `streamJson` by about 1 kB.
+
 ## 0.3.0
 
 ### Minor Changes
