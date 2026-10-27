@@ -1,6 +1,6 @@
-import { LlmmendJsonError } from '../shared/errors'
 import type { Issue } from './issue'
 import { parseJson } from './parser'
+import { jsonError } from './position'
 
 /**
  * Repairs JSON text the way models break it (trailing commas, single quotes, unquoted keys,
@@ -10,12 +10,7 @@ import { parseJson } from './parser'
  */
 export function repairJson(text: string): { json: string; issues: Issue[] } {
   const result = parseJson(text, { repair: 'full' })
-  if (!result.ok) {
-    throw new LlmmendJsonError(
-      result.error,
-      `Cannot repair JSON: ${result.error} at position ${result.at}`,
-      result.issues,
-    )
-  }
+  if (!result.ok)
+    throw jsonError(result.error, 'Cannot repair JSON', text, result.issues, result.at)
   return { json: JSON.stringify(result.value), issues: result.issues }
 }

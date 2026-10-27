@@ -44,7 +44,7 @@ else console.log(res.error)
 
 - `{ ok: true, value, repaired, issues, raw }`：只要修复了去掉外围文本之外的任何内容，`repaired` 就为 true；`raw` 是候选的原文。
 - `{ ok: false, error: 'schema_mismatch', issues, schemaIssues, value }`：JSON 解析成功，但被 schema 拒绝。`schemaIssues` 来自 schema，可以直接发回给模型。
-- `{ ok: false, error, issues }`，其中 `error` 为 `not_found`、`unparseable`、`truncated`、`max_depth` 之一。
+- `{ ok: false, error, issues, at? }`，其中 `error` 为 `not_found`、`unparseable`、`truncated`、`max_depth` 之一；对于 `unparseable` 和 `truncated`，`at` 是回复中解析失败的位置。
 
 如果回复在最后一个完整候选之后截断了一个对象或数组，那么被截断的才是真正的答案：使用 `repair: 'syntax'` 时结果为 `truncated`，而不会退回到更早的候选（那往往是提示词里的格式示例）。
 
@@ -84,7 +84,13 @@ try {
 }
 ```
 
-返回值，或抛出 `LlmmendJsonError`：其 `code` 即上文的 `error`，并带有 `issues`，在 `schema_mismatch` 时还有 `schemaIssues`。
+返回值，或抛出 `LlmmendJsonError`：其 `code` 即上文的 `error`，并带有 `issues`，在 `schema_mismatch` 时还有 `schemaIssues`。结果带有 `at` 时，错误也带有它，以及 `line` 和 `column`（从 1 开始，按字符计数），错误消息会指出该位置：片段中的换行显示为 `⏎`，因此片段保持为一行，下方用 `^` 标出位置。
+
+```text
+Cannot extract JSON: unparseable at line 5, column 8
+…⏎{⏎  "a": 1,⏎  "b": x⏎}
+                     ^
+```
 
 ### extractAllJson
 
@@ -566,11 +572,11 @@ function describe(error: unknown): string {
 
 llmmend 抛出的所有错误都继承自带有 `code` 的 `LlmmendError`：
 
-| 类                 | `code`                                                                  | 附加字段                    |
-| ------------------ | ----------------------------------------------------------------------- | --------------------------- |
-| `LlmmendJsonError` | `not_found`, `unparseable`, `truncated`, `schema_mismatch`, `max_depth` | `issues`, `schemaIssues?`   |
-| `LlmmendHttpError` | `http_error`                                                            | `status`, `headers`, `body` |
-| `LlmmendError`     | `async_schema`, `unknown_provider`                                      |                             |
+| 类                 | `code`                                                                  | 附加字段                                             |
+| ------------------ | ----------------------------------------------------------------------- | ---------------------------------------------------- |
+| `LlmmendJsonError` | `not_found`, `unparseable`, `truncated`, `schema_mismatch`, `max_depth` | `issues`, `schemaIssues?`, `at?`, `line?`, `column?` |
+| `LlmmendHttpError` | `http_error`                                                            | `status`, `headers`, `body`                          |
+| `LlmmendError`     | `async_schema`, `unknown_provider`                                      |                                                      |
 
 每个类都有自己的 `name`，因此在加载了两份包副本时，不用 `instanceof` 也能区分错误。
 

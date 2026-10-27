@@ -42,7 +42,7 @@ The result is one of:
 
 - `{ ok: true, value, repaired, issues, raw }`: `repaired` is true when anything beyond stripping the surrounding text was fixed; `raw` is the Candidate's text.
 - `{ ok: false, error: 'schema_mismatch', issues, schemaIssues, value }`: the JSON parsed but the schema rejected it. `schemaIssues` come from the schema, so you can send them back to the model.
-- `{ ok: false, error, issues }` with `error` one of `not_found`, `unparseable`, `truncated`, `max_depth`.
+- `{ ok: false, error, issues, at? }` with `error` one of `not_found`, `unparseable`, `truncated`, `max_depth`; for `unparseable` and `truncated`, `at` is where parsing failed in the Reply.
 
 If the Reply cuts off an object or array after the last complete Candidate, the cut-off one is the real answer: with `repair: 'syntax'` the result is `truncated`, never an earlier Candidate (often a format example from the prompt).
 
@@ -82,7 +82,13 @@ try {
 }
 ```
 
-Returns the value or throws `LlmmendJsonError`, whose `code` is the `error` above, with `issues` and, for `schema_mismatch`, `schemaIssues`.
+Returns the value or throws `LlmmendJsonError`, whose `code` is the `error` above, with `issues` and, for `schema_mismatch`, `schemaIssues`. When the result has `at`, the error has it too, with `line` and `column` (from 1, counting characters), and its message shows the place: newlines in the snippet show as `⏎`, so it stays on one line with the `^` under it.
+
+```text
+Cannot extract JSON: unparseable at line 5, column 8
+…⏎{⏎  "a": 1,⏎  "b": x⏎}
+                     ^
+```
 
 ### extractAllJson
 
@@ -564,11 +570,11 @@ function describe(error: unknown): string {
 
 Every error llmmend throws extends `LlmmendError`, which has a `code`:
 
-| Class              | `code`                                                                  | Extra fields                |
-| ------------------ | ----------------------------------------------------------------------- | --------------------------- |
-| `LlmmendJsonError` | `not_found`, `unparseable`, `truncated`, `schema_mismatch`, `max_depth` | `issues`, `schemaIssues?`   |
-| `LlmmendHttpError` | `http_error`                                                            | `status`, `headers`, `body` |
-| `LlmmendError`     | `async_schema`, `unknown_provider`                                      |                             |
+| Class              | `code`                                                                  | Extra fields                                         |
+| ------------------ | ----------------------------------------------------------------------- | ---------------------------------------------------- |
+| `LlmmendJsonError` | `not_found`, `unparseable`, `truncated`, `schema_mismatch`, `max_depth` | `issues`, `schemaIssues?`, `at?`, `line?`, `column?` |
+| `LlmmendHttpError` | `http_error`                                                            | `status`, `headers`, `body`                          |
+| `LlmmendError`     | `async_schema`, `unknown_provider`                                      |                                                      |
 
 Each class has its own `name`, so errors can be told apart without `instanceof` when two copies of the package are loaded.
 

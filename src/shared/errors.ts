@@ -18,6 +18,13 @@ export class LlmmendError extends Error {
   }
 }
 
+/** Where in the text a JSON error happened: `at` is the position, `line` and `column` count from 1. */
+export interface JsonErrorPosition {
+  at: number
+  line: number
+  column: number
+}
+
 /** Thrown by `extractJsonOrThrow` and `repairJson` when no usable value was found. */
 export class LlmmendJsonError extends LlmmendError {
   override name: string = 'LlmmendJsonError'
@@ -25,17 +32,27 @@ export class LlmmendJsonError extends LlmmendError {
   readonly issues: readonly Issue[]
   /** What the schema rejected, when `code` is `schema_mismatch`. */
   readonly schemaIssues?: readonly StandardSchemaV1.Issue[]
+  // `declare`: no own property at all when there is no position.
+  /** Where parsing failed: for `unparseable` and `truncated`, and for `max_depth` from `repairJson`. */
+  declare readonly at?: number
+  declare readonly line?: number
+  declare readonly column?: number
 
   constructor(
     code: ExtractError,
     message: string,
     issues: readonly Issue[],
     schemaIssues?: readonly StandardSchemaV1.Issue[],
-    options?: ErrorOptions,
+    options?: ErrorOptions & Partial<JsonErrorPosition>,
   ) {
     super(code, message, options)
     this.issues = issues
     if (schemaIssues) this.schemaIssues = schemaIssues
+    if (options?.at !== undefined) {
+      this.at = options.at
+      this.line = options.line!
+      this.column = options.column!
+    }
   }
 }
 
