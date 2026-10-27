@@ -480,3 +480,42 @@ footer {
   clip-path: inset(50%);
   white-space: nowrap;
 }
+
+/* The cost tab: prices grouped under a legend, the breakdown as a two-column table. */
+fieldset.controls {
+  border: 0;
+  padding: 0;
+  margin: 0 0 12px;
+}
+
+fieldset.controls legend {
+  padding: 0 0 6px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.controls input[type='number'] {
+  width: 7em;
+}
+
+.controls label.wide {
+  flex: 1 1 100%;
+}
+
+.controls label.wide textarea {
+  display: block;
+  width: 100%;
+  margin-top: 4px;
+}
+
+table.cost th {
+  padding: 2px 16px 2px 0;
+  text-align: left;
+  font-weight: 400;
+  color: var(--muted);
+}
+
+table.cost td {
+  font: 13px/1.5 var(--mono);
+  text-align: right;
+}

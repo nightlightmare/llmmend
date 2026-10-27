@@ -45,6 +45,8 @@ const tools: Record<Strings['tab'], () => Promise<{ tool: Tool }>> = {
   json: () => import('./json'),
   sse: () => import('./sse'),
   chunk: () => import('./chunk'),
+  prompt: () => import('./prompt'),
+  cost: () => import('./cost'),
 }
 const { tool } = await tools[t.tab]()
 

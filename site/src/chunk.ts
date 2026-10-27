@@ -1,4 +1,4 @@
-import { chunkText, estimateTokens } from 'llmmend/chunk'
+import { chunkText, estimateTokens, type Tokenizer } from 'llmmend/chunk'
 import readme from '../../README.md?raw'
 import ja from '../../test/fixtures/chunk/corpus/ja.txt?raw'
 import { block, h, type Tool } from './dom'
@@ -9,10 +9,13 @@ export const tool: Tool = {
   render(input, options, t) {
     const maxTokens = Math.max(1, Number(options['max-tokens']) || 1)
     const overlap = Math.max(0, Math.min(maxTokens - 1, Number(options.overlap) || 0))
+    const tokenizer: Tokenizer =
+      options.tokenizer === 'claude' || options.tokenizer === 'gemini' ? options.tokenizer : 'o200k'
     const chunks = chunkText(input, {
       maxTokens,
       overlap,
       mode: options.mode === 'text' ? 'text' : 'markdown',
+      tokenizer,
     })
     return h(
       'div',
@@ -20,7 +23,7 @@ export const tool: Tool = {
       h(
         'p',
         { class: 'status ok' },
-        `${t.chunk.total}: ${estimateTokens(input)} ${t.chunk.tokens}`,
+        `${t.chunk.total}: ${estimateTokens(input, { tokenizer })} ${t.chunk.tokens}`,
       ),
       block(
         `${t.chunk.chunks} (${chunks.length})`,
