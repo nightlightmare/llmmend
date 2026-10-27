@@ -161,7 +161,7 @@ Claude 的分词器产生的 token 约为 1.5 倍：用于 Claude 时请把预�
 | 导入            | 函数                                                                                                                                                             |
 | --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `llmmend/json`  | `extractJson`, `extractJsonAsync`, `extractJsonOrThrow`, `extractAllJson`, `repairJson`, `parsePartialJson`, `extractTag`, `extractAllTags`, `extractCodeBlocks` |
-| `llmmend/sse`   | `parseSSE`, `streamLlm`, `streamText`, `collectText`, `streamJson`, `streamToolCalls`                                                                            |
+| `llmmend/sse`   | `parseSSE`, `sseResponse`, `createSSEStream`, `streamLlm`, `streamText`, `collectText`, `streamJson`, `streamToolCalls`                                          |
 | `llmmend/chunk` | `chunkText`, `chunkDocuments`, `estimateTokens`, `truncateToTokens`                                                                                              |
 
 所有内容也从根模块重新导出：`import { extractJson } from 'llmmend'` 依然支持 tree-shaking。

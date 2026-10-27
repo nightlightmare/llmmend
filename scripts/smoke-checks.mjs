@@ -123,6 +123,19 @@ export const checks = {
       stopReason: 'end',
       toolCalls: [],
     })
+    // Serving: the runtime's Response, ReadableStream and TextEncoder, read back with parseSSE.
+    async function* serve() {
+      yield { data: 'line 1\nline 2 🌊', event: 'note', id: '7' }
+      yield { type: 'text', index: 0, text: 'Hi' }
+    }
+    const served = m.sseResponse(serve(), { keepAlive: 60_000 })
+    assert.equal(served.headers.get('content-type'), 'text/event-stream')
+    const read = []
+    for await (const event of m.parseSSE(served.body)) read.push(event)
+    assert.deepEqual(read, [
+      { event: 'note', data: 'line 1\nline 2 🌊', id: '7' },
+      { event: 'message', data: '{"type":"text","index":0,"text":"Hi"}', id: '7' },
+    ])
   },
   './chunk': (m) => {
     // Exercises the runtime's Intl.Segmenter: the family emoji is one grapheme cluster.

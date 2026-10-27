@@ -26,6 +26,7 @@ Install with `npm i llmmend`. Import from `llmmend/json`, `llmmend/sse` or `llmm
 - [collectText](https://github.com/nightlightmare/llmmend/blob/main/docs/api.md#collecttext): Reads the whole stream and returns `{ text, stopReason, usage?, responseId?, toolCalls }`, with the last usage snapshot.
 - [streamJson](https://github.com/nightlightmare/llmmend/blob/main/docs/api.md#streamjson): Streams a Reply that contains JSON.
 - [streamToolCalls](https://github.com/nightlightmare/llmmend/blob/main/docs/api.md#streamtoolcalls): Streams an answer with tool calls, for UIs that render a call while the model writes it.
+- [sseResponse](https://github.com/nightlightmare/llmmend/blob/main/docs/api.md#sseresponse): `sseResponse(source, init?)` streams an async iterable as server-sent events, in a `Response` with `content-type: text/event-stream`, `cache-control: no-cache` and `x-accel-buffering: no` (so nginx does not hold events back), unless `init` sets them.
 - [Custom Provider adapters](https://github.com/nightlightmare/llmmend/blob/main/docs/api.md#custom-provider-adapters): An adapter turns each parsed SSE event into zero or more LLM events.
 
 ## llmmend/chunk

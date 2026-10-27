@@ -161,7 +161,7 @@ truncateToTokens('A title far too long for the card it has to fit on', 8, { elli
 | Импорт          | Функции                                                                                                                                                          |
 | --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `llmmend/json`  | `extractJson`, `extractJsonAsync`, `extractJsonOrThrow`, `extractAllJson`, `repairJson`, `parsePartialJson`, `extractTag`, `extractAllTags`, `extractCodeBlocks` |
-| `llmmend/sse`   | `parseSSE`, `streamLlm`, `streamText`, `collectText`, `streamJson`, `streamToolCalls`                                                                            |
+| `llmmend/sse`   | `parseSSE`, `sseResponse`, `createSSEStream`, `streamLlm`, `streamText`, `collectText`, `streamJson`, `streamToolCalls`                                          |
 | `llmmend/chunk` | `chunkText`, `chunkDocuments`, `estimateTokens`, `truncateToTokens`                                                                                              |
 
 Всё также реэкспортируется из корня: `import { extractJson } from 'llmmend'` по-прежнему поддерживает tree-shaking.

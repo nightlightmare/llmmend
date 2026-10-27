@@ -161,7 +161,7 @@ Checked on 2026-10-24 with jsonrepair 3.15.0, partial-json 0.1.7, best-effort-js
 | Import          | Functions                                                                                                                                                        |
 | --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `llmmend/json`  | `extractJson`, `extractJsonAsync`, `extractJsonOrThrow`, `extractAllJson`, `repairJson`, `parsePartialJson`, `extractTag`, `extractAllTags`, `extractCodeBlocks` |
-| `llmmend/sse`   | `parseSSE`, `streamLlm`, `streamText`, `collectText`, `streamJson`, `streamToolCalls`                                                                            |
+| `llmmend/sse`   | `parseSSE`, `sseResponse`, `createSSEStream`, `streamLlm`, `streamText`, `collectText`, `streamJson`, `streamToolCalls`                                          |
 | `llmmend/chunk` | `chunkText`, `chunkDocuments`, `estimateTokens`, `truncateToTokens`                                                                                              |
 
 Everything is also re-exported from the root: `import { extractJson } from 'llmmend'` stays tree-shakeable.
