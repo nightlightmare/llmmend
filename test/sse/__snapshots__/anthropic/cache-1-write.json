@@ -22,6 +22,7 @@
   {
     "type": "done",
     "stopReason": "end",
-    "rawStopReason": "end_turn"
+    "rawStopReason": "end_turn",
+    "responseId": "msg_bdrk_pn65wyoa7cxfixl4qfu3iura33bu76b5m4l746cwvvzfrfvmywaa"
   }
 ]

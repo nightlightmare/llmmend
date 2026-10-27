@@ -43,7 +43,7 @@ The result is one of:
 
 - `{ ok: true, value, repaired, issues, raw }`: `repaired` is true when anything beyond stripping the surrounding text was fixed; `raw` is the Candidate's text.
 - `{ ok: false, error: 'schema_mismatch', issues, schemaIssues, value }`: the JSON parsed but the schema rejected it. `schemaIssues` come from the schema, so you can send them back to the model.
-- `{ ok: false, error, issues }` with `error` one of `not_found`, `unparseable`, `truncated`, `max_depth`.
+- `{ ok: false, error, issues, at? }` with `error` one of `not_found`, `unparseable`, `truncated`, `max_depth`; for `unparseable` and `truncated`, `at` is where parsing failed in the Reply.
 
 If the Reply cuts off an object or array after the last complete Candidate, the cut-off one is the real answer: with `repair: 'syntax'` the result is `truncated`, never an earlier Candidate (often a format example from the prompt).
 
@@ -83,7 +83,13 @@ try {
 }
 ```
 
-Returns the value or throws `LlmmendJsonError`, whose `code` is the `error` above, with `issues` and, for `schema_mismatch`, `schemaIssues`.
+Returns the value or throws `LlmmendJsonError`, whose `code` is the `error` above, with `issues` and, for `schema_mismatch`, `schemaIssues`. When the result has `at`, the error has it too, with `line` and `column` (from 1, counting characters), and its message shows the place: newlines in the snippet show as `⏎`, so it stays on one line with the `^` under it.
+
+```text
+Cannot extract JSON: unparseable at line 5, column 8
+…⏎{⏎  "a": 1,⏎  "b": x⏎}
+                     ^
+```
 
 ### extractAllJson
 
@@ -274,17 +280,17 @@ function show(ev: LlmEvent): string {
 }
 ```
 
-| `type`                | Fields                                                                                       | Meaning                                                                                                                                                                                               |
-| --------------------- | -------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `text`                | `index`, `text`                                                                              | A piece of the answer's text.                                                                                                                                                                         |
-| `reasoning`           | `index`, `text`, `redacted?`                                                                 | A piece of reasoning. `redacted` holds Anthropic's encrypted `redacted_thinking` data; send it back unchanged.                                                                                        |
-| `reasoning_signature` | `index`, `signature`                                                                         | Data to send back unchanged with Block `index` when you continue the conversation: Anthropic’s thinking signature, or Gemini’s `thoughtSignature`, which can sit on any part (often a function call). |
-| `tool_call_start`     | `index`, `id`, `name`, `custom?`                                                             | A tool call begins. `custom: true`: an OpenAI Responses custom tool, whose input is free-form text, not JSON.                                                                                         |
-| `tool_call_delta`     | `index`, `argsDelta`                                                                         | A piece of the tool call's JSON arguments; join them in order.                                                                                                                                        |
-| `usage`               | `inputTokens?`, `outputTokens?`, `cacheReadTokens?`, `cacheWriteTokens?`, `reasoningTokens?` | Token counts so far.                                                                                                                                                                                  |
-| `done`                | `stopReason`, `rawStopReason?`                                                               | The end of the stream.                                                                                                                                                                                |
-| `error`               | `message`, `raw`                                                                             | The Provider reported an error mid-stream.                                                                                                                                                            |
-| `other`               | `raw`                                                                                        | An event the adapter does not know, as parsed by `parseSSE`.                                                                                                                                          |
+| `type`                | Fields                                                                                       | Meaning                                                                                                                                                                                                                                                       |
+| --------------------- | -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `text`                | `index`, `text`                                                                              | A piece of the answer's text.                                                                                                                                                                                                                                 |
+| `reasoning`           | `index`, `text`, `redacted?`                                                                 | A piece of reasoning. `redacted` holds Anthropic's encrypted `redacted_thinking` data; send it back unchanged.                                                                                                                                                |
+| `reasoning_signature` | `index`, `signature`, `itemId?`                                                              | Data to send back unchanged with Block `index` when you continue the conversation: Anthropic’s thinking signature, or Gemini’s `thoughtSignature`, which can sit on any part (often a function call). `itemId`: the OpenAI Responses reasoning item (`rs_…`). |
+| `tool_call_start`     | `index`, `id`, `name`, `custom?`, `itemId?`                                                  | A tool call begins. `custom: true`: an OpenAI Responses custom tool, whose input is free-form text, not JSON. `itemId`: the OpenAI Responses function call item (`fc_…`).                                                                                     |
+| `tool_call_delta`     | `index`, `argsDelta`                                                                         | A piece of the tool call's JSON arguments; join them in order.                                                                                                                                                                                                |
+| `usage`               | `inputTokens?`, `outputTokens?`, `cacheReadTokens?`, `cacheWriteTokens?`, `reasoningTokens?` | Token counts so far.                                                                                                                                                                                                                                          |
+| `done`                | `stopReason`, `rawStopReason?`, `responseId?`                                                | The end of the stream. `responseId`: the Provider’s id of the response.                                                                                                                                                                                       |
+| `error`               | `message`, `raw`                                                                             | The Provider reported an error mid-stream.                                                                                                                                                                                                                    |
+| `other`               | `raw`                                                                                        | An event the adapter does not know, as parsed by `parseSSE`.                                                                                                                                                                                                  |
 
 `index` is the Block: text, reasoning and each tool call get their own number, the same way for every Provider. `tool_call_delta` always comes after the `tool_call_start` with the same `index`.
 
@@ -303,7 +309,7 @@ Stop reasons:
 | `error`         | an `error` event                              | an `error` payload            | an `error` payload; `MALFORMED_FUNCTION_CALL`, `MISSING_THOUGHT_SIGNATURE`, …          |
 | `unknown`       | anything else, or no final event              | anything else, or no `[DONE]` | anything else, or no finish reason                                                     |
 
-`rawStopReason` keeps the Provider's own string.
+`rawStopReason` keeps the Provider's own string. `responseId` is the Provider's id of the response: Anthropic `msg_…`, Chat Completions `chatcmpl-…` (other ids from compatible APIs), Responses `resp_…` (for `previous_response_id`), Gemini `responseId`. It comes with the Provider's own final event, so a `done` that `streamLlm` adds after an error or a stream that broke off has none. With `itemId` on `tool_call_start` and `reasoning_signature`, a client that keeps the Responses history itself can send those items back.
 
 Errors and the end of the stream:
 
@@ -348,7 +354,7 @@ const { text, stopReason, usage } = await collectText(res, { provider: 'openai' 
 console.log(text, stopReason, usage?.outputTokens)
 ```
 
-Reads the whole stream and returns `{ text, stopReason, usage?, toolCalls }`, with the last usage snapshot.
+Reads the whole stream and returns `{ text, stopReason, usage?, responseId?, toolCalls }`, with the last usage snapshot.
 
 #### Tool calls
 
@@ -442,6 +448,44 @@ Streams an answer with tool calls, for UIs that render a call while the model wr
 With `tools`, `partial` is typed as a deep partial of the tool schema's input, narrowed by `name` (defaults and transforms apply only to the final `args`), and a call to a tool not in `tools` yields nothing until it ends as `unknown_tool`.
 
 Then it yields one final item: `{ done: true }` with everything `collectText` returns. Reasoning is not yielded: read it with `streamLlm`. Each argument delta re-parses that call's arguments, which is fine for arguments of a few kilobytes.
+
+### sseResponse
+
+```ts
+import { sseResponse, streamLlm } from 'llmmend/sse'
+
+// A server route that passes the model's stream on to the browser as LLM events.
+export async function POST(request: Request): Promise<Response> {
+  const upstream = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'x-api-key': '…',
+      'anthropic-version': '2023-06-01',
+      'content-type': 'application/json',
+    },
+    body: await request.text(),
+    signal: request.signal,
+  })
+  return sseResponse(streamLlm(upstream), { keepAlive: 15_000 })
+}
+```
+
+```ts
+import { type LlmEvent, parseSSE } from 'llmmend/sse'
+
+// In the browser.
+const res = await fetch('/api/chat', { method: 'POST', body: JSON.stringify({ messages: [] }) })
+for await (const event of parseSSE(res.body!)) {
+  const ev = JSON.parse(event.data) as LlmEvent
+  if (ev.type === 'text') console.log(ev.text)
+}
+```
+
+`sseResponse(source, init?)` streams an async iterable as server-sent events, in a `Response` with `content-type: text/event-stream`, `cache-control: no-cache` and `x-accel-buffering: no` (so nginx does not hold events back), unless `init` sets them. `init` is a `ResponseInit` plus `keepAlive`. `createSSEStream(source, { keepAlive? })` gives the same stream as a `ReadableStream<Uint8Array>`, for servers that take a body rather than a `Response`.
+
+Each item of `source` is an event `{ data, event?, id?, retry? }` or a plain value. A string `data` goes as is, anything else through `JSON.stringify`; multi-line data becomes several `data:` lines, which `parseSSE` joins again. An object is an event only when it has `data` and no keys but `event`, `id` and `retry`, so LLM events go as JSON. An `event` or `id` with a line break, a `retry` that is not a whole number, or an error from the source errors the stream.
+
+`keepAlive` (milliseconds, off by default) sends a `:` comment after that long without an event, so proxies don't drop a quiet connection, for example while the model thinks. When the client goes away, the stream calls `return()` on the source: `streamLlm` then cancels the upstream request as soon as its next chunk arrives.
 
 ### Custom Provider adapters
 
@@ -566,11 +610,11 @@ function describe(error: unknown): string {
 
 Every error llmmend throws extends `LlmmendError`, which has a `code`:
 
-| Class              | `code`                                                                  | Extra fields                |
-| ------------------ | ----------------------------------------------------------------------- | --------------------------- |
-| `LlmmendJsonError` | `not_found`, `unparseable`, `truncated`, `schema_mismatch`, `max_depth` | `issues`, `schemaIssues?`   |
-| `LlmmendHttpError` | `http_error`                                                            | `status`, `headers`, `body` |
-| `LlmmendError`     | `async_schema`, `unknown_provider`                                      |                             |
+| Class              | `code`                                                                  | Extra fields                                         |
+| ------------------ | ----------------------------------------------------------------------- | ---------------------------------------------------- |
+| `LlmmendJsonError` | `not_found`, `unparseable`, `truncated`, `schema_mismatch`, `max_depth` | `issues`, `schemaIssues?`, `at?`, `line?`, `column?` |
+| `LlmmendHttpError` | `http_error`                                                            | `status`, `headers`, `body`                          |
+| `LlmmendError`     | `async_schema`, `unknown_provider`                                      |                                                      |
 
 Each class has its own `name`, so errors can be told apart without `instanceof` when two copies of the package are loaded.
 

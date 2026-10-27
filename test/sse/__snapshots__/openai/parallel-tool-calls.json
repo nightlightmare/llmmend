@@ -46,6 +46,7 @@
   {
     "type": "done",
     "stopReason": "tool_use",
-    "rawStopReason": "tool_calls"
+    "rawStopReason": "tool_calls",
+    "responseId": "chatcmpl-synthetic"
   }
 ]

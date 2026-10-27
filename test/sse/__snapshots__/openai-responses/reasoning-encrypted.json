@@ -17,7 +17,8 @@
   {
     "type": "reasoning_signature",
     "index": 0,
-    "signature": "gAAAAABpSYNTHETICencryptedReasoningContent=="
+    "signature": "gAAAAABpSYNTHETICencryptedReasoningContent==",
+    "itemId": "rs_synthetic"
   },
   {
     "type": "text",
@@ -39,6 +40,7 @@
   {
     "type": "done",
     "stopReason": "end",
-    "rawStopReason": "completed"
+    "rawStopReason": "completed",
+    "responseId": "resp_reasoning"
   }
 ]

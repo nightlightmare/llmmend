@@ -45,7 +45,7 @@ else console.log(res.error)
 
 - `{ ok: true, value, repaired, issues, raw }`: `repaired` равно true, если исправлено что-то кроме срезания окружающего текста; `raw` — текст кандидата.
 - `{ ok: false, error: 'schema_mismatch', issues, schemaIssues, value }`: JSON разобран, но схема его отвергла. `schemaIssues` приходят от схемы, их можно отправить обратно модели.
-- `{ ok: false, error, issues }`, где `error` — одно из `not_found`, `unparseable`, `truncated`, `max_depth`.
+- `{ ok: false, error, issues, at? }`, где `error` — одно из `not_found`, `unparseable`, `truncated`, `max_depth`; для `unparseable` и `truncated` `at` — место в ответе, где разбор не удался.
 
 Если ответ обрывает объект или массив после последнего полного кандидата, настоящий ответ — именно обрезанный: с `repair: 'syntax'` результат будет `truncated`, а не более ранний кандидат (часто это пример формата из промпта).
 
@@ -85,7 +85,13 @@ try {
 }
 ```
 
-Возвращает значение или бросает `LlmmendJsonError`, у которого `code` — это `error` из описания выше, плюс `issues` и, для `schema_mismatch`, `schemaIssues`.
+Возвращает значение или бросает `LlmmendJsonError`, у которого `code` — это `error` из описания выше, плюс `issues` и, для `schema_mismatch`, `schemaIssues`. Если в результате есть `at`, он есть и у ошибки, вместе с `line` и `column` (с 1, в символах), а сообщение показывает это место: переводы строк во фрагменте показаны как `⏎`, так что он остаётся одной строкой, а под ним стоит `^`.
+
+```text
+Cannot extract JSON: unparseable at line 5, column 8
+…⏎{⏎  "a": 1,⏎  "b": x⏎}
+                     ^
+```
 
 ### extractAllJson
 
@@ -276,17 +282,17 @@ function show(ev: LlmEvent): string {
 }
 ```
 
-| `type`                | Поля                                                                                         | Смысл                                                                                                                                                                                                                         |
-| --------------------- | -------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `text`                | `index`, `text`                                                                              | Кусок текста ответа.                                                                                                                                                                                                          |
-| `reasoning`           | `index`, `text`, `redacted?`                                                                 | Кусок рассуждения. В `redacted` лежат зашифрованные данные `redacted_thinking` от Anthropic; отправляйте их обратно без изменений.                                                                                            |
-| `reasoning_signature` | `index`, `signature`                                                                         | Данные, которые нужно вернуть без изменений вместе с блоком `index`, продолжая разговор: подпись рассуждения от Anthropic или `thoughtSignature` от Gemini, который может оказаться на любой части (часто на вызове функции). |
-| `tool_call_start`     | `index`, `id`, `name`, `custom?`                                                             | Начало вызова инструмента. `custom: true` — custom tool из OpenAI Responses, его ввод — произвольный текст, а не JSON.                                                                                                        |
-| `tool_call_delta`     | `index`, `argsDelta`                                                                         | Кусок JSON-аргументов вызова; склеивайте по порядку.                                                                                                                                                                          |
-| `usage`               | `inputTokens?`, `outputTokens?`, `cacheReadTokens?`, `cacheWriteTokens?`, `reasoningTokens?` | Расход токенов на текущий момент.                                                                                                                                                                                             |
-| `done`                | `stopReason`, `rawStopReason?`                                                               | Конец стрима.                                                                                                                                                                                                                 |
-| `error`               | `message`, `raw`                                                                             | Провайдер сообщил об ошибке посреди стрима.                                                                                                                                                                                   |
-| `other`               | `raw`                                                                                        | Событие, которого адаптер не знает, в том виде, в каком его разобрал `parseSSE`.                                                                                                                                              |
+| `type`                | Поля                                                                                         | Смысл                                                                                                                                                                                                                                                                                     |
+| --------------------- | -------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `text`                | `index`, `text`                                                                              | Кусок текста ответа.                                                                                                                                                                                                                                                                      |
+| `reasoning`           | `index`, `text`, `redacted?`                                                                 | Кусок рассуждения. В `redacted` лежат зашифрованные данные `redacted_thinking` от Anthropic; отправляйте их обратно без изменений.                                                                                                                                                        |
+| `reasoning_signature` | `index`, `signature`, `itemId?`                                                              | Данные, которые нужно вернуть без изменений вместе с блоком `index`, продолжая разговор: подпись рассуждения от Anthropic или `thoughtSignature` от Gemini, который может оказаться на любой части (часто на вызове функции). `itemId` — элемент рассуждения в OpenAI Responses (`rs_…`). |
+| `tool_call_start`     | `index`, `id`, `name`, `custom?`, `itemId?`                                                  | Начало вызова инструмента. `custom: true` — custom tool из OpenAI Responses, его ввод — произвольный текст, а не JSON. `itemId` — элемент вызова функции в OpenAI Responses (`fc_…`).                                                                                                     |
+| `tool_call_delta`     | `index`, `argsDelta`                                                                         | Кусок JSON-аргументов вызова; склеивайте по порядку.                                                                                                                                                                                                                                      |
+| `usage`               | `inputTokens?`, `outputTokens?`, `cacheReadTokens?`, `cacheWriteTokens?`, `reasoningTokens?` | Расход токенов на текущий момент.                                                                                                                                                                                                                                                         |
+| `done`                | `stopReason`, `rawStopReason?`, `responseId?`                                                | Конец стрима. `responseId` — id ответа у провайдера.                                                                                                                                                                                                                                      |
+| `error`               | `message`, `raw`                                                                             | Провайдер сообщил об ошибке посреди стрима.                                                                                                                                                                                                                                               |
+| `other`               | `raw`                                                                                        | Событие, которого адаптер не знает, в том виде, в каком его разобрал `parseSSE`.                                                                                                                                                                                                          |
 
 `index` — это номер блока: текст, рассуждение и каждый вызов инструмента получают свой номер, одинаково для всех провайдеров. `tool_call_delta` всегда приходит после `tool_call_start` с тем же `index`.
 
@@ -305,7 +311,7 @@ function show(ev: LlmEvent): string {
 | `error`         | событие `error`                               | объект `error` в данных        | объект `error` в данных; `MALFORMED_FUNCTION_CALL`, `MISSING_THOUGHT_SIGNATURE`, …           |
 | `unknown`       | что-то другое или нет финального события      | что-то другое или нет `[DONE]` | что-то другое или нет причины остановки                                                      |
 
-`rawStopReason` хранит исходную строку провайдера.
+`rawStopReason` хранит исходную строку провайдера. `responseId` — id ответа у провайдера: Anthropic `msg_…`, Chat Completions `chatcmpl-…` (у совместимых API бывают другие), Responses `resp_…` (для `previous_response_id`), Gemini `responseId`. Он приходит с финальным событием самого провайдера, поэтому у `done`, который `streamLlm` добавляет после ошибки или оборванного стрима, его нет. Вместе с `itemId` у `tool_call_start` и `reasoning_signature` это позволяет клиенту, который сам хранит историю Responses, отправить эти элементы обратно.
 
 Ошибки и конец стрима:
 
@@ -350,7 +356,7 @@ const { text, stopReason, usage } = await collectText(res, { provider: 'openai' 
 console.log(text, stopReason, usage?.outputTokens)
 ```
 
-Читает стрим целиком и возвращает `{ text, stopReason, usage?, toolCalls }` с последним снимком расхода токенов.
+Читает стрим целиком и возвращает `{ text, stopReason, usage?, responseId?, toolCalls }` с последним снимком расхода токенов.
 
 #### Вызовы инструментов
 
@@ -444,6 +450,44 @@ for await (const item of streamToolCalls(res, { tools })) {
 С опцией `tools` тип `partial` — глубокий partial от входного типа схемы инструмента с сужением по `name` (дефолты и преобразования применяются только к итоговым `args`), а вызов инструмента не из `tools` ничего не выдаёт, пока не закончится как `unknown_tool`.
 
 В конце приходит один итоговый элемент: `{ done: true }` со всем, что возвращает `collectText`. Рассуждения модели не выдаются: их читает `streamLlm`. Каждая дельта аргументов заново разбирает аргументы своего вызова, для аргументов в несколько килобайт это нормально.
+
+### sseResponse
+
+```ts
+import { sseResponse, streamLlm } from 'llmmend/sse'
+
+// Серверный маршрут, который передаёт стрим модели в браузер в виде LLM-событий.
+export async function POST(request: Request): Promise<Response> {
+  const upstream = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'x-api-key': '…',
+      'anthropic-version': '2023-06-01',
+      'content-type': 'application/json',
+    },
+    body: await request.text(),
+    signal: request.signal,
+  })
+  return sseResponse(streamLlm(upstream), { keepAlive: 15_000 })
+}
+```
+
+```ts
+import { type LlmEvent, parseSSE } from 'llmmend/sse'
+
+// В браузере.
+const res = await fetch('/api/chat', { method: 'POST', body: JSON.stringify({ messages: [] }) })
+for await (const event of parseSSE(res.body!)) {
+  const ev = JSON.parse(event.data) as LlmEvent
+  if (ev.type === 'text') console.log(ev.text)
+}
+```
+
+`sseResponse(source, init?)` отдаёт асинхронный итерируемый источник как server-sent events в `Response` с заголовками `content-type: text/event-stream`, `cache-control: no-cache` и `x-accel-buffering: no` (чтобы nginx не придерживал события), если `init` не задаёт их сам. `init` — это `ResponseInit` плюс `keepAlive`. `createSSEStream(source, { keepAlive? })` даёт тот же поток как `ReadableStream<Uint8Array>` — для серверов, которые принимают тело, а не `Response`.
+
+Каждый элемент `source` — событие `{ data, event?, id?, retry? }` или просто значение. Строковый `data` уходит как есть, всё остальное — через `JSON.stringify`; многострочные данные становятся несколькими строками `data:`, которые `parseSSE` снова склеивает. Объект считается событием, только если в нём есть `data` и нет других ключей, кроме `event`, `id` и `retry`, поэтому LLM-события уходят как JSON. `event` или `id` с переводом строки, `retry`, не являющийся целым числом, или ошибка источника переводят поток в ошибку.
+
+`keepAlive` (в миллисекундах, по умолчанию выключен) отправляет комментарий `:`, если столько времени не было событий, чтобы прокси не обрывали тихое соединение, например пока модель думает. Когда клиент уходит, поток вызывает у источника `return()`: `streamLlm` тогда отменяет запрос к провайдеру, как только придёт его следующий кусок.
 
 ### Свои адаптеры провайдеров
 
@@ -568,11 +612,11 @@ function describe(error: unknown): string {
 
 Все ошибки, которые бросает llmmend, наследуют `LlmmendError` с полем `code`:
 
-| Класс              | `code`                                                                  | Доп. поля                   |
-| ------------------ | ----------------------------------------------------------------------- | --------------------------- |
-| `LlmmendJsonError` | `not_found`, `unparseable`, `truncated`, `schema_mismatch`, `max_depth` | `issues`, `schemaIssues?`   |
-| `LlmmendHttpError` | `http_error`                                                            | `status`, `headers`, `body` |
-| `LlmmendError`     | `async_schema`, `unknown_provider`                                      |                             |
+| Класс              | `code`                                                                  | Доп. поля                                            |
+| ------------------ | ----------------------------------------------------------------------- | ---------------------------------------------------- |
+| `LlmmendJsonError` | `not_found`, `unparseable`, `truncated`, `schema_mismatch`, `max_depth` | `issues`, `schemaIssues?`, `at?`, `line?`, `column?` |
+| `LlmmendHttpError` | `http_error`                                                            | `status`, `headers`, `body`                          |
+| `LlmmendError`     | `async_schema`, `unknown_provider`                                      |                                                      |
 
 У каждого класса свой `name`, поэтому ошибки можно различить и без `instanceof`, когда загружены две копии пакета.
 

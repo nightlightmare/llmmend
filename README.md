@@ -161,7 +161,7 @@ Checked on 2026-10-24 with jsonrepair 3.15.0, partial-json 0.1.7, best-effort-js
 | Import          | Functions                                                                                                                                                        |
 | --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `llmmend/json`  | `extractJson`, `extractJsonAsync`, `extractJsonOrThrow`, `extractAllJson`, `repairJson`, `parsePartialJson`, `extractTag`, `extractAllTags`, `extractCodeBlocks` |
-| `llmmend/sse`   | `parseSSE`, `streamLlm`, `streamText`, `collectText`, `streamJson`, `streamToolCalls`                                                                            |
+| `llmmend/sse`   | `parseSSE`, `sseResponse`, `createSSEStream`, `streamLlm`, `streamText`, `collectText`, `streamJson`, `streamToolCalls`                                          |
 | `llmmend/chunk` | `chunkText`, `chunkDocuments`, `estimateTokens`, `truncateToTokens`                                                                                              |
 
 Everything is also re-exported from the root: `import { extractJson } from 'llmmend'` stays tree-shakeable.
@@ -174,8 +174,8 @@ For AI coding assistants: [llms.txt](https://github.com/nightlightmare/llmmend/b
 
 | Module          | min+brotli                                                                |
 | --------------- | ------------------------------------------------------------------------- |
-| `llmmend/json`  | ~5.5 kB (`extractJson` alone ~4 kB, tags ~1.1 kB, code blocks ~0.5 kB)    |
-| `llmmend/sse`   | ~3.6 kB (`parseSSE` alone ~0.9 kB; `collectText` with tool calls ~6.7 kB) |
+| `llmmend/json`  | ~5.8 kB (`extractJson` alone ~4 kB, tags ~1.1 kB, code blocks ~0.5 kB)    |
+| `llmmend/sse`   | ~3.7 kB (`parseSSE` alone ~0.9 kB; `collectText` with tool calls ~6.8 kB) |
 | `llmmend/chunk` | ~1.8 kB                                                                   |
 
 ## Contributing

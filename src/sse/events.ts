@@ -32,13 +32,28 @@ export type LlmEvent =
   | { type: 'text'; index: number; text: string }
   /** `redacted` carries the opaque data of an Anthropic `redacted_thinking` Block. */
   | { type: 'reasoning'; index: number; text: string; redacted?: string }
-  | { type: 'reasoning_signature'; index: number; signature: string }
-  /** `custom` marks a tool whose input is free-form text, not JSON (OpenAI Responses custom tools). */
-  | { type: 'tool_call_start'; index: number; id: string; name: string; custom?: true }
+  /** `itemId`: the OpenAI Responses reasoning item (`rs_…`), for a history sent back. */
+  | { type: 'reasoning_signature'; index: number; signature: string; itemId?: string }
+  /**
+   * `custom` marks a tool whose input is free-form text, not JSON (OpenAI Responses custom tools).
+   * `itemId`: the OpenAI Responses function call item (`fc_…`), for a history sent back.
+   */
+  | {
+      type: 'tool_call_start'
+      index: number
+      id: string
+      name: string
+      custom?: true
+      itemId?: string
+    }
   | { type: 'tool_call_delta'; index: number; argsDelta: string }
   | ({ type: 'usage' } & LlmUsage)
-  /** Arrives exactly once, always last. */
-  | { type: 'done'; stopReason: StopReason; rawStopReason?: string }
+  /**
+   * Arrives exactly once, always last. `responseId` is the Provider's id of the response
+   * (Anthropic `msg_…`, Chat Completions `chatcmpl-…`, Responses `resp_…` for
+   * `previous_response_id`, Gemini `responseId`), when the Provider sent one and ended the stream.
+   */
+  | { type: 'done'; stopReason: StopReason; rawStopReason?: string; responseId?: string }
   | { type: 'error'; message: string; raw: unknown }
   /** An event the adapter does not recognise. */
   | { type: 'other'; raw: SSEEvent }

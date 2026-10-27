@@ -29,6 +29,7 @@
   {
     "type": "done",
     "stopReason": "end",
-    "rawStopReason": "stop"
+    "rawStopReason": "stop",
+    "responseId": "gen-synthetic"
   }
 ]

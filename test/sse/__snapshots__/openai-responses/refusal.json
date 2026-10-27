@@ -19,6 +19,7 @@
   {
     "type": "done",
     "stopReason": "refused",
-    "rawStopReason": "completed"
+    "rawStopReason": "completed",
+    "responseId": "resp_refusal"
   }
 ]

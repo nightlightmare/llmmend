@@ -1,8 +1,9 @@
 import type { LlmEvent, LlmUsage, ProviderAdapter, StopReason } from '../events'
 import type { SSEEvent } from '../parse'
-import { parseObject } from './shared'
+import { done, parseObject } from './shared'
 
 interface RawItem {
+  id?: string
   type?: string
   call_id?: string
   name?: string
@@ -10,6 +11,7 @@ interface RawItem {
 }
 
 interface RawResponse {
+  id?: string
   usage?: {
     input_tokens?: number
     output_tokens?: number
@@ -67,12 +69,15 @@ function create(): (event: SSEEvent) => LlmEvent[] {
   const tools = new Set<number>()
   const summaryParts = new Map<number, number>()
   let refused = false
+  let responseId: string | undefined
 
   return (sse) => {
     const raw = parseObject<RawEvent>(sse.data)
     const other: LlmEvent[] = [{ type: 'other', raw: sse }]
     if (!raw) return other
     const type = raw.type ?? sse.event
+    // `response.created` has the id already; later events with `response` repeat it.
+    responseId ??= raw.response?.id
     if (IGNORED.has(type)) return []
     const index = raw.output_index ?? 0
     const delta = raw.delta ?? ''
@@ -81,18 +86,26 @@ function create(): (event: SSEEvent) => LlmEvent[] {
         const item = raw.item
         if (item?.type === 'function_call' || item?.type === 'custom_tool_call') {
           tools.add(index)
-          const id = item.call_id ?? ''
-          const name = item.name ?? ''
-          return item.type === 'custom_tool_call'
-            ? [{ type: 'tool_call_start', index, id, name, custom: true }]
-            : [{ type: 'tool_call_start', index, id, name }]
+          const event: LlmEvent = {
+            type: 'tool_call_start',
+            index,
+            id: item.call_id ?? '',
+            name: item.name ?? '',
+          }
+          if (item.type === 'custom_tool_call') event.custom = true
+          if (item.id) event.itemId = item.id
+          return [event]
         }
         return item?.type === 'message' || item?.type === 'reasoning' ? [] : other
       }
       case 'response.output_item.done': {
         const item = raw.item
-        if (item?.type === 'reasoning' && item.encrypted_content)
-          return [{ type: 'reasoning_signature', index, signature: item.encrypted_content }]
+        if (item?.type === 'reasoning' && item.encrypted_content) {
+          const signature = item.encrypted_content
+          const event: LlmEvent = { type: 'reasoning_signature', index, signature }
+          if (item.id) event.itemId = item.id
+          return [event]
+        }
         return item?.type === 'message' || item?.type === 'reasoning' || tools.has(index)
           ? []
           : other
@@ -119,10 +132,7 @@ function create(): (event: SSEEvent) => LlmEvent[] {
         return delta ? [{ type: 'tool_call_delta', index, argsDelta: delta }] : []
       case 'response.completed': {
         const stopReason: StopReason = tools.size ? 'tool_use' : refused ? 'refused' : 'end'
-        return [
-          ...usage(raw.response?.usage),
-          { type: 'done', stopReason, rawStopReason: 'completed' },
-        ]
+        return [...usage(raw.response?.usage), ...done(stopReason, 'completed', responseId)]
       }
       case 'response.incomplete': {
         const reason = raw.response?.incomplete_details?.reason ?? 'incomplete'
@@ -132,7 +142,7 @@ function create(): (event: SSEEvent) => LlmEvent[] {
             : reason === 'content_filter'
               ? 'refused'
               : 'unknown'
-        return [...usage(raw.response?.usage), { type: 'done', stopReason, rawStopReason: reason }]
+        return [...usage(raw.response?.usage), ...done(stopReason, reason, responseId)]
       }
       case 'response.failed':
         return [{ type: 'error', message: raw.response?.error?.message ?? 'Provider error', raw }]

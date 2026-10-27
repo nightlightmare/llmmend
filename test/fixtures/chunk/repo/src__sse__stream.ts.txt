@@ -1,0 +1,130 @@
+import { LlmmendError, LlmmendHttpError } from '../shared/errors'
+import type { LlmEvent, LlmUsage, Provider, ProviderAdapter, StopReason } from './events'
+import { parseSSE } from './parse'
+import { anthropic } from './providers/anthropic'
+import { auto } from './providers/auto'
+import { gemini } from './providers/gemini'
+import { openai } from './providers/openai'
+import { openaiResponses } from './providers/openai-responses'
+import {
+  finishToolCalls,
+  type PendingToolCall,
+  type ToolCall,
+  type ToolSchemas,
+} from './tool-calls'
+
+/** A `fetch` response, or its body. */
+export type StreamSource = Response | ReadableStream<Uint8Array>
+
+export interface StreamLlmOptions {
+  /**
+   * Which Provider produced the stream: a built-in name or a custom adapter. The default, `'auto'`,
+   * picks the adapter from the first event that shows the format.
+   */
+  provider?: Provider
+  /** Aborting cancels the source and makes iteration throw the signal's reason (an `AbortError`). */
+  signal?: AbortSignal
+}
+
+export interface CollectTextOptions<
+  Tools extends ToolSchemas = ToolSchemas,
+> extends StreamLlmOptions {
+  /**
+   * Schemas for the tools the model may call, by name. Each call's arguments are validated
+   * against its tool's schema; a call to a tool not listed fails with `unknown_tool`.
+   */
+  tools?: Tools
+}
+
+/** What `collectText` returns. */
+export interface CollectedText<Tools extends ToolSchemas = Record<never, never>> {
+  text: string
+  stopReason: StopReason
+  /** The last usage snapshot, if the Provider sent one. */
+  usage?: LlmUsage
+  /** The answer's tool calls in Block order, each usable (`ok: true`) or with the reason it is not. */
+  toolCalls: ToolCall<Tools>[]
+}
+
+const PROVIDERS = new Map<string, ProviderAdapter>([
+  ['anthropic', anthropic],
+  ['openai', openai],
+  ['gemini', gemini],
+  ['openai-responses', openaiResponses],
+  ['auto', auto],
+])
+
+/**
+ * Turns a Provider's server-sent event stream into LLM events. A non-2xx `Response` throws
+ * `LlmmendHttpError` before streaming. `done` arrives exactly once and always last: after a
+ * Provider error it follows the `error` event with `stopReason: 'error'`, and a stream that ends
+ * without a final event gets `stopReason: 'unknown'`.
+ */
+export async function* streamLlm(
+  source: StreamSource,
+  options: StreamLlmOptions = {},
+): AsyncIterable<LlmEvent> {
+  const { provider = 'auto', signal } = options
+  signal?.throwIfAborted()
+  const adapter = typeof provider === 'string' ? PROVIDERS.get(provider) : provider
+  if (!adapter) throw new LlmmendError('unknown_provider', `Unknown provider: ${String(provider)}`)
+  let body: ReadableStream<Uint8Array> | null = null
+  if ('getReader' in source) body = source
+  else if (source.ok) body = source.body
+  else {
+    const text = await source.text().catch(() => '')
+    throw new LlmmendHttpError(source.status, source.headers, text)
+  }
+  const map = adapter.create()
+  if (body) {
+    for await (const sse of parseSSE(body, signal ? { signal } : {})) {
+      for (const event of map(sse)) {
+        yield event
+        if (event.type === 'done') return
+        if (event.type === 'error') {
+          yield { type: 'done', stopReason: 'error' }
+          return
+        }
+      }
+    }
+  }
+  yield { type: 'done', stopReason: 'unknown' }
+}
+
+/** Yields only the answer's text. Use `streamLlm` or `collectText` to learn why it stopped. */
+export async function* streamText(
+  source: StreamSource,
+  options: StreamLlmOptions = {},
+): AsyncIterable<string> {
+  for await (const event of streamLlm(source, options)) {
+    if (event.type === 'text') yield event.text
+  }
+}
+
+/**
+ * Reads the whole stream and returns the answer's text, Stop reason, last usage and tool calls.
+ * Tool call arguments get syntax Repair; cut-off arguments are reported, never completed.
+ */
+export async function collectText<Tools extends ToolSchemas = Record<never, never>>(
+  source: StreamSource,
+  options: CollectTextOptions<Tools> = {},
+): Promise<CollectedText<Tools>> {
+  const { tools, ...streamOptions } = options
+  const result: Omit<CollectedText<Tools>, 'toolCalls'> = { text: '', stopReason: 'unknown' }
+  const calls = new Map<number, PendingToolCall>()
+  for await (const event of streamLlm(source, streamOptions)) {
+    if (event.type === 'text') result.text += event.text
+    else if (event.type === 'tool_call_start')
+      calls.set(event.index, { ...event, argsText: '', custom: event.custom === true })
+    else if (event.type === 'tool_call_delta') {
+      const call = calls.get(event.index)
+      if (call) call.argsText += event.argsDelta
+    } else if (event.type === 'done') result.stopReason = event.stopReason
+    else if (event.type === 'usage') {
+      const { type: _, ...usage } = event
+      result.usage = usage
+    }
+  }
+  const toolCalls = (await finishToolCalls(calls.values(), tools)) as ToolCall<Tools>[]
+  return { ...result, toolCalls }
+}

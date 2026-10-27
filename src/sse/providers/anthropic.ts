@@ -1,6 +1,6 @@
 import type { LlmEvent, LlmUsage, ProviderAdapter, StopReason } from '../events'
 import type { SSEEvent } from '../parse'
-import { done, parseObject } from './shared'
+import { done, mapStop, parseObject } from './shared'
 
 interface RawUsage {
   input_tokens?: number
@@ -14,7 +14,7 @@ interface RawUsage {
 interface RawEvent {
   type?: string
   index?: number
-  message?: { usage?: RawUsage }
+  message?: { id?: string; usage?: RawUsage }
   content_block?: {
     type?: string
     text?: string
@@ -56,6 +56,7 @@ function create(): (event: SSEEvent) => LlmEvent[] {
   let output: number | undefined
   let thinking: number | undefined
   let rawStopReason: string | undefined
+  let responseId: string | undefined
 
   const usage = (raw: RawUsage | undefined): LlmEvent[] => {
     if (!raw) return []
@@ -81,6 +82,7 @@ function create(): (event: SSEEvent) => LlmEvent[] {
     const index = raw.index ?? 0
     switch (raw.type) {
       case 'message_start':
+        responseId = raw.message?.id
         return usage(raw.message?.usage)
       case 'content_block_start': {
         const block = raw.content_block
@@ -128,7 +130,7 @@ function create(): (event: SSEEvent) => LlmEvent[] {
         rawStopReason = raw.delta?.stop_reason ?? rawStopReason
         return usage(raw.usage)
       case 'message_stop':
-        return done(rawStopReason, STOP_REASONS)
+        return done(mapStop(rawStopReason, STOP_REASONS), rawStopReason, responseId)
       case 'error':
         return [{ type: 'error', message: raw.error?.message ?? 'Provider error', raw }]
       case 'ping':

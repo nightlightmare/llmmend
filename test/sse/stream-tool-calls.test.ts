@@ -60,6 +60,8 @@ describe('streamToolCalls on recorded streams', () => {
     const all = await items(byteStream([bytes]))
     const last = all.at(-1)
     expect(last).toEqual({ done: true, ...(await collectText(byteStream([bytes]))) })
+    // Every one of these Providers sent a response id.
+    expect(last).toHaveProperty('responseId', expect.stringMatching(/./))
 
     // Each call's last Partial value is its final arguments.
     const partials = all.filter(isCall)

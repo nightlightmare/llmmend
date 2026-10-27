@@ -1,6 +1,6 @@
 import type { LlmEvent, LlmUsage, ProviderAdapter, StopReason } from '../events'
 import type { SSEEvent } from '../parse'
-import { done, parseObject } from './shared'
+import { done, mapStop, parseObject } from './shared'
 
 interface RawToolCall {
   index?: number
@@ -10,6 +10,7 @@ interface RawToolCall {
 
 /** The fields of a Chat Completions stream chunk this adapter reads. */
 interface RawChunk {
+  id?: string
   choices?: {
     delta?: {
       content?: string | null
@@ -46,19 +47,21 @@ function create(): (event: SSEEvent) => LlmEvent[] {
   const toolBlocks = new Map<number, number>()
   let rawStopReason: string | undefined
   let refused = false
+  let responseId: string | undefined
 
   return (sse) => {
     if (sse.data === '[DONE]') {
       // A refusal (structured outputs) ends with `stop`; it still is a refusal.
-      if (refused && rawStopReason === 'stop')
-        return [{ type: 'done', stopReason: 'refused', rawStopReason }]
-      return done(rawStopReason, STOP_REASONS)
+      const stopReason =
+        refused && rawStopReason === 'stop' ? 'refused' : mapStop(rawStopReason, STOP_REASONS)
+      return done(stopReason, rawStopReason, responseId)
     }
     const raw = parseObject<RawChunk>(sse.data)
     if (raw?.error) {
       return [{ type: 'error', message: raw.error.message ?? 'Provider error', raw }]
     }
     if (!raw || (!raw.choices && !raw.usage)) return [{ type: 'other', raw: sse }]
+    responseId ??= raw.id
 
     const events: LlmEvent[] = []
     // Only one answer per stream (ADR 0001): alternative choices are ignored.

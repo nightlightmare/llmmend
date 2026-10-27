@@ -161,7 +161,7 @@ truncateToTokens('A title far too long for the card it has to fit on', 8, { elli
 | Импорт          | Функции                                                                                                                                                          |
 | --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `llmmend/json`  | `extractJson`, `extractJsonAsync`, `extractJsonOrThrow`, `extractAllJson`, `repairJson`, `parsePartialJson`, `extractTag`, `extractAllTags`, `extractCodeBlocks` |
-| `llmmend/sse`   | `parseSSE`, `streamLlm`, `streamText`, `collectText`, `streamJson`, `streamToolCalls`                                                                            |
+| `llmmend/sse`   | `parseSSE`, `sseResponse`, `createSSEStream`, `streamLlm`, `streamText`, `collectText`, `streamJson`, `streamToolCalls`                                          |
 | `llmmend/chunk` | `chunkText`, `chunkDocuments`, `estimateTokens`, `truncateToTokens`                                                                                              |
 
 Всё также реэкспортируется из корня: `import { extractJson } from 'llmmend'` по-прежнему поддерживает tree-shaking.
@@ -174,8 +174,8 @@ truncateToTokens('A title far too long for the card it has to fit on', 8, { elli
 
 | Модуль          | min+brotli                                                                       |
 | --------------- | -------------------------------------------------------------------------------- |
-| `llmmend/json`  | ~5.5 kB (один `extractJson` ~4 kB, теги ~1.1 kB, блоки кода ~0.5 kB)             |
-| `llmmend/sse`   | ~3.6 kB (один `parseSSE` ~0.9 kB; `collectText` с вызовами инструментов ~6.7 kB) |
+| `llmmend/json`  | ~5.8 kB (один `extractJson` ~4 kB, теги ~1.1 kB, блоки кода ~0.5 kB)             |
+| `llmmend/sse`   | ~3.7 kB (один `parseSSE` ~0.9 kB; `collectText` с вызовами инструментов ~6.8 kB) |
 | `llmmend/chunk` | ~1.8 kB                                                                          |
 
 ## Участие

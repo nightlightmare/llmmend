@@ -4,7 +4,8 @@
     "index": 0,
     "id": "call_custom1",
     "name": "run_sql",
-    "custom": true
+    "custom": true,
+    "itemId": "ctc_synthetic"
   },
   {
     "type": "tool_call_delta",
@@ -26,6 +27,7 @@
   {
     "type": "done",
     "stopReason": "tool_use",
-    "rawStopReason": "completed"
+    "rawStopReason": "completed",
+    "responseId": "resp_custom"
   }
 ]

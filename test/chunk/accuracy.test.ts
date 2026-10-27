@@ -3,16 +3,12 @@ import { describe, expect, it } from 'vitest'
 import { estimateTokens } from '../../src/chunk/index'
 import { fixtureDir } from '../fixtures'
 
-// The repository's own docs (English, Russian, Chinese), code, and hand-written Japanese, Korean
-// and chat text: the corpus the heuristic is calibrated on.
-const docs = import.meta.glob<string>('../../{README.md,GLOSSARY.md,docs/*.md,src/**/*.ts}', {
-  query: '?raw',
-  import: 'default',
-  eager: true,
-})
+// The repository's own docs (English, Russian, Chinese) and code, and hand-written Japanese,
+// Korean and chat text: the corpus the heuristic is calibrated on. The docs and code are a frozen
+// copy (in `chunk/repo`, `/` written as `__`), so editing them cannot move a window over the limit.
 const corpus = new Map<string, string>([
-  ...Object.entries(docs).map(([path, text]): [string, string] => [
-    path.replace('../../', ''),
+  ...[...fixtureDir('chunk/repo')].map(([name, text]): [string, string] => [
+    name.replaceAll('__', '/').replace(/\.txt$/, ''),
     text,
   ]),
   ...[...fixtureDir('chunk/corpus')].map(([name, text]): [string, string] => [
