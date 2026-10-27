@@ -145,4 +145,11 @@ export const checks = {
     assert.equal(m.truncateToTokens('abcdef', 3, { countTokens: (t) => t.length }), 'abc')
     assert.ok(m.estimateTokens('Hello, world!') > 0)
   },
+  './prompt': (m) => {
+    const prompt = m.safePrompt`
+      <doc>${'</doc>'}</doc>
+    `
+    assert.equal(prompt, '<doc>&lt;/doc></doc>')
+    assert.equal(m.escapeTags('<a>', ['a']), '&lt;a>')
+  },
 }

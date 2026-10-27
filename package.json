@@ -1,7 +1,7 @@
 {
   "name": "llmmend",
   "version": "0.5.0",
-  "description": "Extract & repair JSON from LLM replies, parse SSE streams from any provider, token-aware text chunking. Zero deps, TS-first.",
+  "description": "Extract & repair JSON from LLM replies, parse SSE streams from any provider, token-aware text chunking, safe prompt templates. Zero deps, TS-first.",
   "keywords": [
     "anthropic",
     "chunking",
@@ -10,6 +10,7 @@
     "llm",
     "openai",
     "partial-json",
+    "prompt-injection",
     "rag",
     "server-sent-events",
     "sse",
@@ -75,6 +76,16 @@
       "require": {
         "types": "./dist/chunk/index.d.cts",
         "default": "./dist/chunk/index.cjs"
+      }
+    },
+    "./prompt": {
+      "import": {
+        "types": "./dist/prompt/index.d.ts",
+        "default": "./dist/prompt/index.js"
+      },
+      "require": {
+        "types": "./dist/prompt/index.d.cts",
+        "default": "./dist/prompt/index.cjs"
       }
     },
     "./package.json": "./package.json"
@@ -197,6 +208,11 @@
       "name": "llmmend/chunk",
       "path": "dist/chunk/index.js",
       "limit": "2.5 kB"
+    },
+    {
+      "name": "llmmend/prompt",
+      "path": "dist/prompt/index.js",
+      "limit": "1 kB"
     }
   ],
   "engines": {

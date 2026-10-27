@@ -3,9 +3,10 @@ import * as root from '../../dist/index.js'
 import * as json from '../../dist/json/index.js'
 import * as sse from '../../dist/sse/index.js'
 import * as chunk from '../../dist/chunk/index.js'
+import * as prompt from '../../dist/prompt/index.js'
 import { checks } from '../smoke-checks.mjs'
 
-const modules = { '.': root, './json': json, './sse': sse, './chunk': chunk }
+const modules = { '.': root, './json': json, './sse': sse, './chunk': chunk, './prompt': prompt }
 
 export default {
   async fetch() {

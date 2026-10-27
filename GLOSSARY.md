@@ -1,6 +1,6 @@
 # llmmend
 
-Tools for turning raw LLM output into data a program can trust: structured values pulled out of model replies, provider streams, and text sized for a model's context.
+Tools for dependable text at the boundary with an LLM, in both directions: structured values pulled out of model replies, provider streams, text sized for a model's context, and prompts that untrusted input cannot break out of.
 
 ## Language
 
@@ -81,3 +81,17 @@ _Avoid_: delimiter, boundary
 **Heading path**:
 The Markdown headings in effect where a Chunk's own text starts, outermost first: the section a Chunk belongs to, as context for search.
 _Avoid_: breadcrumb, section title
+
+### Prompts
+
+**Prompt**:
+Text an application sends to a model, assembled from its own template and untrusted input such as documents or user messages.
+_Avoid_: instruction, query
+
+**Own tag**:
+A Tag the prompt's template itself uses to mark a section (`<document>`, `<instructions>`). Untrusted input must not close or open an Own tag; other tags in it are just content.
+_Avoid_: reserved tag, delimiter
+
+**Escaping**:
+Making an Own tag in untrusted input harmless by writing its `<` as `&lt;`. Nothing reads it back: the model sees the text with that one character changed.
+_Avoid_: sanitizing, encoding

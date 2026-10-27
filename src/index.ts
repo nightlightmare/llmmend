@@ -2,3 +2,4 @@
 export * from './json/index'
 export * from './sse/index'
 export * from './chunk/index'
+export * from './prompt/index'

@@ -1,8 +1,8 @@
 # llmmend
 
-> Fix what your LLM returns: extract and repair JSON from model replies, turn streaming responses from Anthropic, OpenAI (Chat Completions and Responses), Gemini and OpenAI-compatible servers into one event format, and split text into token-sized chunks. Zero dependencies; Node 20+, Bun, Deno, browsers and edge runtimes.
+> Fix what your LLM returns: extract and repair JSON from model replies, turn streaming responses from Anthropic, OpenAI (Chat Completions and Responses), Gemini and OpenAI-compatible servers into one event format, split text into token-sized chunks, and build prompts that untrusted input cannot break out of. Zero dependencies; Node 20+, Bun, Deno, browsers and edge runtimes.
 
-Install with `npm i llmmend`. Import from `llmmend/json`, `llmmend/sse` or `llmmend/chunk`, or from the root: both are tree-shakeable. `extractJson` never throws on bad input: check `res.ok`, then read `res.value` or `res.error`. Streams take a `fetch` `Response` and detect the Provider by default.
+Install with `npm i llmmend`. Import from `llmmend/json`, `llmmend/sse`, `llmmend/chunk` or `llmmend/prompt`, or from the root: both are tree-shakeable. `extractJson` never throws on bad input: check `res.ok`, then read `res.value` or `res.error`. Streams take a `fetch` `Response` and detect the Provider by default.
 
 ## llmmend/json
 
@@ -35,6 +35,11 @@ Install with `npm i llmmend`. Import from `llmmend/json`, `llmmend/sse` or `llmm
 - [chunkDocuments](https://github.com/nightlightmare/llmmend/blob/main/docs/api.md#chunkdocuments): `chunkDocuments(docs, options)` splits several documents with `chunkText` and returns all their chunks in one array.
 - [estimateTokens](https://github.com/nightlightmare/llmmend/blob/main/docs/api.md#estimatetokens): `estimateTokens(text, { tokenizer? })` estimates tokens without a vocabulary, from the kinds of characters in the text, for OpenAI's `o200k_base` (`'o200k'`, the default), Claude (`'claude'`) or Gemini (`'gemini'`).
 - [truncateToTokens](https://github.com/nightlightmare/llmmend/blob/main/docs/api.md#truncatetotokens): `truncateToTokens(text, max, { from?, ellipsis?, countTokens?, tokenizer? })` shortens a text to at most `max` tokens without splitting a grapheme cluster.
+
+## llmmend/prompt
+
+- [safePrompt](https://github.com/nightlightmare/llmmend/blob/main/docs/api.md#safeprompt): `safePrompt` is a template tag that returns a string.
+- [escapeTags](https://github.com/nightlightmare/llmmend/blob/main/docs/api.md#escapetags): `escapeTags(text, names)` is the escaping `safePrompt` applies, for prompts built without it.
 
 ## Reference
 
