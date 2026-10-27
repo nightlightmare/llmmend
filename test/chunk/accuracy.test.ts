@@ -1,6 +1,6 @@
 import { getEncoding } from 'js-tiktoken'
 import { describe, expect, it } from 'vitest'
-import { estimateTokens } from '../../src/chunk/index'
+import { estimateTokens, type Tokenizer } from '../../src/chunk/index'
 import { fixtureDir } from '../fixtures'
 
 // The repository's own docs (English, Russian, Chinese) and code, and hand-written Japanese,
@@ -18,10 +18,24 @@ const corpus = new Map<string, string>([
 ])
 
 const o200k = getEncoding('o200k_base')
-const error = (text: string): number => {
-  const real = o200k.encode(text).length
-  return (estimateTokens(text) - real) / real
-}
+
+/** Exact counts per text: the whole text and its windows by size (scripts/record-token-counts.mjs). */
+type Counts = Record<string, { whole: number; 1000: number[]; 600: number[] }>
+const recorded = (tokenizer: string): Counts =>
+  (JSON.parse(fixtureDir('chunk/counts').get(`${tokenizer}.json`)!) as { texts: Counts }).texts
+
+/** The real count of a piece: a whole text (`window` undefined) or one of its windows. */
+type Real = (name: string, text: string, size?: 1000 | 600, window?: number) => number
+const tokenizers: [Tokenizer, Real][] = [
+  ['o200k', (_, text) => o200k.encode(text).length],
+  ...(['claude', 'gemini'] as const).map((tokenizer): [Tokenizer, Real] => {
+    const counts = recorded(tokenizer)
+    return [
+      tokenizer,
+      (name, _, size, window) => (size ? counts[name]![size][window!]! : counts[name]!.whole),
+    ]
+  }),
+]
 
 /** Overlapping windows of `size` characters, every `size / 2`. */
 function windows(text: string, size: number): string[] {
@@ -30,26 +44,42 @@ function windows(text: string, size: number): string[] {
   return out
 }
 
-describe('estimateTokens accuracy against o200k_base', () => {
-  it('has a corpus in every language and kind', () => {
-    const names = [...corpus.keys()]
-    for (const part of [
-      'docs/api.ru.md',
-      'docs/api.zh-CN.md',
-      'README.md',
-      'src/',
-      'corpus/ja',
-      'corpus/ko',
-    ]) {
-      expect(names.some((n) => n.includes(part))).toBe(true)
+it('has a corpus in every language and kind', () => {
+  const names = [...corpus.keys()]
+  for (const part of [
+    'docs/api.ru.md',
+    'docs/api.zh-CN.md',
+    'README.md',
+    'src/',
+    'corpus/ja',
+    'corpus/ko',
+  ]) {
+    expect(names.some((n) => n.includes(part))).toBe(true)
+  }
+})
+
+it('has recorded counts for every text and window of the corpus', () => {
+  for (const tokenizer of ['claude', 'gemini']) {
+    const counts = recorded(tokenizer)
+    expect(new Set(Object.keys(counts))).toEqual(new Set(corpus.keys()))
+    for (const [name, text] of corpus) {
+      expect(counts[name]![1000]).toHaveLength(windows(text, 1000).length)
+      expect(counts[name]![600]).toHaveLength(windows(text, 600).length)
     }
-  })
+  }
+})
+
+describe.each(tokenizers)('estimateTokens accuracy against %s', (tokenizer, real) => {
+  const error = (estimate: number, count: number): number => (estimate - count) / count
+  const windowErrors = (name: string, text: string, size: 1000 | 600): number[] =>
+    windows(text, size).map((piece, i) =>
+      error(estimateTokens(piece, { tokenizer }), real(name, piece, size, i)),
+    )
 
   it('is within ±15 % on every 1,000-character window', () => {
     const outside: string[] = []
     for (const [name, text] of corpus) {
-      for (const [i, piece] of windows(text, 1000).entries()) {
-        const e = error(piece)
+      for (const [i, e] of windowErrors(name, text, 1000).entries()) {
         if (Math.abs(e) > 0.15) outside.push(`${name}#${i}: ${(e * 100).toFixed(1)} %`)
       }
     }
@@ -57,14 +87,18 @@ describe('estimateTokens accuracy against o200k_base', () => {
   })
 
   it('is within ±15 % on 97 % of 600-character windows', () => {
-    const errors = [...corpus.values()].flatMap((text) => windows(text, 600).map(error))
+    const errors = [...corpus].flatMap(([name, text]) => windowErrors(name, text, 600))
     const within = errors.filter((e) => Math.abs(e) <= 0.15).length / errors.length
     expect(within).toBeGreaterThanOrEqual(0.97)
   })
 
   it('is within ±15 % on each whole text over 500 characters', () => {
     const outside = [...corpus]
-      .filter(([, text]) => text.length > 500 && Math.abs(error(text)) > 0.15)
+      .filter(([, text]) => text.length > 500)
+      .filter(
+        ([name, text]) =>
+          Math.abs(error(estimateTokens(text, { tokenizer }), real(name, text))) > 0.15,
+      )
       .map(([name]) => name)
     expect(outside).toEqual([])
   })

@@ -1,4 +1,4 @@
-import { estimateTokens } from './tokens'
+import { estimateTokens, type Tokenizer } from './tokens'
 
 /** One piece of a text, cut to fit a token budget. `text === source.slice(start, end)`. */
 export interface Chunk {
@@ -23,8 +23,10 @@ export interface ChunkOptions {
   maxTokens: number
   /** Tokens repeated from the end of the previous chunk, cut at a separator. Default 0. */
   overlap?: number
-  /** Default: `estimateTokens`. */
+  /** Default: `estimateTokens` for `tokenizer`. */
   countTokens?: (text: string) => number
+  /** The tokenizer `estimateTokens` imitates when there is no `countTokens`. Default `'o200k'`. */
+  tokenizer?: Tokenizer
   /** Tried in order, coarsest first; `''` splits between grapheme clusters. */
   separators?: (string | RegExp)[]
   /** `markdown` starts chunks at headings and keeps code fences and tables whole if they fit. */
@@ -124,7 +126,8 @@ function headingsOf(text: string, blocks: [number, number][]): Heading[] {
 
 /** Splits `text` into chunks of at most `maxTokens` tokens, at the coarsest separators that fit. */
 export function chunkText(text: string, options: ChunkOptions): Chunk[] {
-  const { maxTokens, overlap = 0, countTokens = estimateTokens, mode = 'text' } = options
+  const { maxTokens, overlap = 0, mode = 'text' } = options
+  const countTokens = options.countTokens ?? ((t: string) => estimateTokens(t, options))
   const separators =
     options.separators ?? (mode === 'markdown' ? MARKDOWN_SEPARATORS : TEXT_SEPARATORS)
   const blocks = mode === 'markdown' ? protectedBlocks(text) : []

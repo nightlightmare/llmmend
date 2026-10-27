@@ -527,13 +527,14 @@ chunkText(text, { maxTokens: 10 }).map((c) => c.text)
 
 `chunkText(text, options)` 把文本切成每块最多 `maxTokens` 个 token 的块，返回 `{ text, start, end, tokens, index, oversized?, headings? }[]`。
 
-| 选项          | 默认值           | 含义                                                            |
-| ------------- | ---------------- | --------------------------------------------------------------- |
-| `maxTokens`   | （必填）         | 每块的预算。                                                    |
-| `overlap`     | `0`              | 从上一块末尾重复的 token 数。                                   |
-| `countTokens` | `estimateTokens` | 使用真实分词器计数以获得精确预算。                              |
-| `separators`  | 见下文           | 字符串或正则表达式，从粗到细；`''` 在字素簇之间切分。           |
-| `mode`        | `'text'`         | `'markdown'` 让块从标题开始，并在放得下时保持代码块和表格完整。 |
+| 选项          | 默认值           | 含义                                                                           |
+| ------------- | ---------------- | ------------------------------------------------------------------------------ |
+| `maxTokens`   | （必填）         | 每块的预算。                                                                   |
+| `overlap`     | `0`              | 从上一块末尾重复的 token 数。                                                  |
+| `countTokens` | `estimateTokens` | 使用真实分词器计数以获得精确预算；此时忽略 `tokenizer`。                       |
+| `tokenizer`   | `'o200k'`        | `estimateTokens` 模拟的分词器：`'o200k'`（OpenAI）、`'claude'` 或 `'gemini'`。 |
+| `separators`  | 见下文           | 字符串或正则表达式，从粗到细；`''` 在字素簇之间切分。                          |
+| `mode`        | `'text'`         | `'markdown'` 让块从标题开始，并在放得下时保持代码块和表格完整。                |
 
 默认分隔符：段落（`\n\n`）、行、句子（`.`、`!`、`?`、`…` 后跟空白，或 `。！？`）、单词，最后是字素簇。在 `markdown` 模式下，标题（`#` 到 `####`）排在最前。文本在能放下的最粗粒度分隔符处切分，然后只要放得下就把片段重新合并。
 
@@ -580,9 +581,10 @@ for (const chunk of chunkDocuments(pages, { maxTokens: 500 })) {
 import { estimateTokens } from 'llmmend/chunk'
 
 estimateTokens('Hello, world!') // 3
+estimateTokens('Hello, world!', { tokenizer: 'claude' }) // 5
 ```
 
-无需词表，根据文本中的字符种类估算 token 数。它相对 OpenAI、Gemini 和 Claude 分词器的实测精度见 README；Claude 的分词器产生的 token 约为 1.5 倍。
+`estimateTokens(text, { tokenizer? })` 无需词表，根据文本中的字符种类估算 token 数，可针对 OpenAI 的 `o200k_base`（`'o200k'`，默认）、Claude（`'claude'`）或 Gemini（`'gemini'`）。每个预设都基于英文、俄文、中文、日文和韩文文本、代码、Markdown 和聊天的精确计数校准（日文和韩文各只有一篇短文）；实测精度见 README。
 
 ### truncateToTokens
 
@@ -596,7 +598,7 @@ truncateToTokens('The quick brown fox jumps over the lazy dog', 5, {
 // 'The quick … lazy dog'
 ```
 
-`truncateToTokens(text, max, { from?, ellipsis?, countTokens? })` 把文本缩短到最多 `max` 个 token，且不切开字素簇。`from` 指定切的位置：`'end'`（默认）保留开头，`'start'` 保留结尾，`'middle'` 两端都保留。`ellipsis`（默认 `''`）标记切分处并计入 `max`；如果连它都放不下，结果为 `''`。
+`truncateToTokens(text, max, { from?, ellipsis?, countTokens?, tokenizer? })` 把文本缩短到最多 `max` 个 token，且不切开字素簇。`from` 指定切的位置：`'end'`（默认）保留开头，`'start'` 保留结尾，`'middle'` 两端都保留。`ellipsis`（默认 `''`）标记切分处并计入 `max`；如果连它都放不下，结果为 `''`。没有 `countTokens` 时，按 `tokenizer` 用 `estimateTokens` 计数。
 
 ## 错误
 
