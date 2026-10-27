@@ -6,6 +6,7 @@ export default defineConfig({
     'json/index': 'src/json/index.ts',
     'sse/index': 'src/sse/index.ts',
     'chunk/index': 'src/chunk/index.ts',
+    'prompt/index': 'src/prompt/index.ts',
   },
   format: ['esm', 'cjs'],
   dts: true,

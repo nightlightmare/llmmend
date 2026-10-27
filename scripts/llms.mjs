@@ -45,9 +45,9 @@ function sections(text) {
 const index = [
   '# llmmend',
   '',
-  '> Fix what your LLM returns: extract and repair JSON from model replies, turn streaming responses from Anthropic, OpenAI (Chat Completions and Responses), Gemini and OpenAI-compatible servers into one event format, and split text into token-sized chunks. Zero dependencies; Node 20+, Bun, Deno, browsers and edge runtimes.',
+  '> Fix what your LLM returns: extract and repair JSON from model replies, turn streaming responses from Anthropic, OpenAI (Chat Completions and Responses), Gemini and OpenAI-compatible servers into one event format, split text into token-sized chunks, and build prompts that untrusted input cannot break out of. Zero dependencies; Node 20+, Bun, Deno, browsers and edge runtimes.',
   '',
-  'Install with `npm i llmmend`. Import from `llmmend/json`, `llmmend/sse` or `llmmend/chunk`, or from the root: both are tree-shakeable. `extractJson` never throws on bad input: check `res.ok`, then read `res.value` or `res.error`. Streams take a `fetch` `Response` and detect the Provider by default.',
+  'Install with `npm i llmmend`. Import from `llmmend/json`, `llmmend/sse`, `llmmend/chunk` or `llmmend/prompt`, or from the root: both are tree-shakeable. `extractJson` never throws on bad input: check `res.ok`, then read `res.value` or `res.error`. Streams take a `fetch` `Response` and detect the Provider by default.',
 ]
 for (const s of sections(reference)) {
   const module = s.level === 2 && s.text.startsWith('llmmend/')
