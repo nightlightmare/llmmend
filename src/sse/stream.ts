@@ -34,6 +34,8 @@ export interface CollectTextOptions<
    * against its tool's schema; a call to a tool not listed fails with `unknown_tool`.
    */
   tools?: Tools
+  /** With `tools`: coerce arguments the schema rejects, as `extractJson`'s `coerce` does. */
+  coerce?: boolean
 }
 
 /** What `collectText` returns. */
@@ -111,7 +113,7 @@ export async function collectText<Tools extends ToolSchemas = Record<never, neve
   source: StreamSource,
   options: CollectTextOptions<Tools> = {},
 ): Promise<CollectedText<Tools>> {
-  const { tools, ...streamOptions } = options
+  const { tools, coerce, ...streamOptions } = options
   const result: Omit<CollectedText<Tools>, 'toolCalls'> = { text: '', stopReason: 'unknown' }
   const calls = new Map<number, PendingToolCall>()
   for await (const event of streamLlm(source, streamOptions)) {
@@ -129,6 +131,6 @@ export async function collectText<Tools extends ToolSchemas = Record<never, neve
       result.usage = usage
     }
   }
-  const toolCalls = (await finishToolCalls(calls.values(), tools)) as ToolCall<Tools>[]
+  const toolCalls = (await finishToolCalls(calls.values(), tools, coerce)) as ToolCall<Tools>[]
   return { ...result, toolCalls }
 }

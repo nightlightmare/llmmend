@@ -31,12 +31,13 @@ else console.log(res.error)
 
 Options:
 
-| Option   | Values                                            | Default  | Meaning                                                                                                                                         |
-| -------- | ------------------------------------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| `schema` | any [Standard Schema](https://standardschema.dev) | none     | Validate the value; `value` gets the schema's output type.                                                                                      |
-| `pick`   | `'first'`, `'last'`, `'largest'`                  | `'last'` | Which Candidate to use when the Reply has several.                                                                                              |
-| `repair` | `'full'`, `'syntax'`, `'none'`                    | `'full'` | `'full'` fixes syntax and closes a cut-off value; `'syntax'` fixes syntax but reports a cut-off value as `truncated`; `'none'` parses strictly. |
-| `expect` | `'object'`, `'array'`, `'any'`                    | `'any'`  | Only consider objects, or only arrays.                                                                                                          |
+| Option   | Values                                            | Default  | Meaning                                                                                                                                                                                                                 |
+| -------- | ------------------------------------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `schema` | any [Standard Schema](https://standardschema.dev) | none     | Validate the value; `value` gets the schema's output type.                                                                                                                                                              |
+| `pick`   | `'first'`, `'last'`, `'largest'`                  | `'last'` | Which Candidate to use when the Reply has several.                                                                                                                                                                      |
+| `repair` | `'full'`, `'syntax'`, `'none'`                    | `'full'` | `'full'` fixes syntax and closes a cut-off value; `'syntax'` fixes syntax but reports a cut-off value as `truncated`; `'none'` parses strictly.                                                                         |
+| `expect` | `'object'`, `'array'`, `'any'`                    | `'any'`  | Only consider objects, or only arrays.                                                                                                                                                                                  |
+| `coerce` | `true`, `false`                                   | `false`  | With a schema: when it rejects the value, try `"42"` ↔ `42`, `"true"` ↔ `true` and `"null"` → `null` at the paths it names; a change stays only if the issue at that path goes away. Each change is an Issue `coerced`. |
 
 The result is one of:
 
@@ -186,18 +187,19 @@ The `lang` filter ignores case and matches common aliases: `ts`/`typescript`, `j
 
 Every result lists what was done to the Reply, in order.
 
-| `code`                   | Extra field | What was fixed                                                                      |
-| ------------------------ | ----------- | ----------------------------------------------------------------------------------- |
-| `stripped_wrapper`       | `detail`    | Text or a code fence around the JSON was skipped, e.g. `'code fence, text before'`. |
-| `trailing_comma`         | `at`        | A comma before `}` or `]`.                                                          |
-| `single_quotes`          | `at`        | A string in single quotes.                                                          |
-| `unquoted_key`           | `at`        | A key without quotes.                                                               |
-| `python_literal`         | `at`        | `True`, `False` or `None`.                                                          |
-| `non_finite_number`      | `at`        | `NaN` or `Infinity`, replaced with `null`.                                          |
-| `unescaped_control_char` | `at`        | A raw newline or tab inside a string.                                               |
-| `comment_removed`        | `at`        | A `//` or `/* */` comment.                                                          |
-| `truncated_closed`       | `closed`    | A cut-off value was closed with the brackets in `closed`.                           |
-| `tag_case_mismatch`      | `at`        | `extractTag`: the closing tag differs in case from the opening one.                 |
+| `code`                   | Extra field          | What was fixed                                                                                                  |
+| ------------------------ | -------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `stripped_wrapper`       | `detail`             | Text or a code fence around the JSON was skipped, e.g. `'code fence, text before'`.                             |
+| `trailing_comma`         | `at`                 | A comma before `}` or `]`.                                                                                      |
+| `single_quotes`          | `at`                 | A string in single quotes.                                                                                      |
+| `unquoted_key`           | `at`                 | A key without quotes.                                                                                           |
+| `python_literal`         | `at`                 | `True`, `False` or `None`.                                                                                      |
+| `non_finite_number`      | `at`                 | `NaN` or `Infinity`, replaced with `null`.                                                                      |
+| `unescaped_control_char` | `at`                 | A raw newline or tab inside a string.                                                                           |
+| `comment_removed`        | `at`                 | A `//` or `/* */` comment.                                                                                      |
+| `truncated_closed`       | `closed`             | A cut-off value was closed with the brackets in `closed`.                                                       |
+| `tag_case_mismatch`      | `at`                 | `extractTag`: the closing tag differs in case from the opening one.                                             |
+| `coerced`                | `path`, `from`, `to` | With `coerce`: the value at `path` changed type, from `from` to `to` (`string`, `number`, `boolean` or `null`). |
 
 `at` is the position in the text.
 
@@ -372,7 +374,7 @@ for (const call of toolCalls) {
 }
 ```
 
-`toolCalls` lists the answer's tool calls in Block order. A usable call is `{ ok: true, index, id, name, args, issues }`: the arguments get syntax Repair (as with `repair: 'syntax'`) and `issues` lists what was fixed; empty arguments are `{}`. With `tools` (any Standard Schema per tool name, async ones too), `args` is the schema's output, typed by `name`.
+`toolCalls` lists the answer's tool calls in Block order. A usable call is `{ ok: true, index, id, name, args, issues }`: the arguments get syntax Repair (as with `repair: 'syntax'`) and `issues` lists what was fixed; empty arguments are `{}`. With `tools` (any Standard Schema per tool name, async ones too), `args` is the schema's output, typed by `name`. With `coerce: true`, arguments the schema rejects are coerced as `extractJson`'s `coerce` does, and each change is in `issues`.
 
 A call that cannot be used is `{ ok: false, index, id, name, error, argsText, issues }`, with the arguments as the model wrote them in `argsText`:
 

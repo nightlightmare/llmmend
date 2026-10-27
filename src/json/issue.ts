@@ -14,6 +14,11 @@ export type Issue =
   | { code: 'truncated_closed'; closed: string }
   /** `extractTag`: the closing tag differs in case from the opening one (`<Answer>…</answer>`). */
   | { code: 'tag_case_mismatch'; at: number }
+  /** With `coerce`: the value at `path` changed type so that the schema accepts it. */
+  | { code: 'coerced'; path: (string | number)[]; from: CoercedType; to: CoercedType }
+
+/** The types `coerce` converts between. */
+export type CoercedType = 'string' | 'number' | 'boolean' | 'null'
 
 /** Why `extractJson` found no usable value. */
 export type ExtractError =

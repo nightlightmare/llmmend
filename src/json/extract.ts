@@ -1,4 +1,5 @@
 import { LlmmendError } from '../shared/errors'
+import { type Coerced, coerceAsync, coerceSync } from './coerce'
 import type { ExtractError, Issue } from './issue'
 import { type Candidate, locate } from './locate'
 import { type PartialCandidate, PartialScan } from './partial-scan'
@@ -17,6 +18,12 @@ export interface ExtractOptions<T> {
   repair?: 'full' | 'syntax' | 'none'
   /** Only consider objects or arrays. Default `'any'` (either). */
   expect?: 'object' | 'array' | 'any'
+  /**
+   * With a schema: when it rejects the value, try the type slips models make (`"42"` ↔ `42`,
+   * `"true"` ↔ `true`, `"null"` → `null`) at the paths it names, keeping a change only when the
+   * issue at that path goes away. Each change kept is an Issue `coerced`. Default `false`.
+   */
+  coerce?: boolean
 }
 
 export type ExtractResult<T> =
@@ -163,15 +170,20 @@ function asyncSchemaError(result: PromiseLike<unknown>): LlmmendError {
   )
 }
 
-function finish<T>(selected: Selected, validated?: StandardSchemaV1.Result<T>): ExtractResult<T> {
-  const { candidate, issues, raw } = selected
+function finish<T>(
+  selected: Selected,
+  validated?: StandardSchemaV1.Result<T>,
+  coerced?: Coerced,
+): ExtractResult<T> {
+  const { candidate, raw } = selected
+  const issues = coerced ? [...selected.issues, ...coerced.issues] : selected.issues
   if (validated?.issues) {
     return {
       ok: false,
       error: 'schema_mismatch',
       issues,
       schemaIssues: validated.issues,
-      value: candidate.value,
+      value: coerced ? coerced.value : candidate.value,
     }
   }
   const value = validated ? validated.value : (candidate.value as T)
@@ -194,9 +206,23 @@ export function extractJson<T = unknown>(
 ): ExtractResult<T> {
   const selected = select(text, opts)
   if (!selected.ok || !opts.schema) return selected.ok ? finish<T>(selected) : selected
-  const validated = opts.schema['~standard'].validate(selected.candidate.value)
-  if (isThenable(validated)) throw asyncSchemaError(validated)
-  return finish(selected, validated)
+  const validate = syncValidator(opts.schema)
+  const { value } = selected.candidate
+  const validated = validate(value)
+  if (!validated.issues || !opts.coerce) return finish(selected, validated)
+  const coerced = coerceSync(value, validated, validate)
+  return finish(selected, coerced.result as StandardSchemaV1.Result<T>, coerced)
+}
+
+/** The schema's `validate`, throwing `async_schema` if it answers with a promise. */
+function syncValidator<T>(
+  schema: StandardSchemaV1<unknown, T>,
+): (value: unknown) => StandardSchemaV1.Result<T> {
+  return (value) => {
+    const validated = schema['~standard'].validate(value)
+    if (isThenable(validated)) throw asyncSchemaError(validated)
+    return validated
+  }
 }
 
 /** `extractJson` for schemas that validate asynchronously (and any other schema). */
@@ -206,7 +232,12 @@ export async function extractJsonAsync<T = unknown>(
 ): Promise<ExtractResult<T>> {
   const selected = select(text, opts)
   if (!selected.ok || !opts.schema) return selected.ok ? finish<T>(selected) : selected
-  return finish(selected, await opts.schema['~standard'].validate(selected.candidate.value))
+  const { validate } = opts.schema['~standard']
+  const { value } = selected.candidate
+  const validated = await validate(value)
+  if (!validated.issues || !opts.coerce) return finish(selected, validated)
+  const coerced = await coerceAsync(value, validated, validate)
+  return finish(selected, coerced.result as StandardSchemaV1.Result<T>, coerced)
 }
 
 const CANNOT_EXTRACT = 'Cannot extract JSON'
@@ -241,10 +272,11 @@ export function extractAllJson(
     .filter((v) => matches(v, opts.expect))
   const { schema } = opts
   if (!schema) return values
+  const validate = syncValidator(schema)
   const out: unknown[] = []
   for (const value of values) {
-    const validated = schema['~standard'].validate(value)
-    if (isThenable(validated)) throw asyncSchemaError(validated)
+    let validated = validate(value)
+    if (validated.issues && opts.coerce) validated = coerceSync(value, validated, validate).result
     if (!validated.issues) out.push(validated.value)
   }
   return out

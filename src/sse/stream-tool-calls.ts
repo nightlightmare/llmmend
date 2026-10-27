@@ -58,7 +58,7 @@ export async function* streamToolCalls<Tools extends ToolSchemas = Record<never,
   source: StreamSource,
   options: CollectTextOptions<Tools> = {},
 ): AsyncIterable<StreamToolCallsItem<Tools>> {
-  const { tools, ...streamOptions } = options
+  const { tools, coerce, ...streamOptions } = options
   let text = ''
   let stopReason: StopReason = 'unknown'
   let usage: LlmUsage | undefined
@@ -104,7 +104,7 @@ export async function* streamToolCalls<Tools extends ToolSchemas = Record<never,
     } else if (event.type === 'done') ({ stopReason, responseId } = event)
   }
 
-  const toolCalls = (await finishToolCalls(calls.values(), tools)) as ToolCall<Tools>[]
+  const toolCalls = (await finishToolCalls(calls.values(), tools, coerce)) as ToolCall<Tools>[]
   yield {
     done: true,
     text,

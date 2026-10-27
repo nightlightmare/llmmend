@@ -33,12 +33,13 @@ else console.log(res.error)
 
 选项：
 
-| 选项     | 取值                                               | 默认值   | 含义                                                                                                          |
-| -------- | -------------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------- |
-| `schema` | 任意 [Standard Schema](https://standardschema.dev) | 无       | 校验结果；`value` 获得 schema 的输出类型。                                                                    |
-| `pick`   | `'first'`、`'last'`、`'largest'`                   | `'last'` | 回复中有多个候选时使用哪一个。                                                                                |
-| `repair` | `'full'`、`'syntax'`、`'none'`                     | `'full'` | `'full'` 修复语法并补全被截断的值；`'syntax'` 修复语法，但把被截断的值报告为 `truncated`；`'none'` 严格解析。 |
-| `expect` | `'object'`、`'array'`、`'any'`                     | `'any'`  | 只考虑对象，或只考虑数组。                                                                                    |
+| 选项     | 取值                                               | 默认值   | 含义                                                                                                                                                                              |
+| -------- | -------------------------------------------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `schema` | 任意 [Standard Schema](https://standardschema.dev) | 无       | 校验结果；`value` 获得 schema 的输出类型。                                                                                                                                        |
+| `pick`   | `'first'`、`'last'`、`'largest'`                   | `'last'` | 回复中有多个候选时使用哪一个。                                                                                                                                                    |
+| `repair` | `'full'`、`'syntax'`、`'none'`                     | `'full'` | `'full'` 修复语法并补全被截断的值；`'syntax'` 修复语法，但把被截断的值报告为 `truncated`；`'none'` 严格解析。                                                                     |
+| `expect` | `'object'`、`'array'`、`'any'`                     | `'any'`  | 只考虑对象，或只考虑数组。                                                                                                                                                        |
+| `coerce` | `true`、`false`                                    | `false`  | 配合 schema：当它拒绝该值时，在其问题所指的路径上尝试 `"42"` ↔ `42`、`"true"` ↔ `true` 和 `"null"` → `null`；只有该路径上的问题消失时才保留修改。每次修改都记为 Issue `coerced`。 |
 
 结果是以下之一：
 
@@ -188,18 +189,19 @@ extractCodeBlocks(reply, { lang: 'ts' })[0]?.code // 'extractJson(reply)'
 
 每个结果都按顺序列出对回复做了什么。
 
-| `code`                   | 附加字段 | 修复了什么                                                           |
-| ------------------------ | -------- | -------------------------------------------------------------------- |
-| `stripped_wrapper`       | `detail` | 跳过了 JSON 周围的文本或代码围栏，例如 `'code fence, text before'`。 |
-| `trailing_comma`         | `at`     | `}` 或 `]` 前的逗号。                                                |
-| `single_quotes`          | `at`     | 用单引号括起的字符串。                                               |
-| `unquoted_key`           | `at`     | 没有引号的键。                                                       |
-| `python_literal`         | `at`     | `True`、`False` 或 `None`。                                          |
-| `non_finite_number`      | `at`     | `NaN` 或 `Infinity`，替换为 `null`。                                 |
-| `unescaped_control_char` | `at`     | 字符串中的原始换行符或制表符。                                       |
-| `comment_removed`        | `at`     | `//` 或 `/* */` 注释。                                               |
-| `truncated_closed`       | `closed` | 用 `closed` 中的括号补全了被截断的值。                               |
-| `tag_case_mismatch`      | `at`     | `extractTag`：结束标签与开始标签大小写不同。                         |
+| `code`                   | 附加字段             | 修复了什么                                                                                          |
+| ------------------------ | -------------------- | --------------------------------------------------------------------------------------------------- |
+| `stripped_wrapper`       | `detail`             | 跳过了 JSON 周围的文本或代码围栏，例如 `'code fence, text before'`。                                |
+| `trailing_comma`         | `at`                 | `}` 或 `]` 前的逗号。                                                                               |
+| `single_quotes`          | `at`                 | 用单引号括起的字符串。                                                                              |
+| `unquoted_key`           | `at`                 | 没有引号的键。                                                                                      |
+| `python_literal`         | `at`                 | `True`、`False` 或 `None`。                                                                         |
+| `non_finite_number`      | `at`                 | `NaN` 或 `Infinity`，替换为 `null`。                                                                |
+| `unescaped_control_char` | `at`                 | 字符串中的原始换行符或制表符。                                                                      |
+| `comment_removed`        | `at`                 | `//` 或 `/* */` 注释。                                                                              |
+| `truncated_closed`       | `closed`             | 用 `closed` 中的括号补全了被截断的值。                                                              |
+| `tag_case_mismatch`      | `at`                 | `extractTag`：结束标签与开始标签大小写不同。                                                        |
+| `coerced`                | `path`、`from`、`to` | 使用 `coerce` 时：`path` 处的值类型从 `from` 变为 `to`（`string`、`number`、`boolean` 或 `null`）。 |
 
 `at` 是在文本中的位置。
 
@@ -374,7 +376,7 @@ for (const call of toolCalls) {
 }
 ```
 
-`toolCalls` 按 Block 顺序列出回复中的工具调用。可用的调用为 `{ ok: true, index, id, name, args, issues }`：参数经过语法修复（与 `repair: 'syntax'` 相同），`issues` 列出修复了什么；空参数为 `{}`。提供 `tools`（每个工具名对应任意 Standard Schema，异步的也可以）时，`args` 是 schema 的输出，类型按 `name` 推断。
+`toolCalls` 按 Block 顺序列出回复中的工具调用。可用的调用为 `{ ok: true, index, id, name, args, issues }`：参数经过语法修复（与 `repair: 'syntax'` 相同），`issues` 列出修复了什么；空参数为 `{}`。提供 `tools`（每个工具名对应任意 Standard Schema，异步的也可以）时，`args` 是 schema 的输出，类型按 `name` 推断。使用 `coerce: true` 时，schema 拒绝的参数会像 `extractJson` 的 `coerce` 那样转换类型，每次修改都记在 `issues` 中。
 
 不可用的调用为 `{ ok: false, index, id, name, error, argsText, issues }`，模型写出的原始参数在 `argsText` 中：
 

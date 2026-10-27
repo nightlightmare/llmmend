@@ -1,3 +1,4 @@
+import { coerceAsync } from '../json/coerce'
 import type { Issue } from '../json/issue'
 import { parseJson } from '../json/parser'
 import type { StandardSchemaV1 } from '../json/schema'
@@ -65,7 +66,11 @@ export interface PendingToolCall {
 
 type AnyCall = ToolCall<ToolSchemas>
 
-async function finish(call: PendingToolCall, tools: ToolSchemas | undefined): Promise<AnyCall> {
+async function finish(
+  call: PendingToolCall,
+  tools: ToolSchemas | undefined,
+  coerce: boolean | undefined,
+): Promise<AnyCall> {
   const { index, id, name, argsText, custom } = call
   const base = { index, id, name, ...(custom ? { custom: true as const } : {}) }
   if (tools && !Object.hasOwn(tools, name))
@@ -87,7 +92,13 @@ async function finish(call: PendingToolCall, tools: ToolSchemas | undefined): Pr
 
   const schema = tools?.[name]
   if (schema) {
-    const validated = await schema['~standard'].validate(value)
+    const { validate } = schema['~standard']
+    let validated = await validate(value)
+    if (validated.issues && coerce) {
+      const coerced = await coerceAsync(value, validated, validate)
+      validated = coerced.result
+      issues = [...issues, ...coerced.issues]
+    }
     if (validated.issues)
       return {
         ...base,
@@ -108,8 +119,11 @@ async function finish(call: PendingToolCall, tools: ToolSchemas | undefined): Pr
 export function finishToolCalls(
   calls: Iterable<PendingToolCall>,
   tools: ToolSchemas | undefined,
+  coerce?: boolean,
 ): Promise<AnyCall[]> {
   // Sorts a copy (toSorted is newer than the ES2022 target).
   // oxlint-disable-next-line unicorn/no-array-sort
-  return Promise.all([...calls].sort((a, b) => a.index - b.index).map((c) => finish(c, tools)))
+  return Promise.all(
+    [...calls].sort((a, b) => a.index - b.index).map((c) => finish(c, tools, coerce)),
+  )
 }
