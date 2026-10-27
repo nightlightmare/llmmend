@@ -77,3 +77,7 @@ _Avoid_: stride, context
 **Separator**:
 A string or pattern a text may be cut after, tried from coarse (headings, paragraphs) to fine (sentences, words, grapheme clusters).
 _Avoid_: delimiter, boundary
+
+**Heading path**:
+The Markdown headings in effect where a Chunk's own text starts, outermost first: the section a Chunk belongs to, as context for search.
+_Avoid_: breadcrumb, section title

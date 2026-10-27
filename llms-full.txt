@@ -477,7 +477,7 @@ chunkText(text, { maxTokens: 10 }).map((c) => c.text)
 // ['One two three. Four five six.\n\n', 'Seven eight nine. Ten eleven twelve.']
 ```
 
-`chunkText(text, options)` splits a text into chunks of at most `maxTokens` tokens and returns `{ text, start, end, tokens, index, oversized? }[]`.
+`chunkText(text, options)` splits a text into chunks of at most `maxTokens` tokens and returns `{ text, start, end, tokens, index, oversized?, headings? }[]`.
 
 | Option        | Default          | Meaning                                                                                    |
 | ------------- | ---------------- | ------------------------------------------------------------------------------------------ |
@@ -495,6 +495,36 @@ Guarantees:
 - `tokens <= maxTokens`, unless a chunk is `oversized`: no separator could cut it smaller (with the default separators, a single grapheme cluster).
 - Chunks are in order without gaps; without overlap each starts where the previous ended, and joining them gives the text back. With overlap, a chunk starts inside the previous one, at the separator that gives the longest overlap within both `overlap` and `maxTokens`.
 - A grapheme cluster (an emoji with modifiers, a letter with accents) is never split.
+
+#### Heading paths
+
+```ts
+import { chunkText } from 'llmmend/chunk'
+
+const doc = '# Install\n\nPick your system.\n\n## Linux\n\nRun the script.'
+for (const chunk of chunkText(doc, { maxTokens: 8, mode: 'markdown' })) {
+  const context = chunk.headings?.join(' › ') // 'Install' first, then 'Install › Linux'
+  console.log(`${context}\n\n${chunk.text}`)
+}
+```
+
+In `markdown` mode every chunk has `headings`: the headings in effect where its own text starts, outermost first. A chunk that starts with a heading includes it; a chunk holding several small sections gets the first one's path; the Overlap at a chunk's start doesn't count. ATX headings of every level (`#` to `######`, also those finer than the separators) and setext headings (a line of `===` or `---` under the text) count; headings inside code fences don't. Only the markers are removed: inline Markdown stays as written. To give an embedding model that context, put the path before the chunk's text, as above: the chunk itself, its offsets and its token count stay unchanged.
+
+### chunkDocuments
+
+```ts
+import { chunkDocuments } from 'llmmend/chunk'
+
+const pages = [
+  { text: 'First page…', metadata: { source: 'guide.pdf', page: 1 } },
+  { text: 'Second page…', metadata: { source: 'guide.pdf', page: 2 } },
+]
+for (const chunk of chunkDocuments(pages, { maxTokens: 500 })) {
+  console.log(chunk.doc, chunk.index, chunk.metadata.page) // 0 0 1, then 1 0 2
+}
+```
+
+`chunkDocuments(docs, options)` splits several documents with `chunkText` and returns all their chunks in one array. Each chunk also has `doc`, the document's position in `docs`, and `metadata`, passed through as is and typed from the input. `index` counts within each document, `start` and `end` are offsets in that document, and options apply to each document (`headings` included). Chunks never overlap across documents: when a sentence may run across pages, join the pages before splitting.
 
 ### estimateTokens
 

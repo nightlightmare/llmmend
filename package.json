@@ -190,7 +190,7 @@
     {
       "name": "llmmend/chunk",
       "path": "dist/chunk/index.js",
-      "limit": "1.5 kB"
+      "limit": "2 kB"
     }
   ],
   "engines": {
