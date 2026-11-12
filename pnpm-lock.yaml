@@ -88,10 +88,10 @@ importers:
     dependencies:
       '@hono/node-server':
         specifier: ^2.1.5
-        version: 2.1.6(hono@4.13.13)
+        version: 2.1.6(hono@4.13.17)
       hono:
         specifier: ^4.13.13
-        version: 4.13.13
+        version: 4.13.17
       llmmend:
         specifier: workspace:*
         version: link:../..
@@ -1894,8 +1894,8 @@ packages:
   highlight.js@10.7.3:
     resolution: {integrity: sha512-tzcUFauisWKNHaRkN4Wjl/ZA07gENAjFl3J/c480dprkGTg5EQstgaNFqBfUqCq54kZRIEcreTsAgF/m2quD7A==}
 
-  hono@4.13.13:
-    resolution: {integrity: sha512-CQ46U0ZkAGmbT/4UxdzzGJpacP2IeKgY4a5/tOI9AABbpOMfK739wfDXmv1usCk+3RkKj1hQy4/fjhiwa2xlrA==}
+  hono@4.13.17:
+    resolution: {integrity: sha512-vZIcbkvjOR5hHRWERbGkr8fGfF0GGM1ooYkuH448iO3b2AdVEr3AXZSw4Z3Kn+1L5z0CVoVeyV29VGYmFh05kQ==}
     engines: {node: '>=16.9.0'}
 
   hookable@6.1.2:
@@ -2923,9 +2923,9 @@ snapshots:
   '@esbuild/win32-x64@0.28.2':
     optional: true
 
-  '@hono/node-server@2.1.6(hono@4.13.13)':
+  '@hono/node-server@2.1.6(hono@4.13.17)':
     dependencies:
-      hono: 4.13.13
+      hono: 4.13.17
 
   '@img/colour@1.1.0': {}
 
@@ -3842,7 +3842,7 @@ snapshots:
 
   highlight.js@10.7.3: {}
 
-  hono@4.13.13: {}
+  hono@4.13.17: {}
 
   hookable@6.1.2: {}
 
