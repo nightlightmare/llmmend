@@ -23,10 +23,11 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6
+      # No `cache: pnpm`: most runs skip `pnpm install`, so on a lockfile change the post step
+      # finds no pnpm store to save and fails the run.
       - uses: actions/setup-node@v7
         with:
           node-version: 24
-          cache: pnpm
           registry-url: https://registry.npmjs.org
       - name: Check whether this version was already released
         id: version
